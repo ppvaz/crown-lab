@@ -1,0 +1,25 @@
+{
+  "id": "concept_prop_gallery",
+  "description": "CONCEPT KIT — six occupied-floor solids and eight flush motifs at gameplay scale.",
+  "arena": "concept_prop_octagon",
+  "playerStart": {
+    "x": 0,
+    "y": 1.8
+  },
+  "waves": [
+    {
+      "id": "inspection_pair",
+      "atMs": 0,
+      "spawns": [
+        { "archetype": "guard", "at": { "x": -3, "y": -2.5 } },
+        { "archetype": "duelist", "at": { "x": 3, "y": -2.5 } }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Laboratory concept arena only. It is not a route room and makes no canonical claim.",
+    "The six solid obstacles are derived from the same semantic placements the renderer consumes.",
+    "All eight floor motifs are flush walk-through dressing and never imply collision."
+  ]
+}

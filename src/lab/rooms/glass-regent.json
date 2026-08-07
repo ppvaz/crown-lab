@@ -1,0 +1,34 @@
+{
+  "id": "glass_regent",
+  "description": "The Glass Regent: a volley, and a ward that ends when the shard does.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "glass_regent",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "glass_regent",
+          "at": {
+            "x": 0,
+            "y": -5
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 180000,
+  "notes": [
+    "The same floor, start and spawn as `first_blade`, `captain`, `thorn_marshal` and `queen`, so the one thing that differs between the boss rooms is the boss. A body whose whole claim is a projectile exchange has to be measured on the floor the melee claims were measured on.",
+    "Act one is untouchable: the ward is up while he holds a shard, and no melee answers it. The only damage window in the act is the stagger after a shard breaks in his hands, which happens because the king kept returning it — invulnerability ends by cause, not by a counter.",
+    "The opening slam is the only harmless one: it carries the king into a marked corner. After that, leaving every shelter prompts the damaging floor telegraph until the king returns to safe ground.",
+    "One rally may be live at a time. Act two keeps the same exchange but compresses the serve and opens it faster; overlapping rallies were removed because their accelerating return beats could converge inside one legal shield cycle.",
+    "180s rather than the boss rooms' 120s, for the Queen's reason: a rally is slower than a melee phrase, and a clock that ended the fight mid-volley would report a loss that was a clock.",
+    "The Regent remains fixed at the room's centre even during the punish window. Heavy hits deal their full damage without moving the station that gives every later rally its readable flight distance.",
+    "Public since 2026-08-03 (ADR-037), which reverses ADR-034 clause 1: the herald offers him as an aside, `game/public-profile.ts` carries his tuning — the whole `volley` block included — and `cast/index-public.ts` his body. The mechanism was already in every player's download as dead code; ADR-034 measured it at 6 888 bytes and said so."
+  ]
+}

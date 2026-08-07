@@ -1,0 +1,38 @@
+{
+  "id": "spacing_archer",
+  "description": "One guard and one archer. Melee pressure with a stand-off threat.",
+  "arena": "crossfire_hexagon",
+  "playerStart": {
+    "x": 0,
+    "y": 4,
+    "rotateDegrees": -20
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 0,
+            "y": -3,
+            "rotateDegrees": -20
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": -7,
+            "y": -5,
+            "rotateDegrees": -20
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Spacing under fire. The archer alone is trivial; the archer plus something that wants you in melee is the actual question — does positioning matter without destroying legibility (milestone 3, *Espaço*)?"
+  ]
+}

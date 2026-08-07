@@ -1,0 +1,26 @@
+{
+  "id": "tutorial_defense",
+  "description": "Tutorial experiment: guard, perfect parry and step.",
+  "tutorial": "defense",
+  "arena": "training_octagon",
+  "playerStart": {
+    "x": -2,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "teacher",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 2,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null
+}

@@ -1,0 +1,21 @@
+{
+  "id": "generated_chambers",
+  "description": "Generated: three chambers on a lattice, six guards of threat across two waves.",
+  "arena": "generated_chambers",
+  "waves": {
+    "kind": "budget",
+    "seed": 2,
+    "budget": 6,
+    "waveCount": 2,
+    "spawnMargin": 1.2,
+    "archetypes": ["guard", "duelist", "archer", "pike_novice"]
+  },
+  "timeLimitMs": null,
+  "notes": [
+    "The first room in this lab nobody authored, populated by a budget rather than a roster (ADR-014). Six guards of threat across two waves is three per wave — a duelist and a guard, or three guards, or a pike novice and a guard, depending on what the seed draws. The number is chosen against the kernel rooms rather than against a feeling: `kernel_guard` is one body and `court_45s` is a handful, and a chamber here is smaller than either room.",
+    "No `playerStart`, and the loader refuses one: the room is centred on its own bounding box, so an authored start is a coordinate in a frame that moved. The generator returns where the king stands, which is the centre of the first chamber whatever the seed did to the rest of the chain.",
+    "Nothing spawns in the king's chamber, ever. A body materialising on top of the player is not a fight but an ambush that decided itself before anyone looked at the room — and in a chain of chambers the walk to the first body *is* the encounter's opening, which is the one thing this shape has that a single convex room does not.",
+    "The roster is four non-bosses on purpose. A boss costs eight against a budget of six, so it could not be drawn here anyway, but the list is what says so: a generated room reaching a boss would bring entrance choreography and the pre-entrance music gate into a room whose geometry changes with a dial, and no question this room can answer needs that.",
+    "**Not balanced, and not a difficulty curve.** Nothing carries between the waves and nothing here is tuned toward fair — the budget makes two generated rooms comparable in weight, and says nothing about whether either is good. What the pilot sweep asks of it is narrower still: is this room winnable, did the corridors strand anyone. See `docs/11-PILOT-FINDINGS.md`."
+  ]
+}

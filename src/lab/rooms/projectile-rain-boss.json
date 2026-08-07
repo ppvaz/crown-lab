@@ -1,0 +1,29 @@
+{
+  "id": "projectile_rain_boss",
+  "description": "Boss instrument: committed rain fields overlapping one focal strike.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "rain",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "rain_boss",
+          "at": {
+            "x": 0,
+            "y": -4
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 120000,
+  "notes": [
+    "Mechanics-only peripheral-attention instrument. The falling field and the boss's focal strike overlap, but beyond the shared lifecycle there are no adds, arena hazards, phase-specific attacks or character premise to offer a second explanation for the result.",
+    "This is the **control arm** of the characterization condition (ADR-008). `chancellor` is the same room and the same fight with a character in it; keep this one bare."
+  ]
+}

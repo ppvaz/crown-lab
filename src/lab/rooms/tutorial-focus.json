@@ -1,0 +1,26 @@
+{
+  "id": "tutorial_focus",
+  "description": "Tutorial experiment: earn and spend player-controlled Instante Real.",
+  "tutorial": "focus",
+  "arena": "training_octagon",
+  "playerStart": {
+    "x": -2,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "teacher",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 2,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null
+}

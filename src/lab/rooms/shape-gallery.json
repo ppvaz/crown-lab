@@ -1,0 +1,37 @@
+{
+  "id": "shape_gallery",
+  "description": "Shape series: a 26 x 8 corridor. Length, with nowhere to circle.",
+  "arena": "long_gallery",
+  "playerStart": {
+    "x": -11,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -3,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 5,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "THE SHAPE SERIES ================",
+    "Four rooms, one roster. Every encounter below spawns exactly one guard and one duelist in a single wave with no time limit, so the only thing that varies between them is the floor they are fought on. Two enemy types is the corpus's \"regular\" palette — enough for a relationship between archetypes, few enough that the room stays the thing being read.",
+    "They are instruments, not rungs. Nothing here belongs on the route until one of them produces a reason to prefer its shape."
+  ]
+}

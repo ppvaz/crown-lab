@@ -1,0 +1,1105 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import json
+import math
+import os
+import sys
+
+import bpy
+from bpy_extras.object_utils import world_to_camera_view
+from mathutils import Matrix, Vector
+
+EXPECTED = {"isoX": 34.0, "isoY": 17.0, "elevationY": 34.0}
+
+
+def parse_args(argv):
+    args = argv[argv.index("--") + 1 :] if "--" in argv else []
+    out = {"contract": None, "calibrate": False, "out": None}
+    i = 0
+    while i < len(args):
+        if args[i] == "--contract":
+            out["contract"] = args[i + 1]
+            i += 2
+        elif args[i] == "--out":
+            out["out"] = args[i + 1]
+            i += 2
+        elif args[i] == "--calibrate":
+            out["calibrate"] = True
+            i += 1
+        else:
+            i += 1
+    return out
+
+
+def z_scale(iso_x, iso_y, elevation_y):
+    return elevation_y / math.sqrt(2.0 * (iso_x**2 - iso_y**2))
+
+
+def to_blender(x, y, h, k):
+    return Vector((x, -y, h * k))
+
+
+def camera_basis(iso_x, iso_y, elevation_y):
+
+    k = z_scale(iso_x, iso_y, elevation_y)
+    row_x = Vector((iso_x, iso_x, 0.0))
+    row_y = Vector((-iso_y, iso_y, elevation_y / k))
+    x_cam = row_x.normalized()
+    y_cam = row_y.normalized()
+    z_cam = x_cam.cross(y_cam)
+    return x_cam, y_cam, z_cam, k, row_x.length
+
+
+def build_camera(contract):
+    proj = contract["projection"]
+    for key, want in EXPECTED.items():
+        if abs(float(proj[key]) - want) > 1e-9:
+            print(f"NOTE: contract {key}={proj[key]} differs from {want}; using the contract")
+
+    iso_x, iso_y, elev = float(proj["isoX"]), float(proj["isoY"]), float(proj["elevationY"])
+    width = int(contract["raster"]["widthPx"])
+    height = int(contract["raster"]["heightPx"])
+    scale = float(contract["raster"]["effectiveScale"])
+
+    x_cam, y_cam, z_cam, k, px_per_unit = camera_basis(iso_x, iso_y, elev)
+
+    scene = bpy.context.scene
+    scene.render.resolution_x = width
+    scene.render.resolution_y = height
+    scene.render.resolution_percentage = 100
+    scene.render.pixel_aspect_x = 1.0
+    scene.render.pixel_aspect_y = 1.0
+
+    cam_data = bpy.data.cameras.new("CAM-room")
+    cam_data.type = "ORTHO"
+    cam_data.ortho_scale = width / (px_per_unit * scale)
+    cam_data.clip_start = 1.0
+    cam_data.clip_end = 1000.0
+
+    cam = bpy.data.objects.new("CAM-room", cam_data)
+    scene.collection.objects.link(cam)
+
+    origin = contract["raster"].get("origin", {"x": 0.0, "y": 0.0, "elevation": 0.0})
+    aim = to_blender(
+        float(origin.get("x", 0.0)),
+        float(origin.get("y", 0.0)),
+        float(origin.get("elevation", 0.0)),
+        k,
+    )
+    eye = aim + z_cam * 200.0
+    basis = Matrix((
+        (x_cam.x, y_cam.x, z_cam.x, eye.x),
+        (x_cam.y, y_cam.y, z_cam.y, eye.y),
+        (x_cam.z, y_cam.z, z_cam.z, eye.z),
+        (0.0, 0.0, 0.0, 1.0),
+    ))
+    cam.matrix_world = basis
+    scene.camera = cam
+    return cam, k, width, height, scale
+
+
+
+
+def mesh_from_world(name, verts_world, faces, k, collection=None):
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata([tuple(to_blender(*v, k)) for v in verts_world], [], faces)
+    mesh.validate()
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    (collection or bpy.context.scene.collection).objects.link(obj)
+    return obj
+
+
+def multipart_mesh_from_world(name, parts, k, collection=None):
+
+    verts_world = []
+    faces = []
+    face_materials = []
+    materials = []
+    material_slots = {}
+    for part_verts, part_faces, mat in parts:
+        offset = len(verts_world)
+        verts_world.extend(part_verts)
+        faces.extend([[index + offset for index in face] for face in part_faces])
+        key = mat.name
+        if key not in material_slots:
+            material_slots[key] = len(materials)
+            materials.append(mat)
+        face_materials.extend([material_slots[key]] * len(part_faces))
+
+    obj = mesh_from_world(name, verts_world, faces, k, collection)
+    for mat in materials:
+        obj.data.materials.append(mat)
+    for polygon, material_index in zip(obj.data.polygons, face_materials):
+        polygon.material_index = material_index
+    return obj
+
+
+def prism(name, polygon, bottom_h, top_h, k, collection=None):
+    n = len(polygon)
+    verts = [(x, y, top_h) for (x, y) in polygon] + [(x, y, bottom_h) for (x, y) in polygon]
+    faces = [list(range(n)), [i + n for i in reversed(range(n))]]
+    faces += [[i, (i + 1) % n, (i + 1) % n + n, i + n] for i in range(n)]
+    return mesh_from_world(name, verts, faces, k, collection)
+
+
+def box(name, cx, cy, sx, sy, bottom_h, top_h, k, collection=None):
+    hx, hy = sx / 2.0, sy / 2.0
+    poly = [(cx - hx, cy - hy), (cx + hx, cy - hy), (cx + hx, cy + hy), (cx - hx, cy + hy)]
+    return prism(name, poly, bottom_h, top_h, k, collection)
+
+
+def lerp2(a, b, t):
+    return (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+
+
+def from_blender(v, k):
+    return (v.x, -v.y, v.z / k)
+
+
+def emit_room_script(path, room, k, skip=("CAM-room",)):
+
+
+
+    lines = [
+        '"""',
+        f"GENERATED by crown_kit.emit_room_script from a live Blender session — {room}.",
+        "",
+        "Committed on purpose: docs/ASSET-PIPELINES-PLAN.md §5.1 says the script is the source and",
+        "there is no .blend. Edit the geometry in Blender and re-emit; do not hand-edit the vertex",
+        "tables below, because the next emit will overwrite them and the diff will be unreadable.",
+        '"""',
+        "",
+        "import crown_kit",
+        "",
+        "",
+        "def build(k):",
+    ]
+    count = 0
+    for obj in sorted(bpy.context.scene.objects, key=lambda o: o.name):
+        if obj.type != "MESH" or obj.name in skip:
+            continue
+        mesh = obj.data
+        mw = obj.matrix_world
+        verts = [from_blender(mw @ v.co, k) for v in mesh.vertices]
+        faces = [list(p.vertices) for p in mesh.polygons]
+        lines.append(f"    # {obj.name}: {len(verts)} verts, {len(faces)} faces")
+        lines.append(f"    crown_kit.mesh_from_world({obj.name!r}, [")
+        for x, y, h in verts:
+            lines.append(f"        ({x:.6f}, {y:.6f}, {h:.6f}),")
+        lines.append("    ], [")
+        for f in faces:
+            lines.append(f"        {list(f)},")
+        lines.append("    ], k)")
+        lines.append("")
+        count += 1
+    if count == 0:
+        lines.append("    pass")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines) + "\n")
+    return path, count
+
+
+def setup_blockout_render(samples=16):
+
+    scene = bpy.context.scene
+    scene.render.engine = "BLENDER_WORKBENCH"
+    shading = scene.display.shading
+    shading.light = "STUDIO"
+    shading.color_type = "SINGLE"
+    shading.single_color = (0.62, 0.62, 0.64)
+    shading.show_shadows = True
+    shading.show_cavity = True
+    scene.display.render_aa = f"{samples}" if samples in (5, 8, 11, 16, 32) else "16"
+    scene.render.film_transparent = True
+    scene.render.image_settings.file_format = "PNG"
+    scene.render.image_settings.color_mode = "RGBA"
+
+    view = scene.view_settings
+    view.view_transform = "Standard"
+    view.look = "None"
+    view.exposure = 0.0
+    view.gamma = 1.0
+    scene.display_settings.display_device = "sRGB"
+
+
+def render_preset():
+    scene = bpy.context.scene
+    return {
+        "engine": scene.render.engine,
+        "viewTransform": scene.view_settings.view_transform,
+        "look": scene.view_settings.look,
+        "displayDevice": scene.display_settings.display_device,
+        "renderAa": scene.display.render_aa,
+        "filmTransparent": scene.render.film_transparent,
+        "blender": bpy.app.version_string,
+    }
+
+
+def render_to(path):
+    bpy.context.scene.render.filepath = path
+    bpy.ops.render.render(write_still=True)
+    return path
+
+
+
+
+def layer(name):
+    existing = bpy.data.collections.get(name)
+    if existing is not None:
+        return existing
+    made = bpy.data.collections.new(name)
+    bpy.context.scene.collection.children.link(made)
+    return made
+
+
+
+
+def describe(mat, kind, **fields):
+
+
+    mat["crown"] = json.dumps({"kind": kind, **fields})
+    return mat
+
+
+def material(name, colour, roughness=0.8, metallic=0.0, emission=None, strength=0.0):
+    existing = bpy.data.materials.get(name)
+    if existing is not None:
+        return existing
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    bsdf.inputs["Base Color"].default_value = (*colour, 1.0)
+    bsdf.inputs["Roughness"].default_value = roughness
+    bsdf.inputs["Metallic"].default_value = metallic
+    if emission is not None:
+        bsdf.inputs["Emission Color"].default_value = (*emission, 1.0)
+        bsdf.inputs["Emission Strength"].default_value = strength
+    return describe(mat, "plain", colour=list(colour), roughness=roughness)
+
+
+
+
+def _shader(mat, kind):
+    return mat.node_tree.nodes.new(kind)
+
+
+def _object_coords(mat, scale):
+    coords = _shader(mat, "ShaderNodeTexCoord")
+    mapping = _shader(mat, "ShaderNodeMapping")
+    mapping.inputs["Scale"].default_value = (scale, scale, scale)
+    mat.node_tree.links.new(coords.outputs["Object"], mapping.inputs["Vector"])
+    return mapping.outputs["Vector"]
+
+
+def _mix(mat, factor, a, b, blend="MIX"):
+    node = _shader(mat, "ShaderNodeMix")
+    node.data_type = "RGBA"
+    node.blend_type = blend
+    ins = [socket for socket in node.inputs if socket.enabled]
+    links = mat.node_tree.links
+    if hasattr(factor, "name"):
+        links.new(factor, ins[0])
+    else:
+        ins[0].default_value = factor
+    for socket, value in ((ins[1], a), (ins[2], b)):
+        if hasattr(value, "name"):
+            links.new(value, socket)
+        else:
+            socket.default_value = (*value, 1.0)
+    return [o for o in node.outputs if o.enabled][0]
+
+
+TOON_PATTERNS = ("courses", "tiles", "planks", "flat")
+
+
+def toon_material(
+    name,
+    colour,
+    joint=None,
+    pattern="courses",
+    block=(1.15, 0.42),
+    joint_size=0.028,
+    roughness=0.92,
+    shade=1.16,
+    kind=None,
+):
+
+
+
+
+
+
+
+    existing = bpy.data.materials.get(name)
+    if existing is not None:
+        return existing
+    if pattern not in TOON_PATTERNS:
+        raise ValueError(f"{name}: pattern {pattern!r} is not one of {TOON_PATTERNS}")
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = tree.nodes.get("Principled BSDF")
+    bsdf.inputs["Roughness"].default_value = roughness
+    bsdf.inputs["Metallic"].default_value = 0.0
+    if "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = 0.18
+
+    if pattern == "flat":
+        bsdf.inputs["Base Color"].default_value = (*colour, 1.0)
+        return describe(mat, kind or "plain", colour=list(colour), roughness=roughness)
+
+    coords = _shader(mat, "ShaderNodeTexCoord")
+    split = _shader(mat, "ShaderNodeSeparateXYZ")
+    tree.links.new(coords.outputs["Object"], split.inputs["Vector"])
+    combine = _shader(mat, "ShaderNodeCombineXYZ")
+    if pattern == "tiles":
+        tree.links.new(split.outputs["X"], combine.inputs["X"])
+        tree.links.new(split.outputs["Y"], combine.inputs["Y"])
+    else:
+        run = _shader(mat, "ShaderNodeMath")
+        run.operation = "ADD"
+        tree.links.new(split.outputs["X"], run.inputs[0])
+        tree.links.new(split.outputs["Y"], run.inputs[1])
+        tree.links.new(run.outputs["Value"], combine.inputs["X"])
+        tree.links.new(split.outputs["Z"], combine.inputs["Y"])
+
+    brick = _shader(mat, "ShaderNodeTexBrick")
+    tree.links.new(combine.outputs["Vector"], brick.inputs["Vector"])
+    brick.inputs["Color1"].default_value = (*colour, 1.0)
+    brick.inputs["Color2"].default_value = (*[min(c * shade, 1.0) for c in colour], 1.0)
+    brick.inputs["Mortar"].default_value = (*(joint or [c * 0.55 for c in colour]), 1.0)
+    brick.inputs["Scale"].default_value = 1.0
+    brick.inputs["Brick Width"].default_value = block[0]
+    brick.inputs["Row Height"].default_value = block[1]
+    brick.inputs["Mortar Size"].default_value = joint_size
+    brick.inputs["Mortar Smooth"].default_value = 0.0
+    brick.offset = 0.0 if pattern == "tiles" else 0.5
+    brick.offset_frequency = 2
+    brick.inputs["Bias"].default_value = 0.0
+    tree.links.new(brick.outputs["Color"], bsdf.inputs["Base Color"])
+
+    recorded = kind or {"courses": "ashlar", "tiles": "flagstone", "planks": "plain"}[pattern]
+    return describe(
+        mat,
+        recorded,
+        colour=list(colour),
+        joint=list(joint or [c * 0.55 for c in colour]),
+        block=list(block),
+        mortar=joint_size,
+        roughness=roughness,
+    )
+
+
+def masonry_material(
+    name,
+    colour,
+    mortar,
+    scale=0.22,
+    block=(0.62, 0.30),
+    mortar_size=0.022,
+    grain=(9.0, 0.10),
+    bump=(0.55, 0.03),
+    roughness=0.86,
+    texture=None,
+    texture_strength=0.68,
+):
+
+
+    existing = bpy.data.materials.get(name)
+    if existing is not None:
+        return existing
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = tree.nodes.get("Principled BSDF")
+    vector = _object_coords(mat, scale)
+
+    brick = _shader(mat, "ShaderNodeTexBrick")
+    tree.links.new(vector, brick.inputs["Vector"])
+    brick.inputs["Color1"].default_value = (*colour, 1.0)
+    brick.inputs["Color2"].default_value = (*[c * 1.22 for c in colour], 1.0)
+    brick.inputs["Mortar"].default_value = (*mortar, 1.0)
+    brick.inputs["Scale"].default_value = 1.0
+    brick.inputs["Brick Width"].default_value = block[0]
+    brick.inputs["Row Height"].default_value = block[1]
+    brick.inputs["Mortar Size"].default_value = mortar_size
+    brick.inputs["Mortar Smooth"].default_value = 0.1
+    brick.inputs["Bias"].default_value = 0.0
+
+    noise = _shader(mat, "ShaderNodeTexNoise")
+    tree.links.new(vector, noise.inputs["Vector"])
+    noise.inputs["Scale"].default_value = grain[0]
+    noise.inputs["Detail"].default_value = 8.0
+    noise.inputs["Roughness"].default_value = 0.6
+
+    weathered = _mix(mat, grain[1], brick.outputs["Color"], noise.outputs["Color"], blend="MULTIPLY")
+    albedo = weathered
+    if texture is not None:
+        image = bpy.data.images.load(os.path.abspath(texture), check_existing=True)
+        image.colorspace_settings.name = "Non-Color"
+        if image.packed_file is None:
+            image.pack()
+        image_node = _shader(mat, "ShaderNodeTexImage")
+        image_node.image = image
+        image_node.projection = "BOX"
+        image_node.projection_blend = 0.22
+        image_node.extension = "REPEAT"
+        tree.links.new(vector, image_node.inputs["Vector"])
+        albedo = _mix(mat, texture_strength, weathered, image_node.outputs["Color"])
+    tree.links.new(albedo, bsdf.inputs["Base Color"])
+
+    height = _mix(mat, 0.35, brick.outputs["Factor"], noise.outputs["Factor"])
+    relief = _shader(mat, "ShaderNodeBump")
+    relief.inputs["Strength"].default_value = bump[0]
+    relief.inputs["Distance"].default_value = bump[1]
+    tree.links.new(height, relief.inputs["Height"])
+    tree.links.new(relief.outputs["Normal"], bsdf.inputs["Normal"])
+
+    rough = _mix(mat, brick.outputs["Factor"], (roughness, roughness, roughness),
+                 (roughness * 0.82, roughness * 0.82, roughness * 0.82))
+    tree.links.new(rough, bsdf.inputs["Roughness"])
+    return describe(
+        mat,
+        "ashlar",
+        colour=list(colour),
+        joint=list(mortar),
+        block=list(block),
+        mortar=mortar_size,
+        roughness=roughness,
+    )
+
+
+def flagstone_material(
+    name,
+    colour,
+    mortar,
+    scale=0.14,
+    block=(1.0, 1.0),
+    roughness=0.66,
+    texture=None,
+    texture_strength=0.34,
+):
+
+    return describe(
+        masonry_material(
+            name,
+            colour,
+            mortar,
+            scale=scale,
+            block=block,
+            mortar_size=0.012,
+            grain=(3.5, 0.07),
+            bump=(0.18, 0.02),
+            roughness=roughness,
+            texture=texture,
+            texture_strength=texture_strength,
+        ),
+        "flagstone",
+        colour=list(colour),
+        joint=list(mortar),
+        block=list(block),
+        mortar=0.012,
+        roughness=roughness,
+    )
+
+
+def metal_material(name, colour, roughness=0.34, scale=6.0, variation=0.22):
+
+    existing = bpy.data.materials.get(name)
+    if existing is not None:
+        return existing
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = tree.nodes.get("Principled BSDF")
+    bsdf.inputs["Base Color"].default_value = (*colour, 1.0)
+    bsdf.inputs["Metallic"].default_value = 0.9
+
+    noise = _shader(mat, "ShaderNodeTexNoise")
+    tree.links.new(_object_coords(mat, 1.0), noise.inputs["Vector"])
+    noise.inputs["Scale"].default_value = scale
+    noise.inputs["Detail"].default_value = 6.0
+
+    rough = _mix(mat, variation, (roughness, roughness, roughness), noise.outputs["Color"])
+    tree.links.new(rough, bsdf.inputs["Roughness"])
+    return describe(mat, "metal", colour=list(colour), roughness=roughness)
+
+
+def flame_material(name, colour, strength=14.0, scale=5.0):
+
+    existing = bpy.data.materials.get(name)
+    if existing is not None:
+        return existing
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = tree.nodes.get("Principled BSDF")
+    bsdf.inputs["Base Color"].default_value = (*colour, 1.0)
+    bsdf.inputs["Roughness"].default_value = 1.0
+
+    noise = _shader(mat, "ShaderNodeTexNoise")
+    tree.links.new(_object_coords(mat, 1.0), noise.inputs["Vector"])
+    noise.inputs["Scale"].default_value = scale
+    noise.inputs["Detail"].default_value = 4.0
+
+    hot = _mix(mat, 0.3, (*colour,), noise.outputs["Color"], blend="SCREEN")
+    tree.links.new(hot, bsdf.inputs["Emission Color"])
+    bsdf.inputs["Emission Strength"].default_value = strength
+    return describe(mat, "flame", colour=list(colour), strength=strength)
+
+
+def _boxed_image(mat, vector, path, colorspace):
+    image = bpy.data.images.load(os.path.abspath(path), check_existing=True)
+    image.colorspace_settings.name = colorspace
+    if image.packed_file is None:
+        image.pack()
+    node = _shader(mat, "ShaderNodeTexImage")
+    node.image = image
+    node.projection = "BOX"
+    node.projection_blend = 0.22
+    node.extension = "REPEAT"
+    mat.node_tree.links.new(vector, node.inputs["Vector"])
+    return node
+
+
+def pbr_material(
+    name,
+    colour,
+    diffuse,
+    rough,
+    height,
+    scale=0.22,
+    tint=0.85,
+    gain=2.9,
+    bump=(0.45, 0.03),
+    kind="ashlar",
+    **describe_fields,
+):
+
+    existing = bpy.data.materials.get(name)
+    if existing is not None:
+        return existing
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = tree.nodes.get("Principled BSDF")
+    vector = _object_coords(mat, scale)
+
+    photo = _boxed_image(mat, vector, diffuse, "sRGB")
+    mono = _shader(mat, "ShaderNodeRGBToBW")
+    tree.links.new(photo.outputs["Color"], mono.inputs["Color"])
+    level = _shader(mat, "ShaderNodeMath")
+    level.operation = "MULTIPLY"
+    tree.links.new(mono.outputs["Val"], level.inputs[0])
+    level.inputs[1].default_value = gain
+    recoloured = _mix(mat, 1.0, level.outputs["Value"], colour, blend="MULTIPLY")
+    albedo = _mix(mat, tint, photo.outputs["Color"], recoloured)
+    tree.links.new(albedo, bsdf.inputs["Base Color"])
+
+    roughness = _boxed_image(mat, vector, rough, "Non-Color")
+    tree.links.new(roughness.outputs["Color"], bsdf.inputs["Roughness"])
+
+    relief = _boxed_image(mat, vector, height, "Non-Color")
+    bump_node = _shader(mat, "ShaderNodeBump")
+    bump_node.inputs["Strength"].default_value = bump[0]
+    bump_node.inputs["Distance"].default_value = bump[1]
+    tree.links.new(relief.outputs["Color"], bump_node.inputs["Height"])
+    tree.links.new(bump_node.outputs["Normal"], bsdf.inputs["Normal"])
+    return describe(mat, kind, colour=list(colour), **describe_fields)
+
+
+def cloth_material(
+    name,
+    colour,
+    diffuse,
+    rough,
+    height,
+    scale=2.4,
+    fold=(1.4, 0.55),
+    tint=0.8,
+):
+
+    existing = bpy.data.materials.get(name)
+    if existing is not None:
+        return existing
+    mat = pbr_material(
+        name,
+        colour,
+        diffuse,
+        rough,
+        height,
+        scale=scale,
+        tint=tint,
+        bump=(0.28, 0.015),
+        kind="plain",
+        roughness=0.72,
+    )
+    tree = mat.node_tree
+    bsdf = tree.nodes.get("Principled BSDF")
+    bump_node = next(n for n in tree.nodes if n.bl_idname == "ShaderNodeBump")
+
+    coords = _shader(mat, "ShaderNodeTexCoord")
+    stretch = _shader(mat, "ShaderNodeMapping")
+    stretch.inputs["Scale"].default_value = (fold[0], fold[0], fold[0] * 0.12)
+    tree.links.new(coords.outputs["Object"], stretch.inputs["Vector"])
+    folds = _shader(mat, "ShaderNodeTexNoise")
+    tree.links.new(stretch.outputs["Vector"], folds.inputs["Vector"])
+    folds.inputs["Scale"].default_value = 1.0
+    folds.inputs["Detail"].default_value = 2.0
+
+    weave_height = bump_node.inputs["Height"].links[0].from_socket
+    combined = _mix(mat, fold[1], weave_height, folds.outputs["Color"])
+    tree.links.new(combined, bump_node.inputs["Height"])
+    bump_node.inputs["Strength"].default_value = 0.6
+    tree.links.new(bump_node.outputs["Normal"], bsdf.inputs["Normal"])
+    return mat
+
+
+def paint(obj, mat):
+    obj.data.materials.clear()
+    obj.data.materials.append(mat)
+    return obj
+
+
+def emits(obj):
+
+
+
+    obj.visible_shadow = False
+    return obj
+
+
+def world_fill(colour):
+
+
+
+    world = bpy.data.worlds.get("crown-fill") or bpy.data.worlds.new("crown-fill")
+    world.use_nodes = True
+    background = world.node_tree.nodes.get("Background")
+    background.inputs["Color"].default_value = (*colour, 1.0)
+    background.inputs["Strength"].default_value = 1.0
+    bpy.context.scene.world = world
+    return world
+
+
+def area_light(name, x, y, h, k, energy=200.0, colour=(1.0, 0.82, 0.55), size=6.0, lamp=None):
+
+    data = bpy.data.lights.new(name, type="AREA")
+    data.energy = energy
+    data.color = colour
+    data.size = size
+    obj = bpy.data.objects.new(name, data)
+    obj.location = to_blender(x, y, h, k)
+    obj.rotation_euler = (0.0, 0.0, 0.0)
+    obj["crownLamp"] = "" if lamp is None else lamp.name
+    bpy.context.scene.collection.objects.link(obj)
+    return obj
+
+
+def setup_material_render(samples=64):
+
+    scene = bpy.context.scene
+    scene.render.engine = "BLENDER_EEVEE"
+    try:
+        scene.eevee.taa_render_samples = samples
+        scene.eevee.use_raytracing = True
+    except AttributeError:
+        pass
+    scene.render.film_transparent = True
+    scene.render.image_settings.file_format = "PNG"
+    scene.render.image_settings.color_mode = "RGBA"
+    view = scene.view_settings
+    view.view_transform = "Standard"
+    view.look = "None"
+    view.exposure = 0.0
+    view.gamma = 1.0
+    scene.display_settings.display_device = "sRGB"
+
+
+def shadows(enabled):
+
+    bpy.context.scene.eevee.use_shadows = bool(enabled)
+    return bool(enabled)
+
+
+
+
+def _compositing_group(scene, name="crown-composite"):
+
+    group = bpy.data.node_groups.new(name, "CompositorNodeTree")
+    group.interface.new_socket("Image", in_out="INPUT", socket_type="NodeSocketColor")
+    group.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+    scene.compositing_node_group = group
+    return group
+
+
+def render_light_layers(names, out_dir, room, glow=(8.0, 1.0, 1.0)):
+
+
+
+
+    scene = bpy.context.scene
+    view_layer = scene.view_layers[0]
+    view_layer.use_pass_emit = True
+    scene.render.image_settings.color_mode = "RGBA"
+
+    previous = scene.compositing_node_group
+    group = _compositing_group(scene)
+    nodes, links = group.nodes, group.links
+    output = nodes.new("NodeGroupOutput")
+    render_layer = nodes.new("CompositorNodeRLayers")
+    render_layer.scene = scene
+    render_layer.layer = view_layer.name
+    sockets = {socket.name: socket for socket in render_layer.outputs}
+
+    def shoot(name, build):
+        for link in list(links):
+            links.remove(link)
+        links.new(build(), output.inputs[0])
+        return render_to(os.path.join(out_dir, f"{room}-{name}.png"))
+
+    made = {}
+
+    def glow_term():
+        glare = nodes.new("CompositorNodeGlare")
+        links.new(sockets["Emission"], glare.inputs["Image"])
+        glare.inputs["Type"].default_value = "Fog Glow"
+        size, strength, threshold = glow
+        glare.inputs["Size"].default_value = size
+        glare.inputs["Strength"].default_value = strength
+        glare.inputs["Threshold"].default_value = threshold
+        return glare.outputs["Glare"]
+
+    for name, build in (("lighting", glow_term),):
+        if name not in names:
+            continue
+        made[name] = {"file": os.path.basename(shoot(name, build)), "objects": 0}
+
+    scene.compositing_node_group = previous
+    bpy.data.node_groups.remove(group)
+    return made
+
+
+def render_sorted_sprites(collection_names, out_dir, room, pad_px=2):
+
+
+
+
+    scene = bpy.context.scene
+    cam = scene.camera
+    width = scene.render.resolution_x
+    height = scene.render.resolution_y
+    meshes = [o for o in scene.objects if o.type == "MESH"]
+    k = z_scale(*(EXPECTED[key] for key in ("isoX", "isoY", "elevationY")))
+
+    sprites = []
+    for layer in collection_names:
+        collection = bpy.data.collections.get(layer)
+        if collection is None:
+            continue
+        for obj in list(collection.all_objects):
+            if obj.type != "MESH":
+                continue
+            corners = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
+            projected = [world_to_camera_view(scene, cam, c) for c in corners]
+            xs = [p.x * width for p in projected]
+            ys = [(1.0 - p.y) * height for p in projected]
+            x0 = max(0, int(math.floor(min(xs))) - pad_px)
+            x1 = min(width, int(math.ceil(max(xs))) + pad_px)
+            y0 = max(0, int(math.floor(min(ys))) - pad_px)
+            y1 = min(height, int(math.ceil(max(ys))) + pad_px)
+            if x1 <= x0 or y1 <= y0:
+                continue
+
+            centre = sum(corners, Vector((0.0, 0.0, 0.0))) / len(corners)
+            anchor = from_blender(centre, k)
+
+            for other in meshes:
+                other.hide_render = other is not obj
+            scene.render.use_border = True
+            scene.render.use_crop_to_border = True
+            scene.render.border_min_x = x0 / width
+            scene.render.border_max_x = x1 / width
+            scene.render.border_min_y = 1.0 - y1 / height
+            scene.render.border_max_y = 1.0 - y0 / height
+            path = os.path.join(out_dir, f"{room}-sprite-{obj.name}.png")
+            render_to(path)
+            sprites.append({
+                "name": obj.name,
+                "layer": layer,
+                "file": os.path.basename(path),
+                "anchor": {"x": anchor[0], "y": anchor[1]},
+                "crop": [x0, y0, x1, y1],
+            })
+
+    scene.render.use_border = False
+    scene.render.use_crop_to_border = False
+    for other in meshes:
+        other.hide_render = False
+    return sprites
+
+
+def layer_names():
+    return [c.name for c in bpy.context.scene.collection.children]
+
+
+
+
+def _mass_record(obj, k, layer):
+    matrix = obj.matrix_world
+    points = [from_blender(matrix @ v.co, k) for v in obj.data.vertices]
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+    hs = [p[2] for p in points]
+    r = lambda value: round(value, 6)
+    return {
+        "name": obj.name,
+        "layer": layer,
+        "at": {"x": r((min(xs) + max(xs)) / 2.0), "y": r((min(ys) + max(ys)) / 2.0)},
+        "bounds": {
+            "min": {"x": r(min(xs)), "y": r(min(ys))},
+            "max": {"x": r(max(xs)), "y": r(max(ys))},
+            "top": r(max(hs)),
+        },
+    }
+
+
+def lamp_records(k):
+
+    r = lambda value: round(value, 6)
+    lights = []
+    for obj in bpy.context.scene.objects:
+        if obj.type != "LIGHT":
+            continue
+        x, y, h = from_blender(obj.location, k)
+        lights.append({
+            "name": obj.name,
+            "lamp": obj.get("crownLamp", ""),
+            "at": {"x": r(x), "y": r(y)},
+            "elevation": r(h),
+            "energy": r(obj.data.energy),
+            "colour": [r(c) for c in obj.data.color],
+            "size": r(obj.data.size),
+        })
+    return lights
+
+
+def room_mesh_manifest(contract, k, mass_layers=("solidProps", "foregroundOccluders")):
+    r = lambda value: round(value, 6)
+    materials = {}
+    for mat in bpy.data.materials:
+        described = mat.get("crown")
+        if described is not None:
+            materials[mat.name] = json.loads(described)
+
+    layers = {}
+    for name in layer_names():
+        collection = bpy.data.collections.get(name)
+        if collection is None:
+            continue
+        layers[name] = [o.name for o in collection.all_objects if o.type == "MESH"]
+
+    masses = []
+    for name in mass_layers:
+        collection = bpy.data.collections.get(name)
+        if collection is None:
+            continue
+        for obj in collection.all_objects:
+            if obj.type == "MESH":
+                masses.append(_mass_record(obj, k, name))
+
+    lights = lamp_records(k)
+
+    background = None
+    if bpy.context.scene.world is not None and bpy.context.scene.world.use_nodes:
+        node = bpy.context.scene.world.node_tree.nodes.get("Background")
+        if node is not None:
+            strength = node.inputs["Strength"].default_value
+            background = [r(c * strength) for c in node.inputs["Color"].default_value[:3]]
+
+    projection = contract["projection"]
+    return {
+        "room": contract["room"],
+        "ambient": background,
+        "cameraContract": {"contentHash": contract.get("contentHash", "")},
+        "space": {
+            "note": "GLB vertices are Blender space: world (x, y, elevation) at (x, -y, elevation * heightScale)",
+            "yMirror": True,
+            "heightScale": r(k),
+        },
+        "projection": {
+            "isoX": float(projection["isoX"]),
+            "isoY": float(projection["isoY"]),
+            "elevationY": float(projection["elevationY"]),
+            "wallUnits": float(projection["wallUnits"]),
+        },
+        "arena": contract["arena"],
+        "materials": materials,
+        "layers": layers,
+        "masses": masses,
+        "lights": lights,
+    }
+
+
+def export_room_mesh(path, contract, k, mass_layers=("solidProps", "foregroundOccluders")):
+
+    bpy.ops.export_scene.gltf(
+        filepath=path,
+        export_format="GLB",
+        export_yup=False,
+        export_apply=True,
+        export_materials="EXPORT",
+        export_normals=True,
+        export_image_format="NONE",
+        export_texcoords=False,
+        export_tangents=False,
+        export_animations=False,
+        export_cameras=False,
+        export_lights=False,
+    )
+    return room_mesh_manifest(contract, k, mass_layers)
+
+
+def _flatten_for_mask(scene):
+
+
+
+    if scene.render.engine == "BLENDER_WORKBENCH":
+        shading = scene.display.shading
+        before = (shading.light, shading.single_color[:], shading.show_shadows, shading.show_cavity)
+        shading.light = "FLAT"
+        shading.single_color = (1.0, 1.0, 1.0)
+        shading.show_shadows = False
+        shading.show_cavity = False
+
+        def undo():
+            shading.light, shading.single_color, shading.show_shadows, shading.show_cavity = before
+
+        return undo
+
+    view_layer = scene.view_layers[0]
+    before_override = view_layer.material_override
+    white = bpy.data.materials.get("crown-coverage-white")
+    if white is None:
+        white = material("crown-coverage-white", (0.0, 0.0, 0.0), roughness=1.0,
+                         emission=(1.0, 1.0, 1.0), strength=1.0)
+    view_layer.material_override = white
+
+    def undo():
+        view_layer.material_override = before_override
+
+    return undo
+
+
+def render_layers(names, out_dir, room, single_channel=(), derived=None):
+
+
+    scene = bpy.context.scene
+    meshes = [o for o in scene.objects if o.type == "MESH"]
+    derived = derived or {}
+    made = {}
+    for name in names:
+        collection = bpy.data.collections.get(derived.get(name, name))
+        if collection is None:
+            continue
+        members = set(collection.all_objects)
+        if not members:
+            continue
+        for obj in meshes:
+            obj.hide_render = obj not in members
+        masking = name in single_channel
+        scene.render.image_settings.color_mode = "BW" if masking else "RGBA"
+        restore = _flatten_for_mask(scene) if masking else None
+        path = os.path.join(out_dir, f"{room}-{name}.png")
+        render_to(path)
+        if restore is not None:
+            restore()
+        made[name] = {"file": os.path.basename(path), "objects": len(members)}
+    for obj in meshes:
+        obj.hide_render = False
+    scene.render.image_settings.color_mode = "RGBA"
+    return made
+
+
+def calibrate(contract, cam, k, width, height, scale):
+
+    from bpy_extras.object_utils import world_to_camera_view
+
+    span = float(contract["arena"]["span"])
+    half = span / 2.0
+    wall = float(contract["projection"]["wallUnits"])
+    points = [
+        {"label": "origin", "x": 0.0, "y": 0.0, "h": 0.0},
+        {"label": "+x", "x": half, "y": 0.0, "h": 0.0},
+        {"label": "-x", "x": -half, "y": 0.0, "h": 0.0},
+        {"label": "+y", "x": 0.0, "y": half, "h": 0.0},
+        {"label": "-y", "x": 0.0, "y": -half, "h": 0.0},
+        {"label": "corner", "x": half, "y": half, "h": 0.0},
+        {"label": "opposite", "x": -half, "y": -half, "h": 0.0},
+        {"label": "wall-top", "x": 0.0, "y": 0.0, "h": wall},
+        {"label": "wall-corner", "x": -half, "y": -half, "h": wall},
+        {"label": "off-axis", "x": 3.25, "y": -1.75, "h": 1.5},
+    ]
+
+    scene = bpy.context.scene
+    out = []
+    for p in points:
+        co = world_to_camera_view(scene, cam, to_blender(p["x"], p["y"], p["h"], k))
+        out.append({
+            **p,
+            "blenderPx": {"x": co.x * width, "y": (1.0 - co.y) * height},
+        })
+    return {
+        "room": contract["room"],
+        "widthPx": width,
+        "heightPx": height,
+        "effectiveScale": scale,
+        "zScale": k,
+        "orthoScale": cam.data.ortho_scale,
+        "blenderVersion": bpy.app.version_string,
+        "points": out,
+    }
+
+
+def main():
+    opts = parse_args(sys.argv)
+    if opts["contract"] is None:
+        print("usage: blender -b -P crown_kit.py -- --contract <file.json> [--calibrate]")
+        return 1
+
+    with open(opts["contract"], encoding="utf-8") as fh:
+        contract = json.load(fh)
+
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+
+    cam, k, width, height, scale = build_camera(contract)
+
+    if opts["calibrate"]:
+        report = calibrate(contract, cam, k, width, height, scale)
+        text = json.dumps(report, indent=2)
+        if opts["out"]:
+            with open(opts["out"], "w", encoding="utf-8") as fh:
+                fh.write(text + "\n")
+        print("<<<CROWN_CALIBRATION>>>")
+        print(text)
+        print("<<<END_CROWN_CALIBRATION>>>")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

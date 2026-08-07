@@ -1,0 +1,92 @@
+{
+  "room": "concept_lantern_cloister",
+  "kind": "generated-substitute",
+  "status": "working-reference",
+  "standing": "look-only",
+  "standingNote": "Materials, palette, lighting, glow, ornament inventory and arch profile. NOT geometry, and not Phase 1's landmark gate: `projection` below measures why, and the image descends from the blockout, so a gate against it would measure the model against its own ancestor. The room's geometry stays with tools/blender/panels/concept_lantern_cloister.json, which was measured from the original panel.",
+  "originalAvailable": false,
+  "image": "captures/concepts/generated/2026-07-30/concept_lantern_cloister-pipeline-source.png",
+  "sha256": "b814d171f84fb29ec81945d258c6ca7f5f0973beac37a41bd83bbdd1b0078179",
+  "raster": {
+    "widthPx": 2999,
+    "heightPx": 1976,
+    "colorSpace": "srgb",
+    "alpha": false,
+    "fit": "contain",
+    "contentSizePx": [
+      2999,
+      1922
+    ],
+    "paddingPx": [
+      0,
+      27,
+      0,
+      27
+    ]
+  },
+  "runs": {
+    "frontLeft": {
+      "x0": 360,
+      "x1": 1250
+    },
+    "frontRight": {
+      "x0": 1760,
+      "x1": 2650
+    }
+  },
+  "cameraContract": {
+    "path": "tools/blender/contracts/concept_lantern_cloister.json",
+    "contentHash": "37a5f9b8425458f3"
+  },
+  "inventory": {
+    "archesPerWall": 3,
+    "hangingLanterns": 6,
+    "floorBraziers": 3,
+    "standards": 4,
+    "floorRings": 3,
+    "floorPlaques": 8
+  },
+  "provenance": {
+    "created": "2026-07-30",
+    "generator": "OpenAI built-in image generation",
+    "sourceRole": "temporary visual target for the parameterized Blender room pipeline",
+    "inputs": [
+      "tools/blender/build/concept_lantern_cloister-blockout.png",
+      "tools/blender/build/concept_lantern_cloister-playable-mockup.png",
+      "captures/concept-context/desktop/concept-lantern-cloister-empty.png"
+    ],
+    "note": "This is not the missing original concept sheet and must never be cited or relabeled as it."
+  },
+  "projection": {
+    "measuredBy": "npm run rooms:reference",
+    "edge": "the outer silhouette of the floor slab, which carries the top face's slope",
+    "runs": {
+      "frontLeft": {
+        "slope": 0.56061,
+        "halves": [
+          0.55116,
+          0.56944
+        ],
+        "drift": 0.0326,
+        "rmsPx": 0.664,
+        "samples": 891
+      },
+      "frontRight": {
+        "slope": -0.57074,
+        "halves": [
+          -0.57435,
+          -0.55763
+        ],
+        "drift": 0.0293,
+        "rmsPx": 0.594,
+        "samples": 891
+      }
+    },
+    "ratio": 0.56567,
+    "expected": 0.5,
+    "deviation": 0.1313,
+    "asymmetry": 0.0179,
+    "worstDrift": 0.0326,
+    "readableForGeometry": false
+  }
+}

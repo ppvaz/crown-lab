@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "paths": {
+      "/src/*": ["./src/*"]
+    },
+    "allowImportingTsExtensions": true
+  },
+  "include": ["scripts", "src/env.d.ts"]
+}

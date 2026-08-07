@@ -1,0 +1,24 @@
+{
+  "id": "concept_bell_court",
+  "description": "CONCEPT ARENA — a ceremonial bell court translated from the room and prop studies.",
+  "arena": "concept_bell_octagon",
+  "playerStart": {
+    "x": 0,
+    "y": 4.7
+  },
+  "waves": [
+    {
+      "id": "inspection_pair",
+      "atMs": 0,
+      "spawns": [
+        { "archetype": "guard", "at": { "x": -2.5, "y": -2.2 } },
+        { "archetype": "duelist", "at": { "x": 2.5, "y": -2.2 } }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Laboratory concept arena only. It is not a route room and makes no canonical claim.",
+    "The bells are wall-side scenery; the open centre is kept readable for combat captures."
+  ]
+}

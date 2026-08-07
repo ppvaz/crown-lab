@@ -1,0 +1,12 @@
+{
+  "id": "concept_guard_procession",
+  "description": "CONCEPT FIDELITY — Guard Procession from Courts of the Fallen Crown.",
+  "arena": "concept_procession_hall",
+  "playerStart": { "x": 0, "y": 4.2 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": -2.7, "y": -1.8 } },
+    { "archetype": "duelist", "at": { "x": 2.7, "y": -1.8 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": ["Lab-only visual reconstruction; absent from canon and route."]
+}

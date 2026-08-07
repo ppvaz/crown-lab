@@ -1,0 +1,198 @@
+
+import type { ModelDef, ModelShape } from '../models';
+
+
+export const LEGACY_CHANCELLOR: ModelDef = /* @__PURE__ */ (() => ({
+  id: 'chancellor',
+  heightPx: 58,
+  widthScale: 1.36,
+  flatArticulation: {
+    gesture: { pivot: [0, 0.5], rotationScale: 0.42, releaseScale: 0.9 },
+  },
+  viewWidthScale: { profile: 0.72 },
+  viewPartOrder: {
+    front: ['body', 'head', 'gesture'],
+    back: ['gesture', 'body', 'head'],
+    profile: ['body', 'head', 'gesture'],
+  },
+  shapes: [
+    {
+      kind: 'poly',
+      points: [
+        [-0.74, 0],
+        [-0.36, 0.64],
+        [0.36, 0.64],
+        [0.74, 0],
+      ],
+      fill: 'tint',
+      stroke: 'outline',
+      width: 2,
+    },
+    {
+      kind: 'poly',
+      points: [
+        [-0.35, 0.58],
+        [-0.55, 0.5],
+        [-0.47, 0.12],
+        [-0.29, 0.16],
+      ],
+      fill: 'garment',
+      stroke: 'outline',
+      width: 1.5,
+    },
+    {
+      kind: 'poly',
+      points: [
+        [0.35, 0.58],
+        [0.55, 0.5],
+        [0.47, 0.12],
+        [0.29, 0.16],
+      ],
+      fill: 'garment',
+      stroke: 'outline',
+      width: 1.5,
+    },
+    {
+      kind: 'line',
+      points: [
+        [-0.24, 0.58],
+        [0, 0.38],
+        [0.24, 0.58],
+      ],
+      stroke: 'hudText',
+      width: 2,
+    },
+    ...[
+      [-0.2, 0.54],
+      [-0.1, 0.46],
+      [0.1, 0.46],
+      [0.2, 0.54],
+    ].map(
+      ([x, y]): ModelShape => ({
+        side: 'front',
+        kind: 'poly',
+        points: [
+          [x, y + 0.045],
+          [x + 0.045, y],
+          [x, y - 0.045],
+          [x - 0.045, y],
+        ],
+        fill: 'hudText',
+        stroke: 'garment',
+        width: 1,
+      }),
+    ),
+    {
+      kind: 'poly',
+      points: [
+        [-0.14, 0.58],
+        [-0.13, 0.84],
+        [0.15, 0.86],
+        [0.16, 0.58],
+      ],
+      fill: 'tint',
+      stroke: null,
+    },
+    {
+      kind: 'poly',
+      points: [
+        [-0.3, 0.58],
+        [-0.34, 0.94],
+        [-0.17, 0.82],
+        [-0.15, 0.6],
+      ],
+      fill: 'garment',
+      stroke: 'outline',
+      width: 1.5,
+    },
+    {
+      kind: 'poly',
+      points: [
+        [0.3, 0.58],
+        [0.34, 0.94],
+        [0.17, 0.82],
+        [0.15, 0.6],
+      ],
+      fill: 'garment',
+      stroke: 'outline',
+      width: 1.5,
+    },
+    {
+      part: 'head',
+      kind: 'poly',
+      points: [
+        [-0.19, 0.8],
+        [-0.15, 1.06],
+        [0.14, 1.08],
+        [0.27, 0.86],
+        [0.1, 0.72],
+      ],
+      fill: 'tint',
+      stroke: 'outline',
+      width: 2,
+    },
+    {
+      side: 'front',
+      part: 'head',
+      kind: 'poly',
+      points: [
+        [0, 0.77],
+        [0.02, 1.05],
+        [0.14, 1.08],
+        [0.27, 0.86],
+        [0.1, 0.72],
+      ],
+      fill: 'tint',
+      stroke: null,
+      shade: 0.7,
+    },
+    {
+      part: 'head',
+      kind: 'poly',
+      points: [
+        [-0.17, 0.84],
+        [-0.19, 1.06],
+        [0.1, 1.12],
+        [0.17, 1.02],
+        [-0.02, 0.98],
+        [-0.03, 0.86],
+      ],
+      fill: 'hudText',
+      stroke: null,
+    },
+    {
+      part: 'gesture',
+      kind: 'line',
+      points: [
+        [0.22, 0.56],
+        [0.48, 0.46],
+      ],
+      stroke: 'garment',
+      width: 3,
+    },
+    {
+      part: 'gesture',
+      kind: 'ellipse',
+      cx: 0.52,
+      cy: 0.45,
+      rx: 0.08,
+      ry: 0.055,
+      fill: 'tint',
+      stroke: 'outline',
+      width: 1,
+    },
+    {
+      part: 'gesture',
+      kind: 'poly',
+      points: [
+        [0.7, 0.62],
+        [0.82, 0.5],
+        [0.7, 0.38],
+        [0.58, 0.5],
+      ],
+      fill: null,
+      stroke: 'hudText',
+      width: 2,
+    },
+  ],
+}))();

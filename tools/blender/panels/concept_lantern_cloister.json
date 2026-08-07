@@ -1,0 +1,36 @@
+{
+  "room": "concept_lantern_cloister",
+  "panel": "captures/concepts/2026-07-29/courts-of-the-fallen-crown-concept-sheet.png",
+  "crop": [
+    20,
+    70,
+    530,
+    480
+  ],
+  "method": "fitted, not clicked: `npm run rooms:panel` fits a line to each of the four straight runs of the floor's gold perimeter trim and intersects adjacent pairs. Every corner of this room is chamfered — a brazier stands on the near cut, a pier closes the far one — so the rectangle's corners are not points the art draws.",
+  "confidence": "corners good to ~0.15 px rms over 94-136 samples per run. The panel itself is the limit: its opposite runs are 17.6% and 24.6% from parallel, so it was not drawn in a parallel projection and no exact inversion of it exists.",
+  "runs": {
+    "frontLeft": { "x0": 75, "x1": 210, "y0": 230, "y1": 400 },
+    "frontRight": { "x0": 300, "x1": 435, "y0": 230, "y1": 400 },
+    "backLeft": { "x0": 75, "x1": 235, "y0": 140, "y1": 300 },
+    "backRight": { "x0": 285, "x1": 445, "y0": 140, "y1": 300 }
+  },
+  "corners": {
+    "left": [
+      38.46,
+      246.62
+    ],
+    "right": [
+      467.99,
+      244.55
+    ],
+    "far": [
+      269.87,
+      145.26
+    ],
+    "near": [
+      246.49,
+      373.22
+    ]
+  }
+}

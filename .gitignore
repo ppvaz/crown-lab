@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-game/
+dist-lab/
+*.tsbuildinfo
+
+# Vite / Vitest caches
+.vite/
+node_modules/.vite/
+coverage/
+captures/
+artifacts/
+
+# OS
+.DS_Store
+
+# Editors
+.idea/
+.claude/
+*.swp
+
+# Scratch capture harness.
+_shot.mjs
+
+# Exported telemetry. Pilot runs are explicitly not evidence — `meta.pilot` marks them so they
+# can never be counted as a human attempt — and CLAUDE.md's distribution rule forbids committing
+# run exports at all. So the default is out. A run that really is evidence gets cited in
+# docs/10-EVIDENCE-LOG.md, and `git add -f` is the deliberate exception.
+runs/*
+!runs/.gitkeep
+
+# Blender render output. The contracts beside it are inputs and are committed; renders are
+# generated evidence, like captures and runs.
+tools/blender/build/
+
+# Blender bytecode from headless kit runs.
+tools/blender/__pycache__/
+
+# `assets-cast/` is deliberately *not* ignored — it was `assets-private/` and was, until ADR-048.
+# Both halves of the distribution rule are still live, and only the first one moved: the pack is
+# committed, and it is still emitted by no build, because `vite.config.ts`'s `castAssets` plugin
+# is `apply: 'serve'` and the registry names a route rather than a bundler import.

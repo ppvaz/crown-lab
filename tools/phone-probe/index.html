@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Room package probe</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 12px; background: #101014; color: #e8e6e0;
+         font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  h1 { font-size: 15px; margin: 0 0 8px; }
+  button { font: inherit; padding: 12px 16px; margin: 4px 4px 4px 0; border: 1px solid #4a4a58;
+           background: #22222c; color: #e8e6e0; border-radius: 6px; }
+  button:disabled { opacity: .45; }
+  #log { white-space: pre-wrap; margin-top: 10px; }
+  .ok { color: #7fd18a; } .bad { color: #f2777a; } .dim { color: #8a8a99; }
+  canvas { width: 100%; height: 90px; background: #000; margin-top: 8px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>Crown Lab — room package probe</h1>
+
+
+
+
+<p class="dim">
+  Landscape, fullscreen. If the device state is unknown, run <b>G</b> first — a warm phone pins to
+  30 FPS and every reading after that describes the pin, not the configuration.
+</p>
+<div id="env" class="dim"></div>
+<div>
+  <button id="a">A · 8 × 1718×1132 (59 MB)</button>
+  <button id="b">B · 8 × 2577×1698 (134 MB)</button>
+  <button id="c">C · sweep layer count</button>
+  <button id="d">D · sweep raster size</button>
+  <button id="e">E · headroom (the real one)</button>
+  <button id="f">F · COLD TEST (?w&h&layers)</button>
+  <button id="g">G · idle vs touch refresh</button>
+</div>
+<canvas id="stage"></canvas>
+<div id="log"></div>
+
+<script>
+const logEl = document.getElementById('log');
+const say = (msg, cls) => {
+  const line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = msg;
+  logEl.appendChild(line);
+  window.scrollTo(0, document.body.scrollHeight);
+};
+
+const post = (payload) => {
+  try {
+    const body = JSON.stringify({ t: Date.now(), ...payload });
+    if (navigator.sendBeacon) navigator.sendBeacon('/result', new Blob([body], { type: 'application/json' }));
+    else fetch('/result', { method: 'POST', body, keepalive: true });
+  } catch (e) {  }
+};
+
+const env = {
+  ua: navigator.userAgent,
+  dpr: window.devicePixelRatio,
+  innerW: window.innerWidth,
+  innerH: window.innerHeight,
+  screenW: screen.width,
+  screenH: screen.height,
+  orientation: (screen.orientation || {}).type || 'unknown',
+  deviceMemoryGB: navigator.deviceMemory ?? null,
+  cores: navigator.hardwareConcurrency ?? null,
+};
+document.getElementById('env').textContent =
+  `dpr ${env.dpr} · css ${env.innerW}x${env.innerH} · screen ${env.screenW}x${env.screenH}\n` +
+  `${env.orientation} · deviceMemory ${env.deviceMemoryGB ?? '?'} GB · cores ${env.cores ?? '?'}\n` +
+  env.ua;
+post({ kind: 'env', env });
+
+const stage = document.getElementById('stage');
+const sctx = stage.getContext('2d', { alpha: false });
+
+const makeLayer = async (w, h, i) => {
+  const off = new OffscreenCanvas(w, h);
+  const c = off.getContext('2d');
+  const g = c.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0, `hsl(${i * 43}, 60%, 45%)`);
+  g.addColorStop(1, `hsl(${i * 43 + 60}, 55%, 18%)`);
+  c.fillStyle = g;
+  c.fillRect(0, 0, w, h);
+  c.globalAlpha = 0.35;
+  for (let n = 0; n < 240; n++) {
+    c.fillStyle = `hsl(${(n * 17 + i * 40) % 360}, 70%, ${30 + (n % 40)}%)`;
+    c.fillRect((n * 137) % w, (n * 311) % h, 90, 90);
+  }
+  return await createImageBitmap(off);
+};
+
+const frameStats = (layers, repeats = 1) => new Promise((resolve) => {
+  const dpr = window.devicePixelRatio;
+  stage.width = Math.round(window.innerWidth * dpr);
+  stage.height = Math.round(window.innerHeight * dpr);
+  const durations = [];
+  const deltas = [];
+  let frames = 0;
+  let last = 0;
+  const tick = (now) => {
+    if (last > 0) deltas.push(now - last);
+    last = now;
+    const t0 = performance.now();
+    for (let r = 0; r < repeats; r++) {
+      for (const bmp of layers) {
+        sctx.drawImage(bmp, 0, 0, bmp.width, bmp.height, 0, 0, stage.width, stage.height);
+      }
+    }
+    durations.push(performance.now() - t0);
+    frames += 1;
+    if (frames < 180) requestAnimationFrame(tick);
+    else {
+      const pct = (arr, q) => {
+        const s = [...arr].sort((x, y) => x - y);
+        return s[Math.floor(s.length * q)];
+      };
+      const meanDelta = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+      resolve({
+        frames,
+        meanMs: durations.reduce((a, b) => a + b, 0) / durations.length,
+        p95Ms: pct(durations, 0.95),
+        maxMs: pct(durations, 1) ?? 0,
+        deliveredFps: 1000 / meanDelta,
+        frameIntervalMeanMs: meanDelta,
+        frameIntervalP95Ms: pct(deltas, 0.95),
+        destW: stage.width,
+        destH: stage.height,
+        cssW: window.innerWidth,
+        cssH: window.innerHeight,
+        screenMaxW: Math.round(Math.max(screen.width, screen.height) * dpr),
+        screenMaxH: Math.round(Math.min(screen.width, screen.height) * dpr),
+        fullscreen: document.fullscreenElement !== null,
+        dpr,
+      });
+    }
+  };
+  requestAnimationFrame(tick);
+});
+
+const heap = () =>
+  performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null;
+
+const run = async (label, w, h, count) => {
+  const mbEach = (w * h * 4) / 1048576;
+  say(`\n── ${label}: ${count} × ${w}×${h} — ${(mbEach * count).toFixed(0)} MB expected`);
+  post({ kind: 'run_begin', label, w, h, count, expectedMB: mbEach * count, heapMB: heap() });
+
+  const layers = [];
+  try {
+    for (let i = 0; i < count; i++) {
+      const t0 = performance.now();
+      layers.push(await makeLayer(w, h, i));
+      const ms = performance.now() - t0;
+      const line = `  layer ${i + 1}/${count}  ${ms.toFixed(0)} ms  cumulative ${((i + 1) * mbEach).toFixed(0)} MB`;
+      say(line, 'ok');
+      post({ kind: 'layer', label, index: i + 1, allocMs: ms, cumulativeMB: (i + 1) * mbEach, heapMB: heap() });
+      await new Promise((r) => setTimeout(r, 60));
+    }
+  } catch (err) {
+    say(`  ✖ allocation failed at layer ${layers.length + 1}: ${err && err.message}`, 'bad');
+    post({ kind: 'alloc_failed', label, atLayer: layers.length + 1, error: String(err && err.message) });
+    for (const b of layers) b.close();
+    return;
+  }
+
+  say(`  all ${count} resident — compositing 120 frames…`);
+  const stats = await frameStats(layers);
+  const fps = stats.meanMs > 0 ? Math.min(60, 1000 / stats.meanMs) : 60;
+  const short = stats.destW * stats.destH < stats.screenMaxW * stats.screenMaxH * 0.95;
+  say(`  destination ${stats.destW}×${stats.destH} (css ${stats.cssW}×${stats.cssH} @ ${stats.dpr})` +
+      `${stats.fullscreen ? ' fullscreen' : ' NOT fullscreen'}`, short ? 'bad' : 'dim');
+  if (short) {
+    say(`  ⚠ screen would give ${stats.screenMaxW}×${stats.screenMaxH} — this run is ` +
+        `${(100 - (stats.destW * stats.destH * 100) / (stats.screenMaxW * stats.screenMaxH)).toFixed(0)}% short`, 'bad');
+  }
+  say(`  cpu submit  mean ${stats.meanMs.toFixed(2)} ms · p95 ${stats.p95Ms.toFixed(2)} ms`, 'dim');
+  say(`  DELIVERED   ${stats.deliveredFps.toFixed(1)} FPS · interval mean ` +
+      `${stats.frameIntervalMeanMs.toFixed(2)} ms · p95 ${stats.frameIntervalP95Ms.toFixed(2)} ms`,
+      stats.deliveredFps >= 58 ? 'ok' : 'bad');
+  say(`  → ${stats.deliveredFps >= 58 ? 'holds 60 FPS' : 'MISSES 60 FPS'}`,
+      stats.deliveredFps >= 58 ? 'ok' : 'bad');
+  post({ kind: 'run_done', label, ...stats, drawFpsEquivalent: fps, heapMB: heap() });
+
+  for (const b of layers) b.close();
+  say('  released.', 'dim');
+};
+
+const goFullscreen = async () => {
+  if (document.fullscreenElement) return;
+  try {
+    await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+    if (screen.orientation && screen.orientation.lock) {
+      await screen.orientation.lock('landscape').catch(() => {});
+    }
+    await new Promise((r) => setTimeout(r, 400));
+  } catch (err) {
+    say(`  ⚠ fullscreen refused (${err && err.name}) — result will understate the surface`, 'bad');
+  }
+};
+
+const sweep = async (label, configs) => {
+  say(`\n── ${label}`);
+  post({ kind: 'sweep_begin', label });
+  say(`  ${'config'.padEnd(24)}${'MB'.padStart(7)}${'FPS'.padStart(8)}${'mean ms'.padStart(10)}  verdict`);
+  for (const cfg of configs) {
+    const layers = [];
+    try {
+      for (let i = 0; i < cfg.count; i++) layers.push(await makeLayer(cfg.w, cfg.h, i));
+    } catch (err) {
+      say(`  ${cfg.label.padEnd(24)} allocation failed: ${err && err.message}`, 'bad');
+      post({ kind: 'sweep_alloc_failed', label, config: cfg.label });
+      for (const b of layers) b.close();
+      continue;
+    }
+    const stats = await frameStats(layers);
+    for (const b of layers) b.close();
+    const mb = (cfg.w * cfg.h * 4 * cfg.count) / 1048576;
+    const roomy = stats.deliveredFps >= 90;
+    const marginal = stats.deliveredFps >= 58 && stats.deliveredFps < 90;
+    say(
+      `  ${cfg.label.padEnd(24)}${mb.toFixed(0).padStart(7)}` +
+        `${stats.deliveredFps.toFixed(1).padStart(8)}${stats.frameIntervalMeanMs.toFixed(2).padStart(10)}` +
+        `  ${roomy ? 'headroom' : marginal ? 'NO HEADROOM' : 'fails'}`,
+      roomy ? 'ok' : marginal ? 'dim' : 'bad',
+    );
+    post({ kind: 'sweep_row', label, config: cfg.label, ...cfg, mb, ...stats });
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  say('  done.', 'dim');
+  post({ kind: 'sweep_done', label });
+};
+
+const headroom = async (label, w, h, count) => {
+  const mb = (w * h * 4 * count) / 1048576;
+  say(`\n── ${label}: ${count} × ${w}×${h}, ${mb.toFixed(0)} MB`);
+  post({ kind: 'headroom_begin', label, w, h, count, mb });
+
+  const layers = [];
+  try {
+    for (let i = 0; i < count; i++) layers.push(await makeLayer(w, h, i));
+  } catch (err) {
+    say(`  ✖ allocation failed: ${err && err.message}`, 'bad');
+    post({ kind: 'headroom_alloc_failed', label, error: String(err && err.message) });
+    for (const b of layers) b.close();
+    return;
+  }
+
+  await frameStats(layers, 1);
+  await new Promise((r) => setTimeout(r, 200));
+
+  let best = 0;
+  let broke = false;
+  for (const k of [1, 2, 3, 4, 6, 8]) {
+    const stats = await frameStats(layers, k);
+    const held = stats.deliveredFps >= 58;
+    say(
+      `  ${String(k).padStart(2)}× package  ${stats.deliveredFps.toFixed(1).padStart(6)} FPS` +
+        `  interval ${stats.frameIntervalMeanMs.toFixed(2).padStart(6)} ms` +
+        `  gpu-bound ≈ ${(stats.frameIntervalMeanMs / k).toFixed(2)} ms/package` +
+        `  ${held ? 'holds' : 'BREAKS'}`,
+      held ? 'ok' : 'bad',
+    );
+    post({ kind: 'headroom_row', label, k, ...stats });
+    if (held && !broke) best = k;
+    if (!held) broke = true;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+
+  say(`  → headroom ${best}× the package at 60 FPS`, best >= 3 ? 'ok' : best >= 2 ? 'dim' : 'bad');
+  post({ kind: 'headroom_done', label, headroomX: best });
+
+  for (const b of layers) b.close();
+  await new Promise((r) => setTimeout(r, 1500));
+  return best;
+};
+
+const baselineRate = async () => {
+  const tiny = await makeLayer(256, 256, 0);
+  const stats = await frameStats([tiny], 1);
+  tiny.close();
+  return stats.deliveredFps;
+};
+
+const battery = async () => {
+  try {
+    const b = await navigator.getBattery();
+    return { charging: b.charging, level: Math.round(b.level * 100) };
+  } catch { return { charging: null, level: null }; }
+};
+
+const cooldown = async (seconds) => {
+  for (let s = seconds; s > 0; s--) {
+    logEl.lastChild.textContent = `  cooling down ${s}s…`;
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  logEl.lastChild.textContent = '  cooled.';
+};
+
+document.getElementById('e').onclick = async (e) => {
+  e.target.disabled = true;
+  await goFullscreen();
+
+  const bat0 = await battery();
+  const brands = (navigator.userAgentData && navigator.userAgentData.brands) || [];
+  say(`power: ${bat0.charging === null ? 'unknown' : bat0.charging ? 'CHARGING' : 'on battery'}` +
+      ` ${bat0.level ?? '?'}% · brands ${brands.map((b) => b.brand).join(', ') || 'unreported'}`,
+      bat0.charging === false ? 'bad' : 'dim');
+  post({ kind: 'session_begin', battery: bat0, brands });
+
+  const first = await headroom('CANARY 8 @ dSF2 (first)', 1718, 1132, 8);
+  await cooldown(10);
+  await headroom('8 layers @ dSF3 raster', 2577, 1698, 8);
+  await cooldown(10);
+  await headroom('4 layers @ dSF2 raster', 1718, 1132, 4);
+  await cooldown(10);
+  const last = await headroom('CANARY 8 @ dSF2 (last)', 1718, 1132, 8);
+
+  const bat1 = await battery();
+  const drifted = first !== last;
+  say(`\npower now: ${bat1.charging ? 'CHARGING' : 'on battery'} ${bat1.level ?? '?'}%`, 'dim');
+  say(drifted
+    ? `✖ RUN INVALID — canary moved ${first}× → ${last}×. The device drifted; discard everything above.`
+    : `✔ canary stable at ${first}× — no drift detected across the session.`,
+    drifted ? 'bad' : 'ok');
+  post({ kind: 'session_done', canaryFirst: first, canaryLast: last, drifted, battery: bat1 });
+  e.target.disabled = false;
+};
+
+let touchCount = 0;
+for (const ev of ['pointerdown', 'pointermove', 'touchstart', 'touchmove']) {
+  window.addEventListener(ev, () => { touchCount += 1; }, { passive: true });
+}
+
+const idleSchedule = [0, 15, 30, 45, 60, 90, 120];
+
+const refreshOverTime = async (phase, prompt) => {
+  say(`\n── ${phase}`);
+  if (prompt) say(`  ${prompt}`, 'bad');
+  say(`  ${'t'.padStart(5)}${'FPS'.padStart(9)}${'interval'.padStart(11)}${'touches'.padStart(10)}`);
+  const started = performance.now();
+  let lastTouches = touchCount;
+  const rows = [];
+  for (const at of idleSchedule) {
+    while ((performance.now() - started) / 1000 < at) {
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    const tiny = await makeLayer(256, 256, 1);
+    const stats = await frameStats([tiny], 1);
+    tiny.close();
+    const touches = touchCount - lastTouches;
+    lastTouches = touchCount;
+    rows.push({ at, fps: stats.deliveredFps, intervalMs: stats.frameIntervalMeanMs, touches });
+    say(
+      `  ${(at + 's').padStart(5)}${stats.deliveredFps.toFixed(1).padStart(9)}` +
+        `${(stats.frameIntervalMeanMs.toFixed(2) + 'ms').padStart(11)}${String(touches).padStart(10)}`,
+      stats.deliveredFps >= 85 ? 'ok' : stats.deliveredFps >= 55 ? 'dim' : 'bad',
+    );
+    post({ kind: 'refresh_sample', phase, ...rows[rows.length - 1] });
+  }
+  return rows;
+};
+
+document.getElementById('g').onclick = async (e) => {
+  e.target.disabled = true;
+  await goFullscreen();
+  say('\n════ IDLE vs TOUCH REFRESH ════');
+  say('  load is one 256×256 bitmap per frame — nothing. Any decline is not heat.', 'dim');
+
+  const idle = await refreshOverTime('PHASE 1 · hands off', 'DO NOT TOUCH THE SCREEN for 2 minutes.');
+  say('\n  …now phase 2. Keep a finger moving on the screen the whole time.', 'bad');
+  await new Promise((r) => setTimeout(r, 5000));
+  const touched = await refreshOverTime('PHASE 2 · keep touching', 'KEEP SWIPING — do not stop.');
+
+  const drop = (rows) => rows[0].fps - rows[rows.length - 1].fps;
+  const idleDrop = drop(idle);
+  const touchDrop = drop(touched);
+  const touchedEnough = touched.slice(1).every((r) => r.touches > 0);
+
+  say(`\n  idle:  ${idle[0].fps.toFixed(1)} → ${idle[idle.length - 1].fps.toFixed(1)} FPS (drop ${idleDrop.toFixed(1)})`);
+  say(`  touch: ${touched[0].fps.toFixed(1)} → ${touched[touched.length - 1].fps.toFixed(1)} FPS (drop ${touchDrop.toFixed(1)})`);
+  if (!touchedEnough) say('  ⚠ phase 2 had windows with zero touches — it is not a clean contrast.', 'bad');
+  say(
+    idleDrop > 15 && touchDrop < idleDrop / 2
+      ? '  → INPUT-DRIVEN. The rate follows touch, not load. Thermal is excluded.'
+      : idleDrop > 15
+        ? '  → declines with no load either way — not thermal, but touch does not rescue it.'
+        : '  → no meaningful decline at zero load. The earlier collapse needed the load, so heat stays live.',
+    'ok',
+  );
+  post({ kind: 'refresh_verdict', idleDrop, touchDrop, touchedEnough, idle, touched });
+  e.target.disabled = false;
+};
+
+document.getElementById('f').onclick = async (e) => {
+  e.target.disabled = true;
+  await goFullscreen();
+
+  say('\n════ 4 LAYERS @ AUTHORED RASTER — COLD TEST ════');
+  say('  defaults: 4 × 2999×1976 (90 MB), the Lantern Cloister authored raster.', 'dim');
+  const cold = await baselineRate();
+  say(`  baseline (near-zero load): ${cold.toFixed(1)} FPS`, cold >= 85 ? 'ok' : 'bad');
+  post({ kind: 'cold_check', baselineFps: cold });
+
+  if (cold < 70) {
+    say(`  ✖ REFUSING TO RUN — the device is throttled (${cold.toFixed(1)} FPS at idle load).`, 'bad');
+    say('    Lock the screen, leave it several minutes, and tap F again.', 'bad');
+    post({ kind: 'cold_check_refused', baselineFps: cold });
+    e.target.disabled = false;
+    return;
+  }
+  if (cold < 85) {
+    say(`  ⚠ device is warm (${cold.toFixed(1)} FPS baseline, expected ~90) — result is weaker.`, 'bad');
+  }
+
+  const q = new URLSearchParams(location.search);
+  const W = Number(q.get('w')) || 2999;
+  const H = Number(q.get('h')) || 1976;
+  const N = Number(q.get('layers')) || 4;
+
+  const first = await headroom(`${N} layers @ ${W}×${H} (first)`, W, H, N);
+  await cooldown(20);
+  const second = await headroom(`${N} layers @ ${W}×${H} (repeat)`, W, H, N);
+
+  const after = await baselineRate();
+  say(`\n  baseline after: ${after.toFixed(1)} FPS (was ${cold.toFixed(1)})`,
+      after >= 85 ? 'ok' : 'bad');
+
+  const agree = first === second;
+  say(agree
+    ? `✔ VALID — 4 layers @ 1718×1132 holds ${first}× the package at 60 FPS, twice.`
+    : `✖ INVALID — ${first}× then ${second}×. The device drifted mid-test; discard both.`,
+    agree ? 'ok' : 'bad');
+  post({ kind: 'cold_test_done', first, second, agree, baselineBefore: cold, baselineAfter: after });
+  e.target.disabled = false;
+};
+
+document.getElementById('c').onclick = async (e) => {
+  e.target.disabled = true;
+  await goFullscreen();
+  await sweep(
+    'C · layer count at 1718×1132',
+    [1, 2, 3, 4, 5, 6, 8].map((count) => ({
+      label: `${count} × 1718×1132`, w: 1718, h: 1132, count,
+    })),
+  );
+  e.target.disabled = false;
+};
+
+document.getElementById('d').onclick = async (e) => {
+  e.target.disabled = true;
+  await goFullscreen();
+  await sweep(
+    'D · raster size at 8 layers',
+    [
+      { label: '8 × 1024×675', w: 1024, h: 675, count: 8 },
+      { label: '8 × 1280×843', w: 1280, h: 843, count: 8 },
+      { label: '8 × 1718×1132', w: 1718, h: 1132, count: 8 },
+      { label: '8 × 2100×1384', w: 2100, h: 1384, count: 8 },
+      { label: '8 × 2577×1698', w: 2577, h: 1698, count: 8 },
+    ],
+  );
+  e.target.disabled = false;
+};
+
+document.getElementById('a').onclick = async (e) => {
+  e.target.disabled = true;
+  await goFullscreen();
+  await run('A dSF2-ceiling', 1718, 1132, 8);
+  e.target.disabled = false;
+};
+document.getElementById('b').onclick = async (e) => {
+  e.target.disabled = true;
+  await goFullscreen();
+  await run('B dSF3-ceiling', 2577, 1698, 8);
+  e.target.disabled = false;
+};
+
+window.addEventListener('error', (ev) => post({ kind: 'window_error', message: String(ev.message) }));
+say('ready — run A first, then B.', 'dim');
+</script>
+</body>
+</html>

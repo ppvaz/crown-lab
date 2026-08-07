@@ -1,0 +1,12 @@
+{
+  "id": "concept_hollow_throne",
+  "description": "CONCEPT FIDELITY — Hollow Throne from Courts Unbound.",
+  "arena": "concept_unbound_field",
+  "playerStart": { "x": -6.5, "y": 4.5 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": -1, "y": -0.8 } },
+    { "archetype": "duelist", "at": { "x": 5.4, "y": -3.6 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": ["Impossible-layout visual reconstruction; the abyss and bridge gaps are presentational."]
+}

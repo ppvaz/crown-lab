@@ -1,0 +1,23 @@
+{
+  "name": "crown-signaling",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "WebRTC signaling for Crown Lab co-op: SDP and ICE between two peers, and nothing else (ADR-019).",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "start": "node src/server.ts",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ws": "8.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.1.2",
+    "@types/ws": "8.18.1",
+    "typescript": "5.9.3"
+  }
+}

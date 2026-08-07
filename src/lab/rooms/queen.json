@@ -1,0 +1,31 @@
+{
+  "id": "queen",
+  "description": "The Queen: three acts — one blade, two blades, and the halo coming apart.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "queen",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "queen",
+          "at": {
+            "x": 0,
+            "y": -5
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 180000,
+  "notes": [
+    "The same floor, start and spawn as `first_blade`, `captain` and `thorn_marshal`, so the one thing that differs between the boss rooms is the boss. A body whose whole claim is tempo has to be measured on a floor the other tempos were measured on.",
+    "Three acts on HP thresholds: REGALIA to 50%, UNSWORN to 25%, LAST DECREE below it. Each is a phrase pair, alternating on a counted parity, with no RNG anywhere in the fight — the speed is the difficulty and a die on top of it would make a read into a reaction test.",
+    "180s rather than the boss rooms' 120s. Three acts at 880 HP is a longer fight than a two-phase boss, and a time limit that ends it mid-third-act would report a loss that was a clock.",
+    "Public since 2026-08-03 (ADR-037), which reverses ADR-032 clause 1: the herald offers her as an aside, `game/public-profile.ts` carries her tuning field for field and `cast/index-public.ts` her body. She is still an instrument — being reachable is not the same as having been played, and ADR-005's gate stands."
+  ]
+}

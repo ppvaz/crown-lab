@@ -1,0 +1,40 @@
+{
+  "id": "tutorial_power",
+  "description": "Tutorial experiment: use the currently equipped experimental power.",
+  "tutorial": "power",
+  "arena": "training_octagon",
+  "playerStart": {
+    "x": -2,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "targets",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 3,
+            "y": -1.5
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 3,
+            "y": 1.5
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null
+}

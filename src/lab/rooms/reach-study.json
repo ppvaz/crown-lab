@@ -1,0 +1,30 @@
+{
+  "id": "reach_study",
+  "description": "Boss instrument: reach the king's own sword cannot answer from where it stands.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "reach",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "pike_boss",
+          "at": {
+            "x": 0,
+            "y": -4
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 120000,
+  "notes": [
+    "The **control arm** of the second characterization pair ([ADR-021](../../docs/DECISIONS.md)), and the pike novice's question asked at boss length.",
+    "Bare, and it must stay bare: no arena theme, a neutral silhouette, a name that is a study rather than a person. `thorn_marshal` is this same fight wearing a character, and the pair is only a comparison while one of the two rooms is undecorated. Decorating this one is the defect that would void every result the pair can produce while still producing runs that look healthy.",
+    "Phase one closes both answers the novice teaches: `pike_boss_thrust` is the reach read, and `pike_boss_sweep` is unparryable and 150 degrees wide, so the sidestep that solved the mob now has a cost. Phase two opens with `pike_boss_drive`, a committed 3.4-unit lunge that arrives at the distance where waiting was free. The question does not change; the cheap answer is withdrawn."
+  ]
+}

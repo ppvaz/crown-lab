@@ -1,0 +1,18 @@
+{
+  "id": "concept_lantern_cloister_baked",
+  "description": "CONCEPT FIDELITY — Lantern Cloister, composited from the Blender blockout export.",
+  "arena": "concept_fallen_court",
+  "playerStart": { "x": 0, "y": 4.8 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": -2.7, "y": -2.2 } },
+    { "archetype": "duelist", "at": { "x": 2.7, "y": -2.2 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": [
+    "Simulation-identical to `concept_lantern_cloister` by construction: same arena, same start,",
+    "same wave. Only the room's rendering differs, which is why the three are separate encounters",
+    "rather than one encounter with a toggle — two runs are comparable when the only thing that",
+    "changed is the thing being compared.",
+    "This one composites `src/assets/rooms/concept-lantern-cloister/blockout/`, the layered PNGs."
+  ]
+}

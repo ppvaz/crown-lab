@@ -1,0 +1,24 @@
+{
+  "id": "concept_rain_breached_hall",
+  "description": "CONCEPT ARENA — a cold breached hall catching rain through ruined glass.",
+  "arena": "concept_rain_octagon",
+  "playerStart": {
+    "x": 0,
+    "y": 4.7
+  },
+  "waves": [
+    {
+      "id": "inspection_pair",
+      "atMs": 0,
+      "spawns": [
+        { "archetype": "guard", "at": { "x": -3.2, "y": -2 } },
+        { "archetype": "duelist", "at": { "x": 3.2, "y": -2 } }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Laboratory concept arena only. It is not a route room and makes no canonical claim.",
+    "Rain is localized to breached wall bays so combat silhouettes retain clean negative space."
+  ]
+}

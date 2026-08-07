@@ -1,0 +1,28 @@
+{
+  "id": "kernel_duelist",
+  "description": "One duelist, untimed. Rhythm will not save you; reading will.",
+  "arena": "duel_diamond",
+  "playerStart": {
+    "x": -3,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 3,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "The read test. The duelist jitters its telegraph and mixes in an unparryable sweep, so a player who memorized a rhythm against the guard will fail here in a visible way. That contrast is Experiment 16's instrument."
+  ]
+}

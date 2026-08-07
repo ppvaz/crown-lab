@@ -1,0 +1,177 @@
+
+import type { ModelDef } from '../models';
+
+
+export const LEGACY_GUARD: ModelDef = /* @__PURE__ */ (() => ({
+  id: 'palace_guard',
+  heightPx: 46,
+  widthScale: 1.25,
+  flatArticulation: {
+    weapon: { pivot: [0.66, 0.56], rotationScale: 0.82, releaseScale: 3.6 },
+    shield: { pivot: [-0.5, 0.6] },
+  },
+  viewWidthScale: { profile: 0.72 },
+  viewPartOrder: {
+    front: ['body', 'legTrail', 'legLead', 'head', 'weapon', 'shield'],
+    back: ['weapon', 'shield', 'body', 'legTrail', 'legLead', 'head'],
+    profile: ['weapon', 'body', 'legTrail', 'legLead', 'head', 'shield'],
+  },
+  shapes: [
+    {
+      kind: 'poly',
+      points: [
+        [-0.5, 0],
+        [-0.46, 0.7],
+        [0.46, 0.7],
+        [0.5, 0],
+      ],
+      fill: 'tint',
+      stroke: 'outline',
+      width: 1.5,
+    },
+    {
+      part: 'weapon',
+      kind: 'line',
+      points: [
+        [0.66, 0.04],
+        [0.66, 1.18],
+      ],
+      stroke: 'hudDim',
+      width: 2,
+    },
+    {
+      part: 'weapon',
+      kind: 'poly',
+      points: [
+        [0.66, 1.18],
+        [1.1, 1.0],
+        [0.9, 0.9],
+        [0.68, 0.94],
+        [0.54, 1.02],
+      ],
+      fill: 'hudText',
+      stroke: 'outline',
+      width: 1,
+    },
+    {
+      part: 'weapon',
+      kind: 'poly',
+      points: [
+        [0.66, 1.18],
+        [0.54, 1.04],
+        [0.66, 1.0],
+      ],
+      fill: 'hudDim',
+      stroke: null,
+    },
+    {
+      part: 'weapon',
+      kind: 'line',
+      points: [
+        [0.34, 0.6],
+        [0.66, 0.56],
+      ],
+      stroke: 'tint',
+      width: 3,
+    },
+    {
+      part: 'shield',
+      kind: 'poly',
+      points: [
+        [-0.94, 0.12],
+        [-0.94, 0.62],
+        [-0.7, 0.74],
+        [-0.46, 0.62],
+        [-0.46, 0.12],
+        [-0.7, 0.02],
+      ],
+      fill: 'tint',
+      stroke: 'outline',
+      width: 1.5,
+    },
+    { part: 'head', kind: 'ellipse', cx: 0, cy: 0.8, rx: 0.3, ry: 0.12, fill: 'tint', stroke: 'outline', width: 1.5 },
+    {
+      side: 'front',
+      part: 'head',
+      kind: 'line',
+      points: [
+        [-0.18, 0.81],
+        [0.18, 0.81],
+      ],
+      stroke: 'floor',
+      width: 2,
+    },
+    {
+      side: 'profile',
+      part: 'head',
+      kind: 'line',
+      points: [
+        [0.04, 0.81],
+        [0.2, 0.81],
+      ],
+      stroke: 'floor',
+      width: 2,
+    },
+    {
+      side: 'back',
+      part: 'head',
+      kind: 'poly',
+      points: [
+        [-0.22, 0.7],
+        [-0.18, 0.79],
+        [0.18, 0.79],
+        [0.22, 0.7],
+      ],
+      fill: 'tint',
+      stroke: null,
+      shade: 0.66,
+    },
+    {
+      kind: 'line',
+      points: [
+        [-0.46, 0.26],
+        [0.46, 0.26],
+      ],
+      stroke: 'tint',
+      width: 3,
+      shade: 0.62,
+    },
+    {
+      part: 'shield',
+      kind: 'ellipse',
+      cx: -0.7,
+      cy: 0.37,
+      rx: 0.11,
+      ry: 0.055,
+      fill: 'tint',
+      stroke: null,
+      shade: 1.35,
+    },
+    {
+      part: 'legTrail',
+      kind: 'poly',
+      points: [
+        [-0.34, 0.0],
+        [-0.3, 0.2],
+        [-0.08, 0.2],
+        [-0.1, 0.0],
+      ],
+      fill: 'tint',
+      stroke: null,
+      shade: 0.58,
+    },
+    {
+      part: 'legLead',
+      kind: 'poly',
+      points: [
+        [0.1, 0.0],
+        [0.08, 0.2],
+        [0.3, 0.2],
+        [0.34, 0.0],
+      ],
+      fill: 'tint',
+      stroke: null,
+      shade: 0.5,
+    },
+  ],
+}))();

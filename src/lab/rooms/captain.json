@@ -1,0 +1,28 @@
+{
+  "id": "captain",
+  "description": "Boss instrument: three honest reads, then a readable feint.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "response",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "captain",
+          "at": {
+            "x": 0,
+            "y": -3.2
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 120000,
+  "notes": [
+    "Mechanics-only boss instrument. Phase one teaches direct, pressure and release with readable spacing; phase two introduces the feint after its honest twin is established, while preserving the choice between tapped parry and held guard."
+  ]
+}

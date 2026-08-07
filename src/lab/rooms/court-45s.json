@@ -1,0 +1,55 @@
+{
+  "id": "court_45s",
+  "description": "Two guards, then an archer at 12s. The 45-second repeatable target.",
+  "arena": "crossfire_hexagon",
+  "playerStart": {
+    "x": 0,
+    "y": 4,
+    "rotateDegrees": -20
+  },
+  "waves": [
+    {
+      "id": "w1_swordsmen",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -2.5,
+            "y": -3,
+            "rotateDegrees": -20
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 2.5,
+            "y": -3,
+            "rotateDegrees": -20
+          }
+        }
+      ]
+    },
+    {
+      "id": "w2_archer",
+      "atMs": 12000,
+      "spawns": [
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 8,
+            "y": -5,
+            "rotateDegrees": -20
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 75000,
+  "notes": [
+    "THE GATE. The transcript's first concrete target: a ~45-second fight against two swordsmen and one archer, repeatable twenty times. The minimal build is not \"done\" when it compiles — it is done when it can run *this*, twenty times, and produce evidence about whether the repetition improved anything (lab spec §9).",
+    "The archer arrives at 12s rather than at the start so the fight has two distinct phrases: a clean melee exchange, then the same exchange with a reason to move.",
+    "Generous against a 45-second target: the clock exists to end a stalemate, not to",
+    "become the challenge. A run that needs 75s is data, not a failure of the harness."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "captain_read",
+  "description": "Boss instrument: the Captain’s phrase on a beat that will not hold still.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "response",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "captain_read",
+          "at": {
+            "x": 0,
+            "y": -3.2
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 120000,
+  "notes": [
+    "The **treatment arm** of the read condition ([ADR-010](../../docs/DECISIONS.md)): the Captain's room, the Captain's phrase, and a beat that will not hold still.",
+    "Everything the player can see is the control's — same room, same silhouette, same colour, same music bed, same arena theme. Only `telegraphJitterMs` moves, which is what makes the pair a measurement of *the beat* rather than of anything the eye can name. `tests/captain-read.test.ts` asserts the parity field by field."
+  ]
+}

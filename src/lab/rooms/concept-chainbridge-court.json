@@ -1,0 +1,12 @@
+{
+  "id": "concept_chainbridge_court",
+  "description": "CONCEPT FIDELITY — Chainbridge Court from Courts Unbound.",
+  "arena": "concept_unbound_field",
+  "playerStart": { "x": -7, "y": 4.5 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": 0, "y": -1.5 } },
+    { "archetype": "duelist", "at": { "x": 7, "y": -3.8 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": ["Impossible-layout visual reconstruction; collision deliberately spans painted void."]
+}

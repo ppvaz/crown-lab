@@ -1,0 +1,109 @@
+{
+  "id": "maze_serpentine",
+  "description": "Scale instrument: a 123 x 24 serpentine maze, twelve elbows, twelve bodies.",
+  "arena": "serpentine_maze",
+  "playerStart": {
+    "x": -60,
+    "y": -10
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -60,
+            "y": 6
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -50,
+            "y": 10.5
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": -40,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -30,
+            "y": -10.5
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": -20,
+            "y": 6
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -10,
+            "y": 10.5
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 10,
+            "y": -10.5
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 20,
+            "y": 6
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 30,
+            "y": 10.5
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 40,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 60,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "THE SCALE INSTRUMENT ====================",
+    "A room that does not fit on a screen, populated by a roster that does not fit in one convex cell. See `SERPENTINE_MAZE` above for the floor; this is what is standing on it.",
+    "Twelve bodies in one wave, spread one per corridor down the whole snake. That number is chosen against the *cost*, not against a difficulty curve: `sim/enemy.ts` calls `arenaNavigationTarget` once per closing enemy per tick, and that call only takes its cheap early exit when the enemy and the king share a convex cell. Spreading the roster is therefore what makes eleven of the twelve pay the full BFS and the full 13x13 portal matrix, every tick. A clump beside the player would test nothing.",
+    "The two archers stand at the foot of a leg with the corridor running away from them, because a 3-wide corridor is narrower than their 12-unit range: there is no sidestep out of the line, only retreat along it, and that keeps projectiles in flight across a long distance while the nav mesh is under load.",
+    "**Not a rung, not a hypothesis, and not balanced.** Whether this room is winnable is not the question being asked of it."
+  ]
+}

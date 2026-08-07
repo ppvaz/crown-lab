@@ -1,0 +1,28 @@
+{
+  "id": "kernel_guard",
+  "description": "One guard, untimed. The single-enemy combat kernel (Phase 1).",
+  "arena": "training_octagon",
+  "playerStart": {
+    "x": -3,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 3,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Milestone 1, *Corpo*. One enemy, no pressure, no clock. This is where you answer \"do moving and striking already have weight and precision?\" before anything else can confuse the question."
+  ]
+}

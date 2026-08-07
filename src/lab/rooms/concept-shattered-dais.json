@@ -1,0 +1,24 @@
+{
+  "id": "concept_shattered_dais",
+  "description": "CONCEPT ARENA — a broken crown dais surrounded by repaired court stone.",
+  "arena": "concept_shattered_octagon",
+  "playerStart": {
+    "x": 0,
+    "y": 5
+  },
+  "waves": [
+    {
+      "id": "inspection_pair",
+      "atMs": 0,
+      "spawns": [
+        { "archetype": "guard", "at": { "x": -3, "y": -2.4 } },
+        { "archetype": "duelist", "at": { "x": 3, "y": -2.4 } }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Laboratory concept arena only. It is not a route room and makes no canonical claim.",
+    "The central obstacle matches the broken raised dais drawn by the lab-only renderer."
+  ]
+}

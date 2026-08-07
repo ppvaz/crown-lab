@@ -1,0 +1,35 @@
+{
+  "id": "gallery_archer",
+  "description": "The archer at a distance that exceeds its own 12-unit range.",
+  "arena": "long_gallery",
+  "playerStart": {
+    "x": -11,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -4,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 11,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "The one deliberate exception to the shape series' fixed roster, and it is a different question: the archer's range is 12, larger than any previous arena's long half-axis, so until this room there was no position in the game outside its reach. At 26 units the gallery finally has one. Compare against `spacing_archer`, not against the series."
+  ]
+}

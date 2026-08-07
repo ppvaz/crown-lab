@@ -1,0 +1,12 @@
+{
+  "id": "concept_bell_foundry",
+  "description": "CONCEPT FIDELITY — Bell Foundry from Courts Unbound.",
+  "arena": "concept_unbound_field",
+  "playerStart": { "x": -6.5, "y": 4.5 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": 0, "y": -1.2 } },
+    { "archetype": "duelist", "at": { "x": 6, "y": -3.3 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": ["Impossible-layout visual reconstruction; vats and giant bells are visual obstacles."]
+}

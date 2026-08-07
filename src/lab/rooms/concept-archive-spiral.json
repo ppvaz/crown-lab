@@ -1,0 +1,12 @@
+{
+  "id": "concept_archive_spiral",
+  "description": "CONCEPT FIDELITY — Archive Spiral from Courts Unbound.",
+  "arena": "concept_unbound_field",
+  "playerStart": { "x": -6.2, "y": 4.6 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": -0.5, "y": -1.2 } },
+    { "archetype": "duelist", "at": { "x": 6, "y": -3.4 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": ["Impossible-layout visual reconstruction; spiral height and gaps are presentational."]
+}

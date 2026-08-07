@@ -1,0 +1,47 @@
+
+import type { EnemyConfig } from '../../sim/types';
+
+export const DUELIST: EnemyConfig = {
+  archetype: 'duelist',
+  maxHp: 70,
+  maxPoise: 70,
+  poiseRegenPerSec: 18,
+  moveSpeed: 3.6,
+  acceleration: 20,
+  turnRate: 5,
+  radius: 0.42,
+  preferredRange: 2.6,
+  attackRange: 2.6,
+  attacks: [
+    {
+      id: 'duelist_thrust',
+      telegraphMs: 420,
+      telegraphJitterMs: 220,
+      activeMs: 80,
+      recoveryMs: 420,
+      range: 2.9,
+      arcDeg: 45,
+      damage: 14,
+      lungeDistance: 1.8,
+      turnRateDuringWindup: 1.0,
+      parryable: true,
+      kind: 'melee',
+    },
+    {
+      id: 'duelist_sweep',
+      telegraphMs: 560,
+      telegraphJitterMs: 260,
+      activeMs: 110,
+      recoveryMs: 560,
+      range: 2.2,
+      arcDeg: 140,
+      damage: 18,
+      lungeDistance: 0.4,
+      parryable: false,
+      kind: 'melee',
+    },
+  ],
+  attackCooldownMs: 900,
+  attackCooldownJitterMs: 350,
+  staggerMs: 1100,
+};

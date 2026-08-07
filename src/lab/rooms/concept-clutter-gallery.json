@@ -1,0 +1,25 @@
+{
+  "id": "concept_clutter_gallery",
+  "description": "CONCEPT KIT — Loyalty, Absence, Siege, and Service clutter compositions.",
+  "arena": "concept_kit_octagon",
+  "playerStart": {
+    "x": 10,
+    "y": -4
+  },
+  "waves": [
+    {
+      "id": "inspection_pair",
+      "atMs": 0,
+      "spawns": [
+        { "archetype": "guard", "at": { "x": -3, "y": 0 } },
+        { "archetype": "duelist", "at": { "x": 3, "y": 0 } }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Laboratory narrative-clutter gallery only. It is absent from canon, route, and the public registry.",
+    "All twenty-six samples are explicitly visual-only; room recipes must promote collision separately.",
+    "Each cluster is an authored family composition in source-sheet order, never a randomized scatter."
+  ]
+}

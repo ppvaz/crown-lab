@@ -1,0 +1,12 @@
+{
+  "id": "concept_rookery_roofs",
+  "description": "CONCEPT FIDELITY — Rookery Roofs from Courts Unbound.",
+  "arena": "concept_unbound_field",
+  "playerStart": { "x": -5.5, "y": 4.8 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": 1.5, "y": -2.3 } },
+    { "archetype": "duelist", "at": { "x": 6.2, "y": -0.3 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": ["Impossible-layout visual reconstruction; collision deliberately approximates the whole field."]
+}

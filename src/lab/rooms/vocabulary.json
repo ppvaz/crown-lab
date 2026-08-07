@@ -1,0 +1,769 @@
+{
+  "version": 2,
+  "arenas": {
+    "rect_20x14": {
+      "kind": "shape",
+      "halfExtents": {
+        "x": 10,
+        "y": 7
+      },
+      "notes": [
+        "~20 x 14 world units, per the space note in `types.ts`."
+      ]
+    },
+    "rect_14x20": {
+      "kind": "shape",
+      "halfExtents": {
+        "x": 7,
+        "y": 10
+      },
+      "notes": [
+        "The same rectangular proportion with its long combat axis turned by 90 degrees."
+      ]
+    },
+    "training_octagon": {
+      "kind": "shape",
+      "halfExtents": {
+        "x": 10,
+        "y": 7
+      },
+      "vertices": [
+        {
+          "x": -6.5,
+          "y": -7
+        },
+        {
+          "x": 6.5,
+          "y": -7
+        },
+        {
+          "x": 10,
+          "y": -3.5
+        },
+        {
+          "x": 10,
+          "y": 3.5
+        },
+        {
+          "x": 6.5,
+          "y": 7
+        },
+        {
+          "x": -6.5,
+          "y": 7
+        },
+        {
+          "x": -10,
+          "y": 3.5
+        },
+        {
+          "x": -10,
+          "y": -3.5
+        }
+      ]
+    },
+    "duel_diamond": {
+      "kind": "rotated",
+      "degrees": 24,
+      "vertices": [
+        {
+          "x": 0,
+          "y": -7
+        },
+        {
+          "x": 9,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 7
+        },
+        {
+          "x": -9,
+          "y": 0
+        }
+      ]
+    },
+    "crossfire_hexagon": {
+      "kind": "rotated",
+      "degrees": -20,
+      "vertices": [
+        {
+          "x": -8,
+          "y": -6
+        },
+        {
+          "x": 8,
+          "y": -6
+        },
+        {
+          "x": 11,
+          "y": 0
+        },
+        {
+          "x": 8,
+          "y": 6
+        },
+        {
+          "x": -8,
+          "y": 6
+        },
+        {
+          "x": -11,
+          "y": 0
+        }
+      ]
+    },
+    "assembly_octagon": {
+      "kind": "shape",
+      "halfExtents": {
+        "x": 10,
+        "y": 7
+      },
+      "vertices": [
+        {
+          "x": -7,
+          "y": -7
+        },
+        {
+          "x": 7,
+          "y": -7
+        },
+        {
+          "x": 10,
+          "y": -4
+        },
+        {
+          "x": 10,
+          "y": 4
+        },
+        {
+          "x": 7,
+          "y": 7
+        },
+        {
+          "x": -7,
+          "y": 7
+        },
+        {
+          "x": -10,
+          "y": 4
+        },
+        {
+          "x": -10,
+          "y": -4
+        }
+      ],
+      "elevationRamp": {
+        "axis": "y",
+        "from": 1.4,
+        "to": -1.4,
+        "height": 0.9,
+        "steps": 7
+      }
+    },
+    "concept_bell_octagon": {
+      "kind": "shape",
+      "halfExtents": { "x": 10, "y": 7 },
+      "vertices": [
+        { "x": -7, "y": -7 },
+        { "x": 7, "y": -7 },
+        { "x": 10, "y": -4 },
+        { "x": 10, "y": 4 },
+        { "x": 7, "y": 7 },
+        { "x": -7, "y": 7 },
+        { "x": -10, "y": 4 },
+        { "x": -10, "y": -4 }
+      ]
+    },
+    "concept_shattered_octagon": {
+      "kind": "shape",
+      "halfExtents": { "x": 9, "y": 7 },
+      "vertices": [
+        { "x": -6.5, "y": -7 },
+        { "x": 6.5, "y": -7 },
+        { "x": 9, "y": -4.5 },
+        { "x": 9, "y": 4.5 },
+        { "x": 6.5, "y": 7 },
+        { "x": -6.5, "y": 7 },
+        { "x": -9, "y": 4.5 },
+        { "x": -9, "y": -4.5 }
+      ]
+    },
+    "concept_rain_octagon": {
+      "kind": "shape",
+      "halfExtents": { "x": 11, "y": 6.5 },
+      "vertices": [
+        { "x": -8.5, "y": -6.5 },
+        { "x": 8.5, "y": -6.5 },
+        { "x": 11, "y": -4 },
+        { "x": 11, "y": 4 },
+        { "x": 8.5, "y": 6.5 },
+        { "x": -8.5, "y": 6.5 },
+        { "x": -11, "y": 4 },
+        { "x": -11, "y": -4 }
+      ]
+    },
+    "concept_parallax_rect": {
+      "kind": "shape",
+      "halfExtents": { "x": 12, "y": 6 }
+    },
+    "concept_prop_octagon": {
+      "kind": "shape",
+      "halfExtents": { "x": 10, "y": 7 },
+      "vertices": [
+        { "x": -7, "y": -7 },
+        { "x": 7, "y": -7 },
+        { "x": 10, "y": -4 },
+        { "x": 10, "y": 4 },
+        { "x": 7, "y": 7 },
+        { "x": -7, "y": 7 },
+        { "x": -10, "y": 4 },
+        { "x": -10, "y": -4 }
+      ]
+    },
+    "concept_kit_octagon": {
+      "kind": "shape",
+      "halfExtents": { "x": 12, "y": 6.5 },
+      "vertices": [
+        { "x": -9.5, "y": -6.5 },
+        { "x": 9.5, "y": -6.5 },
+        { "x": 12, "y": -4 },
+        { "x": 12, "y": 4 },
+        { "x": 9.5, "y": 6.5 },
+        { "x": -9.5, "y": 6.5 },
+        { "x": -12, "y": 4 },
+        { "x": -12, "y": -4 }
+      ]
+    },
+    "concept_fallen_court": {
+      "kind": "shape",
+      "halfExtents": { "x": 8.5, "y": 8.5 },
+      "vertices": [
+        { "x": -5.5, "y": -8.5 }, { "x": 5.5, "y": -8.5 },
+        { "x": 8.5, "y": -5.5 }, { "x": 8.5, "y": 5.5 },
+        { "x": 5.5, "y": 8.5 }, { "x": -5.5, "y": 8.5 },
+        { "x": -8.5, "y": 5.5 }, { "x": -8.5, "y": -5.5 }
+      ],
+      "notes": [
+        "Square, per ADR-025. The panel refutes the old 20x14 outright and brackets the room at",
+        "hx:hy 0.897-0.982; 8.5 x 8.5 is the designer's rounding to square inside that bracket.",
+        "Span stays 17, so the push-in ceiling and ADR-024's budgets are untouched."
+      ]
+    },
+    "concept_procession_hall": {
+      "kind": "shape",
+      "halfExtents": { "x": 11, "y": 6 }
+    },
+    "concept_unbound_field": {
+      "kind": "shape",
+      "halfExtents": { "x": 11, "y": 7.5 }
+    },
+    "corner_keep": {
+      "kind": "shape",
+      "halfExtents": {
+        "x": 10,
+        "y": 8
+      },
+      "outline": [
+        {
+          "x": -10,
+          "y": -8
+        },
+        {
+          "x": -1,
+          "y": -8
+        },
+        {
+          "x": -1,
+          "y": -3
+        },
+        {
+          "x": 3,
+          "y": -3
+        },
+        {
+          "x": 3,
+          "y": 1.5
+        },
+        {
+          "x": 10,
+          "y": 1.5
+        },
+        {
+          "x": 10,
+          "y": 8
+        },
+        {
+          "x": 0,
+          "y": 8
+        },
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": -10,
+          "y": 0
+        }
+      ],
+      "regions": [
+        [
+          {
+            "x": -10,
+            "y": -8
+          },
+          {
+            "x": -1,
+            "y": -8
+          },
+          {
+            "x": -1,
+            "y": 0
+          },
+          {
+            "x": -10,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "x": -2,
+            "y": -3
+          },
+          {
+            "x": 3,
+            "y": -3
+          },
+          {
+            "x": 3,
+            "y": 0
+          },
+          {
+            "x": -2,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "x": 0,
+            "y": -3
+          },
+          {
+            "x": 3,
+            "y": -3
+          },
+          {
+            "x": 3,
+            "y": 3.5
+          },
+          {
+            "x": 0,
+            "y": 3.5
+          }
+        ],
+        [
+          {
+            "x": 0,
+            "y": 1.5
+          },
+          {
+            "x": 10,
+            "y": 1.5
+          },
+          {
+            "x": 10,
+            "y": 8
+          },
+          {
+            "x": 0,
+            "y": 8
+          }
+        ]
+      ],
+      "gates": [
+        {
+          "id": "lower_room",
+          "from": {
+            "x": -1.5,
+            "y": -3
+          },
+          "to": {
+            "x": -1.5,
+            "y": 0
+          },
+          "lockUntilWaveCleared": "w1"
+        },
+        {
+          "id": "upper_room",
+          "from": {
+            "x": 0,
+            "y": 2.5
+          },
+          "to": {
+            "x": 3,
+            "y": 2.5
+          },
+          "lockUntilWaveCleared": "w2"
+        }
+      ]
+    },
+    "long_gallery": {
+      "kind": "shape",
+      "halfExtents": {
+        "x": 13,
+        "y": 4
+      },
+      "vertices": [
+        {
+          "x": -10,
+          "y": -4
+        },
+        {
+          "x": 10,
+          "y": -4
+        },
+        {
+          "x": 13,
+          "y": 0
+        },
+        {
+          "x": 10,
+          "y": 4
+        },
+        {
+          "x": -10,
+          "y": 4
+        },
+        {
+          "x": -13,
+          "y": 0
+        }
+      ],
+      "notes": [
+        "Corridor proportions. 26 x 8, so the long axis takes 6.2s to walk and the short axis holds roughly three melee reaches — enough to fight across, not enough to circle freely. The ends are chamfered rather than square so a cornered player still has an angle out."
+      ]
+    },
+    "twin_bowls": {
+      "kind": "shape",
+      "halfExtents": {
+        "x": 11,
+        "y": 6
+      },
+      "outline": [
+        {
+          "x": -11,
+          "y": -6
+        },
+        {
+          "x": -3,
+          "y": -6
+        },
+        {
+          "x": -3,
+          "y": -2
+        },
+        {
+          "x": 3,
+          "y": -2
+        },
+        {
+          "x": 3,
+          "y": -6
+        },
+        {
+          "x": 11,
+          "y": -6
+        },
+        {
+          "x": 11,
+          "y": 6
+        },
+        {
+          "x": 3,
+          "y": 6
+        },
+        {
+          "x": 3,
+          "y": 2
+        },
+        {
+          "x": -3,
+          "y": 2
+        },
+        {
+          "x": -3,
+          "y": 6
+        },
+        {
+          "x": -11,
+          "y": 6
+        }
+      ],
+      "regions": [
+        [
+          {
+            "x": -11,
+            "y": -6
+          },
+          {
+            "x": -3,
+            "y": -6
+          },
+          {
+            "x": -3,
+            "y": 6
+          },
+          {
+            "x": -11,
+            "y": 6
+          }
+        ],
+        [
+          {
+            "x": -4,
+            "y": -2
+          },
+          {
+            "x": 4,
+            "y": -2
+          },
+          {
+            "x": 4,
+            "y": 2
+          },
+          {
+            "x": -4,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "x": 3,
+            "y": -6
+          },
+          {
+            "x": 11,
+            "y": -6
+          },
+          {
+            "x": 11,
+            "y": 6
+          },
+          {
+            "x": 3,
+            "y": 6
+          }
+        ]
+      ],
+      "notes": [
+        "Two open lobes joined by a 6 x 4 neck. The neck is exactly the melee band wide, so it is a place to be caught rather than a place to fight, and the two lobes cannot be read from one another — which is the partitioned-sightline answer to fighting from a doorway.",
+        "The middle region deliberately overhangs both lobes by a unit. `arenaContains` requires a body to fit inside a *single* convex region, so a passage that merely touched at the seam would be impassable at the player's radius."
+      ]
+    },
+    "combat_bowl": {
+      "kind": "shape",
+      "halfExtents": {
+        "x": 10,
+        "y": 7
+      },
+      "outline": [
+        {
+          "x": -10,
+          "y": -7
+        },
+        {
+          "x": 10,
+          "y": -7
+        },
+        {
+          "x": 10,
+          "y": 7
+        },
+        {
+          "x": -10,
+          "y": 7
+        }
+      ],
+      "regions": [
+        [
+          {
+            "x": -10,
+            "y": -7
+          },
+          {
+            "x": 10,
+            "y": -7
+          },
+          {
+            "x": 10,
+            "y": -1.5
+          },
+          {
+            "x": -10,
+            "y": -1.5
+          }
+        ],
+        [
+          {
+            "x": -10,
+            "y": 1.5
+          },
+          {
+            "x": 10,
+            "y": 1.5
+          },
+          {
+            "x": 10,
+            "y": 7
+          },
+          {
+            "x": -10,
+            "y": 7
+          }
+        ],
+        [
+          {
+            "x": -10,
+            "y": -7
+          },
+          {
+            "x": -1.5,
+            "y": -7
+          },
+          {
+            "x": -1.5,
+            "y": 7
+          },
+          {
+            "x": -10,
+            "y": 7
+          }
+        ],
+        [
+          {
+            "x": 1.5,
+            "y": -7
+          },
+          {
+            "x": 10,
+            "y": -7
+          },
+          {
+            "x": 10,
+            "y": 7
+          },
+          {
+            "x": 1.5,
+            "y": 7
+          }
+        ]
+      ],
+      "notes": [
+        "The combat bowl: the default 20 x 14 with a 3 x 3 pillar standing in the middle of it, so the pillar is the only thing that differs from `TRAINING_OCTAGON`.",
+        "The floor is a *ring* of four convex regions. Their union is the rectangle minus the central square, which is what makes the middle unwalkable — and that in turn is what lets the renderer stand a column there without breaking the decor invariant that nothing solid ever occupies playable floor. The outline stays the full rectangle because the floor really does continue under the column; it is a pillar, not a pit.",
+        "3 units across is chosen against the reach numbers, not for looks: it is wider than the 2.4 heavy reach, so two bodies on opposite faces genuinely cannot touch each other. That is the whole question the room asks — whether a sightline break the player can round faster than a guard turns melee spacing into something with a second axis."
+      ]
+    },
+    "cramped_keep": {
+      "kind": "shape",
+      "halfExtents": {
+        "x": 6,
+        "y": 4.5
+      },
+      "vertices": [
+        {
+          "x": -4,
+          "y": -4.5
+        },
+        {
+          "x": 4,
+          "y": -4.5
+        },
+        {
+          "x": 6,
+          "y": -2.5
+        },
+        {
+          "x": 6,
+          "y": 2.5
+        },
+        {
+          "x": 4,
+          "y": 4.5
+        },
+        {
+          "x": -4,
+          "y": 4.5
+        },
+        {
+          "x": -6,
+          "y": 2.5
+        },
+        {
+          "x": -6,
+          "y": -2.5
+        }
+      ],
+      "notes": [
+        "12 x 9 — deliberately too small, to find the floor. Centre to the long wall is 6 units, or about two and a half heavy reaches, so a two-enemy roster that is comfortable in the octagon should start to feel like a corner here. If it does not, the 20 x 14 default is oversized."
+      ]
+    },
+    "serpentine_maze": {
+      "kind": "serpentine",
+      "legs": 7,
+      "spacing": 20,
+      "corridorWidth": 3,
+      "legHalfLength": 12,
+      "notes": [
+        "123 x 24 world units — the largest floor in the lab by a factor of about ten in envelope, and about fourteen times the default room's walked length: seven legs of 24 plus six 20-unit elbow connectors is 288 units of corridor, or roughly sixty-nine seconds end to end at `moveSpeed` 4.2.",
+        "Twelve elbows, and every one of them is a real sightline break: the corridor is 3 wide, against a 2.4 heavy reach, so it is the gallery's \"no room to circle\" property repeated a dozen times. The 20-unit centre spacing gives a 5.4-unit isometric wall clear projected air beyond its coping and cornice instead of leaving the next leg's wall ends peeking over the foreground connector. Two bodies in adjacent legs are 20 units apart but still separated by a full elbow of path, which is what makes this a nav-mesh test rather than a long room."
+      ]
+    },
+    "generated_chambers": {
+      "kind": "generated",
+      "algorithm": "chambers",
+      "seed": 1,
+      "chambers": 3,
+      "chamberSpanMin": 3,
+      "chamberSpanMax": 4,
+      "spacing": 10.5,
+      "corridorWidth": 3,
+      "notes": [
+        "The first room in this lab nobody authored (ADR-014). Three chambers on a lattice, joined in a chain by 3-wide corridors — the same corridor width as the serpentine maze, and for the same reason: against a 2.4 heavy reach it is the gallery's \"no room to circle\" property, so a passage is a decision and not a doorway.",
+        "**The dials are bounded by the camera, and that is not a taste decision.** For a three-chamber chain the room's span cannot exceed `spacing + 2 * chamberSpanMax` whatever the walk does — the straight chain and the elbow reach the same bound — so these numbers cap it at 18.5 against `OVERSIZED_SPAN`'s 21. A room over that threshold is *followed* rather than framed, and whether a room bigger than a screen should be followed is an open question in ENGINE-PLAN §G8 that wants a designer's answer. A generated room drifting over the line would answer it by accident, at a seed nobody chose, and the first symptom would be a camera behaving differently in one room. `tests/camera.test.ts` holds the bound across a seed sweep so a reroll cannot cross it either.",
+        "Inside that cap: chambers 6 to 8 units across, at least 2.5 units of corridor outside the two they join. Smaller than the 12 x 9 cramped keep, which is deliberate — the keep is one room asking whether the floor is too tight, and this is three of them asking what a sequence of rooms does to a fight. Spacing must exceed twice `chamberSpanMax` or the chambers merge into a blob and the corridors join nothing.",
+        "`seed` is the room. Change it and this is a different floor with the same character, which is the whole claim a generator makes and the thing the pilot sweep exists to check — see `docs/11-PILOT-FINDINGS.md`. It is also the one dial the lab's own seed control overrides at runtime, so a run's record names its room through `RunMeta.seed` rather than through this number."
+      ]
+    }
+  },
+  "defaultEncounterId": "kernel_guard",
+  "defaultEncounter": {
+    "id": "kernel_guard",
+    "description": "One guard, untimed.",
+    "arena": "training_octagon",
+    "playerStart": {
+      "x": -3,
+      "y": 0
+    },
+    "waves": [
+      {
+        "id": "w1",
+        "atMs": 0,
+        "spawns": [
+          {
+            "archetype": "guard",
+            "at": {
+              "x": 3,
+              "y": 0
+            }
+          }
+        ]
+      }
+    ],
+    "timeLimitMs": null,
+    "notes": [
+      "Public build fixture. Kept as a named value so the other lab encounters can be shaken out."
+    ]
+  }
+}

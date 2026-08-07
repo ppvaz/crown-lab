@@ -1,0 +1,32 @@
+{
+  "id": "rotated_rectangle",
+  "description": "ROTATED RECTANGLE — long combat axis turned 90 degrees.",
+  "arena": "rect_14x20",
+  "playerStart": {
+    "x": 0,
+    "y": 7
+  },
+  "waves": [
+    {
+      "id": "long_axis",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -2.4,
+            "y": 0.5
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 1.8,
+            "y": -6.5
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null
+}

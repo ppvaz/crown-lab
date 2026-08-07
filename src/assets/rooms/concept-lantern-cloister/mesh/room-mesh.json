@@ -1,0 +1,446 @@
+{
+ "room": "concept_lantern_cloister",
+ "ambient": [
+  0.12,
+  0.144,
+  0.232
+ ],
+ "cameraContract": {
+  "contentHash": "37a5f9b8425458f3"
+ },
+ "space": {
+  "note": "GLB vertices are Blender space: world (x, y, elevation) at (x, -y, elevation * heightScale)",
+  "yMirror": true,
+  "heightScale": 0.816497
+ },
+ "projection": {
+  "isoX": 34.0,
+  "isoY": 17.0,
+  "elevationY": 34.0,
+  "wallUnits": 5.4
+ },
+ "arena": {
+  "halfExtents": {
+   "x": 8.5,
+   "y": 8.5
+  },
+  "span": 17,
+  "vertices": [
+   {
+    "x": -5.5,
+    "y": -8.5
+   },
+   {
+    "x": 5.5,
+    "y": -8.5
+   },
+   {
+    "x": 8.5,
+    "y": -5.5
+   },
+   {
+    "x": 8.5,
+    "y": 5.5
+   },
+   {
+    "x": 5.5,
+    "y": 8.5
+   },
+   {
+    "x": -5.5,
+    "y": 8.5
+   },
+   {
+    "x": -8.5,
+    "y": 5.5
+   },
+   {
+    "x": -8.5,
+    "y": -5.5
+   }
+  ]
+ },
+ "materials": {
+  "cloister-banner-cloth": {
+   "kind": "plain",
+   "colour": [
+    0.58,
+    0.52,
+    0.4
+   ],
+   "roughness": 0.94
+  },
+  "cloister-coping": {
+   "kind": "ashlar",
+   "colour": [
+    0.105,
+    0.118,
+    0.16
+   ],
+   "joint": [
+    0.028,
+    0.032,
+    0.05
+   ],
+   "block": [
+    1.75,
+    0.55
+   ],
+   "mortar": 0.026,
+   "roughness": 0.92
+  },
+  "cloister-dark-metal": {
+   "kind": "metal",
+   "colour": [
+    0.045,
+    0.034,
+    0.025
+   ],
+   "roughness": 0.42
+  },
+  "cloister-flame": {
+   "kind": "flame",
+   "colour": [
+    1.0,
+    0.62,
+    0.22
+   ],
+   "strength": 3.2
+  },
+  "cloister-flame-hot": {
+   "kind": "flame",
+   "colour": [
+    1.0,
+    0.88,
+    0.38
+   ],
+   "strength": 4.6
+  },
+  "cloister-floor": {
+   "kind": "flagstone",
+   "colour": [
+    0.03,
+    0.03,
+    0.052
+   ],
+   "joint": [
+    0.016,
+    0.016,
+    0.03
+   ],
+   "block": [
+    1.35,
+    1.35
+   ],
+   "mortar": 0.02,
+   "roughness": 0.78
+  },
+  "cloister-gold": {
+   "kind": "metal",
+   "colour": [
+    0.62,
+    0.44,
+    0.13
+   ],
+   "roughness": 0.34
+  },
+  "cloister-slab": {
+   "kind": "ashlar",
+   "colour": [
+    0.02,
+    0.023,
+    0.038
+   ],
+   "joint": [
+    0.02,
+    0.023,
+    0.038
+   ],
+   "block": [
+    0.8,
+    0.55
+   ],
+   "mortar": 0.022,
+   "roughness": 0.95
+  },
+  "cloister-stone": {
+   "kind": "ashlar",
+   "colour": [
+    0.058,
+    0.066,
+    0.1
+   ],
+   "joint": [
+    0.028,
+    0.032,
+    0.05
+   ],
+   "block": [
+    1.15,
+    0.42
+   ],
+   "mortar": 0.03,
+   "roughness": 0.92
+  },
+  "cloister-wood": {
+   "kind": "plain",
+   "colour": [
+    0.148,
+    0.092,
+    0.052
+   ],
+   "joint": [
+    0.07,
+    0.042,
+    0.024
+   ],
+   "block": [
+    3.2,
+    0.4
+   ],
+   "mortar": 0.018,
+   "roughness": 0.84
+  }
+ },
+ "layers": {
+  "backgroundArchitecture": [
+   "west-pier-0",
+   "west-pier-1",
+   "west-pier-2",
+   "west-pier-3",
+   "west-coping",
+   "west-architectural-detail",
+   "west-lantern-0",
+   "west-lantern-1",
+   "west-lantern-2",
+   "north-pier-0",
+   "north-pier-1",
+   "north-pier-2",
+   "north-pier-3",
+   "north-coping",
+   "north-architectural-detail",
+   "north-lantern-0",
+   "north-lantern-1",
+   "north-lantern-2",
+   "corner-pier",
+   "corner-dressing"
+  ],
+  "playableFloor": [
+   "floor-slab",
+   "floor-plane",
+   "floor-inlays"
+  ],
+  "solidProps": [
+   "torch-left",
+   "torch-right"
+  ],
+  "foregroundOccluders": [
+   "torch-front"
+  ]
+ },
+ "masses": [
+  {
+   "name": "torch-left",
+   "layer": "solidProps",
+   "at": {
+    "x": -7.4,
+    "y": 4.4
+   },
+   "bounds": {
+    "min": {
+     "x": -7.74,
+     "y": 4.06
+    },
+    "max": {
+     "x": -7.06,
+     "y": 4.74
+    },
+    "top": 1.55
+   }
+  },
+  {
+   "name": "torch-right",
+   "layer": "solidProps",
+   "at": {
+    "x": 4.4,
+    "y": -7.4
+   },
+   "bounds": {
+    "min": {
+     "x": 4.06,
+     "y": -7.74
+    },
+    "max": {
+     "x": 4.74,
+     "y": -7.06
+    },
+    "top": 1.55
+   }
+  },
+  {
+   "name": "torch-front",
+   "layer": "foregroundOccluders",
+   "at": {
+    "x": 7.0,
+    "y": 7.0
+   },
+   "bounds": {
+    "min": {
+     "x": 6.66,
+     "y": 6.66
+    },
+    "max": {
+     "x": 7.34,
+     "y": 7.34
+    },
+    "top": 1.55
+   }
+  }
+ ],
+ "lights": [
+  {
+   "name": "west-lantern-light-0",
+   "lamp": "west-lantern-0",
+   "at": {
+    "x": -8.5,
+    "y": 3.666667
+   },
+   "elevation": 3.45,
+   "energy": 180.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.8
+  },
+  {
+   "name": "west-lantern-light-1",
+   "lamp": "west-lantern-1",
+   "at": {
+    "x": -8.5,
+    "y": 0.0
+   },
+   "elevation": 3.45,
+   "energy": 180.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.8
+  },
+  {
+   "name": "west-lantern-light-2",
+   "lamp": "west-lantern-2",
+   "at": {
+    "x": -8.5,
+    "y": -3.666667
+   },
+   "elevation": 3.45,
+   "energy": 180.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.8
+  },
+  {
+   "name": "north-lantern-light-0",
+   "lamp": "north-lantern-0",
+   "at": {
+    "x": -3.666667,
+    "y": -8.5
+   },
+   "elevation": 3.45,
+   "energy": 180.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.8
+  },
+  {
+   "name": "north-lantern-light-1",
+   "lamp": "north-lantern-1",
+   "at": {
+    "x": 0.0,
+    "y": -8.5
+   },
+   "elevation": 3.45,
+   "energy": 180.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.8
+  },
+  {
+   "name": "north-lantern-light-2",
+   "lamp": "north-lantern-2",
+   "at": {
+    "x": 3.666667,
+    "y": -8.5
+   },
+   "elevation": 3.45,
+   "energy": 180.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.8
+  },
+  {
+   "name": "torch-left-light",
+   "lamp": "torch-left",
+   "at": {
+    "x": -7.4,
+    "y": 4.4
+   },
+   "elevation": 1.55,
+   "energy": 280.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 2.4
+  },
+  {
+   "name": "torch-right-light",
+   "lamp": "torch-right",
+   "at": {
+    "x": 4.4,
+    "y": -7.4
+   },
+   "elevation": 1.55,
+   "energy": 280.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 2.4
+  },
+  {
+   "name": "torch-front-light",
+   "lamp": "torch-front",
+   "at": {
+    "x": 7.0,
+    "y": 7.0
+   },
+   "elevation": 1.55,
+   "energy": 280.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 2.4
+  }
+ ]
+}

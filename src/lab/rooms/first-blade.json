@@ -1,0 +1,28 @@
+{
+  "id": "first_blade",
+  "description": "The First Blade: directional phrase, then five wall-to-wall fly-bys.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "first_blade",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "first_blade",
+          "at": {
+            "x": 0,
+            "y": -5
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 120000,
+  "notes": [
+    "The First Blade instrument. One opponent, no adds and no random timing: phase one tests a three-direction parry phrase; phase two tests repeated wall-to-wall reads and rewards a perfect five-parry phrase with a close stagger opening."
+  ]
+}

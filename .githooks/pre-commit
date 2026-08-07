@@ -1,0 +1,47 @@
+#!/bin/sh
+set -eu
+
+cat >&2 <<'AI_REVIEW'
+
+<AI_SECURITY_REVIEW_REQUIRED>
+This commit touches a private single-player engine and/or its laboratory.
+
+Before acknowledging this gate, review `git diff --cached` as an adversarial release review:
+
+1. PUBLIC GRAPH
+   Confirm the game build does not import or retain lab UI, telemetry, replay, metrics,
+   estimator, debug/cheat controls, capture fixtures, experimental presets, or asset importers.
+
+2. RECONSTRUCTION SURFACE
+   Look for newly exposed state names, transition tables, tuning labels, object-property
+   vocabularies, descriptive errors, debug strings, source maps, unminified chunks, JSON
+   schemas, deterministic hashes, or metadata that makes the engine easier to map.
+
+3. LAB DISTRIBUTION
+   Confirm no lab artifact, run export, capture, source map, credential, private asset, or
+   collaborator-specific build was staged for a public deploy. The default build must remain
+   the public game; lab builds must remain explicit, separate and recipient-watermarked.
+
+4. SECURITY CLAIMS
+   Treat minification and obfuscation only as cost multipliers. Do not claim that browser code
+   is secret, encrypted, or impossible to reconstruct. Flag any protection that can silently
+   break determinism, replay compatibility, serialized data, or browser APIs.
+
+5. VERIFICATION
+   Run the repository gate and inspect the emitted artifacts, not only the TypeScript source.
+   If any item is uncertain, stop the commit and explain the risk to the owner.
+
+After completing the semantic review, retry the commit with:
+  CROWN_SECURITY_REVIEWED=1 git commit <same arguments>
+</AI_SECURITY_REVIEW_REQUIRED>
+
+AI_REVIEW
+
+if [ "${CROWN_SECURITY_REVIEWED:-0}" != "1" ]; then
+  echo "Commit stopped: explicit security review acknowledgement is required." >&2
+  exit 1
+fi
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "${repo_root}"
+npm run guard:commit

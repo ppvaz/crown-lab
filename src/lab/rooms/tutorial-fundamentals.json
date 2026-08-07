@@ -1,0 +1,29 @@
+{
+  "id": "tutorial_fundamentals",
+  "description": "Tutorial experiment: movement, aim, light and heavy attacks.",
+  "tutorial": "fundamentals",
+  "arena": "training_octagon",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "practice",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 4,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "One distant teacher keeps the encounter live and gives both attacks a real target."
+  ]
+}

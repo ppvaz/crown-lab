@@ -1,0 +1,24 @@
+{
+  "id": "concept_parallax_gallery",
+  "description": "CONCEPT ARENA — a wide gallery built to compare inhabited skyline and deep-window parallax.",
+  "arena": "concept_parallax_rect",
+  "playerStart": {
+    "x": 0,
+    "y": 4.4
+  },
+  "waves": [
+    {
+      "id": "inspection_pair",
+      "atMs": 0,
+      "spawns": [
+        { "archetype": "guard", "at": { "x": -3, "y": -1.8 } },
+        { "archetype": "duelist", "at": { "x": 3, "y": -1.8 } }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Laboratory concept arena only. It is not a route room and makes no canonical claim.",
+    "The shallow wide footprint gives the background more frame area without changing renderer constraints."
+  ]
+}

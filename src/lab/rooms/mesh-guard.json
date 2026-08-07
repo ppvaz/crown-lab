@@ -1,0 +1,37 @@
+{
+  "id": "mesh_guard",
+  "description": "Rendering study: the guard's fight, drawn as real geometry beside a flat one.",
+  "arena": "training_octagon",
+  "playerStart": {
+    "x": -3,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "mesh_guard",
+          "at": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 3,
+            "y": -3.6
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "`kernel_guard` with one extra body, and the extra body is the control. The mesh guard and the flat guard carry identical tuning (`lab/enemies/mesh-guard.ts` spreads `GUARD` rather than copying it), stand the same distance from the king, and differ only in how they are drawn — so anything a viewer notices between them is the rendering.",
+    "Both at once and in one frame, because that is the question. A room holding only the mesh body would answer 'does this look good', which nobody needs a room for; a room holding both answers 'does this read as the same cast', which is the decision actually in front of the project.",
+    "Untimed, like the kernel it is derived from. A clock would make the room about pressure and this room is about pixels."
+  ]
+}

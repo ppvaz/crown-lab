@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Crown Lab — Lantern Cloister, WebGL blockout</title>
+
+
+
+
+
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: #05060b; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; cursor: grab; }
+  canvas.dragging { cursor: grabbing; }
+  .hud {
+    position: fixed; left: 16px; top: 14px; pointer-events: none;
+    font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #b9c0d4; text-shadow: 0 1px 2px #000a;
+  }
+  .hud h1 { margin: 0 0 2px; font-size: 13px; letter-spacing: .14em; color: #e8dcc0; font-weight: 600; }
+  .hud .sub { color: #6f7691; margin-bottom: 10px; }
+  .hud kbd {
+    background: #1a1e2c; border: 1px solid #2c3247; border-radius: 3px;
+    padding: 0 4px; color: #d6dbe8; font: inherit;
+  }
+  .hud .row { color: #8d94ab; }
+  .err { position: fixed; inset: 0; display: grid; place-items: center; padding: 2rem;
+         font: 14px/1.6 ui-monospace, monospace; color: #d98a8a; }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div class="hud">
+  <h1>LANTERN CLOISTER</h1>
+  <div class="sub">concept_lantern_cloister &middot; arena concept_fallen_court &middot; 17 &times; 17 units</div>
+  <div class="row">drag &mdash; orbit &nbsp; wheel &mdash; dolly</div>
+  <div class="row"><kbd>O</kbd> projection &nbsp; <kbd>A</kbd> actors &nbsp; <kbd>F</kbd> flicker &nbsp; <kbd>R</kbd> reset</div>
+  <div class="row" id="mode"></div>
+</div>
+<script>
+"use strict";
+
+
+const ARENA = [
+  [-5.5, -8.5], [5.5, -8.5], [8.5, -5.5], [8.5, 5.5],
+  [5.5, 8.5], [-5.5, 8.5], [-8.5, 5.5], [-8.5, -5.5],
+];
+const WALL_UNITS = 5.4;
+
+const ENCOUNTER = {
+  playerStart: { x: 0, y: 4.8 },
+  spawns: [
+    { archetype: "guard",   at: { x: -2.7, y: -2.2 } },
+    { archetype: "duelist", at: { x:  2.7, y: -2.2 } },
+  ],
+};
+
+const SLAB_DEPTH = 0.55;
+const ARCHES_PER_WALL = 3;
+const PIER_FRACTION = 0.30;
+const PIER_DEPTH = 0.8;
+const COPING_DEPTH = 0.95;
+const LANTERN_SIZE = 0.42;
+const LANTERN_HANG = 3.45;
+const CHAIN_WIDTH = 0.07;
+const BRAZIER_SIZE = 0.85;
+const BRAZIER_HEIGHT = 1.15;
+const BRAZIER_INSET = 1.1;
+
+const STONE       = [0.055, 0.062, 0.085];
+const STONE_LIGHT = [0.085, 0.094, 0.125];
+const FLOOR       = [0.043, 0.048, 0.068];
+const SLAB        = [0.026, 0.029, 0.042];
+const GOLD        = [0.62,  0.44,  0.13];
+const FLAME       = [1.0,   0.62,  0.22];
+
+const srgb = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+};
+const PALETTE = {
+  player: srgb("#efeae0"),
+  playerAccent: srgb("#c8a94a"),
+  guard: srgb("#c2444a"),
+  duelist: srgb("#4a7fc2"),
+  cloth: [0.02, 0.022, 0.032],
+};
+
+
+const pos = [], nrm = [], col = [], mat = [];
+const lights = [];
+
+const push = (p, n, c, m) => {
+  pos.push(p[0], p[2], p[1]);
+  nrm.push(n[0], n[2], n[1]);
+  col.push(c[0], c[1], c[2]);
+  mat.push(m);
+};
+
+const tri = (a, b, c, n, colour, m) => { push(a, n, colour, m); push(b, n, colour, m); push(c, n, colour, m); };
+
+const quad = (a, b, c, d, n, colour, m) => { tri(a, b, c, n, colour, m); tri(a, c, d, n, colour, m); };
+
+const prism = (poly, bottom, top, colour, m = 0) => {
+  const n = poly.length;
+  for (let i = 0; i < n; i++) {
+    const [ax, ay] = poly[i], [bx, by] = poly[(i + 1) % n];
+    const ex = bx - ax, ey = by - ay;
+    const len = Math.hypot(ex, ey) || 1;
+    const nrmv = [ey / len, -ex / len, 0];
+    quad([ax, ay, bottom], [bx, by, bottom], [bx, by, top], [ax, ay, top], nrmv, colour, m);
+  }
+  for (let i = 1; i < n - 1; i++) {
+    tri([poly[0][0], poly[0][1], top], [poly[i][0], poly[i][1], top],
+        [poly[i + 1][0], poly[i + 1][1], top], [0, 0, 1], colour, m);
+    tri([poly[0][0], poly[0][1], bottom], [poly[i + 1][0], poly[i + 1][1], bottom],
+        [poly[i][0], poly[i][1], bottom], [0, 0, -1], colour, m);
+  }
+};
+
+const box = (cx, cy, sx, sy, bottom, top, colour, m = 0) => prism([
+  [cx - sx / 2, cy - sy / 2], [cx + sx / 2, cy - sy / 2],
+  [cx + sx / 2, cy + sy / 2], [cx - sx / 2, cy + sy / 2],
+], bottom, top, colour, m);
+
+const boxRot = (cx, cy, sx, sy, bottom, top, angle, colour, m = 0) => {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  const corner = (u, v) => [cx + u * c - v * s, cy + u * s + v * c];
+  prism([corner(-sx / 2, -sy / 2), corner(sx / 2, -sy / 2), corner(sx / 2, sy / 2), corner(-sx / 2, sy / 2)],
+        bottom, top, colour, m);
+};
+
+const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
+const edgesOf = (poly) => {
+  const n = poly.length;
+  const depth = (i) => poly[i][0] + poly[i][1] + poly[(i + 1) % n][0] + poly[(i + 1) % n][1];
+  let far = 0, near = 0;
+  for (let i = 1; i < n; i++) {
+    if (depth(i) < depth(far)) far = i;
+    if (depth(i) > depth(near)) near = i;
+  }
+  const at = (i) => poly[((i % n) + n) % n];
+  return {
+    farChamfer: [at(far), at(far + 1)],
+    nearChamfer: [at(near), at(near + 1)],
+    runs: [[at(far - 1), at(far)], [at(far + 1), at(far + 2)]],
+  };
+};
+
+const inward = (a, b, centre) => {
+  const span = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  let nx = -(b[1] - a[1]) / span, ny = (b[0] - a[0]) / span;
+  const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  if ((centre[0] - mid[0]) * nx + (centre[1] - mid[1]) * ny < 0) { nx = -nx; ny = -ny; }
+  return [nx, ny];
+};
+
+const wallRun = (a, b, wallH, centre) => {
+  const n = ARCHES_PER_WALL;
+  const [nx, ny] = inward(a, b, centre);
+  const at = (t, off) => {
+    const p = lerp2(a, b, t);
+    return [p[0] + nx * off, p[1] + ny * off];
+  };
+  const pierH = wallH - COPING_DEPTH;
+  const hw = PIER_FRACTION / (2 * n);
+  const hd = PIER_DEPTH / 2;
+
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    prism([at(t - hw, -hd), at(t + hw, -hd), at(t + hw, hd), at(t - hw, hd)], 0, pierH, STONE);
+  }
+  prism([at(0, -hd), at(1, -hd), at(1, hd), at(0, hd)], pierH, wallH, STONE_LIGHT);
+
+  for (let i = 0; i < n; i++) {
+    const [cx, cy] = at((i + 0.5) / n, 0);
+    box(cx, cy, CHAIN_WIDTH, CHAIN_WIDTH, LANTERN_HANG + LANTERN_SIZE / 2, pierH, GOLD);
+    box(cx, cy, LANTERN_SIZE, LANTERN_SIZE,
+        LANTERN_HANG - LANTERN_SIZE / 2, LANTERN_HANG + LANTERN_SIZE / 2, FLAME, 2);
+    lights.push({ x: cx, y: cy, h: LANTERN_HANG, colour: [1.0, 0.79, 0.5], energy: 90, flicker: 0.06 });
+  }
+};
+
+const figure = (x, y, facing, main, accent, weapon) => {
+  const a = Math.atan2(facing[1], facing[0]);
+  boxRot(x, y, 0.30, 0.44, 0.00, 0.82, a, PALETTE.cloth);
+  boxRot(x, y, 0.34, 0.62, 0.82, 1.44, a, main);
+  boxRot(x, y, 0.24, 0.26, 1.44, 1.74, a, PALETTE.player);
+  if (weapon === "cape") {
+    boxRot(x - facing[0] * 0.22, y - facing[1] * 0.22, 0.10, 0.56, 0.42, 1.46, a, accent);
+  } else {
+    const px = -facing[1], py = facing[0];
+    boxRot(x + facing[0] * 0.30 + px * 0.34, y + facing[1] * 0.30 + py * 0.34,
+           0.70, 0.07, 0.95, 1.05, a, accent);
+  }
+};
+
+const buildRoom = () => {
+  const poly = ARENA;
+  const centre = [
+    poly.reduce((s, p) => s + p[0], 0) / poly.length,
+    poly.reduce((s, p) => s + p[1], 0) / poly.length,
+  ];
+
+  prism(poly, -SLAB_DEPTH, -0.02, SLAB);
+  prism(poly, -0.02, 0.0, FLOOR, 1);
+
+  const edges = edgesOf(poly);
+  const [west, north] = edges.runs;
+  wallRun(west[0], west[1], WALL_UNITS, centre);
+  wallRun(north[0], north[1], WALL_UNITS, centre);
+
+  const [ca, cb] = edges.farChamfer;
+  const [cnx, cny] = inward(ca, cb, centre);
+  prism([ca, cb, [cb[0] + cnx * PIER_DEPTH, cb[1] + cny * PIER_DEPTH],
+         [ca[0] + cnx * PIER_DEPTH, ca[1] + cny * PIER_DEPTH]], 0, WALL_UNITS, STONE);
+
+  const spots = [];
+  [["left", west], ["right", north]].forEach(([label, [ra, rb]]) => {
+    const [free, inner] = label === "left" ? [ra, rb] : [rb, ra];
+    const span = Math.hypot(inner[0] - free[0], inner[1] - free[1]);
+    const ux = (inner[0] - free[0]) / span, uy = (inner[1] - free[1]) / span;
+    const [bnx, bny] = inward(ra, rb, centre);
+    spots.push([free[0] + ux * BRAZIER_INSET + bnx * BRAZIER_INSET,
+                free[1] + uy * BRAZIER_INSET + bny * BRAZIER_INSET]);
+  });
+  const [na, nb] = edges.nearChamfer;
+  spots.push([(na[0] + nb[0]) / 2, (na[1] + nb[1]) / 2]);
+
+  spots.forEach(([bx, by]) => {
+    box(bx, by, BRAZIER_SIZE, BRAZIER_SIZE, 0, BRAZIER_HEIGHT, GOLD);
+    box(bx, by, BRAZIER_SIZE * 0.55, BRAZIER_SIZE * 0.55,
+        BRAZIER_HEIGHT, BRAZIER_HEIGHT + 0.45, FLAME, 2);
+    lights.push({ x: bx, y: by, h: BRAZIER_HEIGHT + 0.4, colour: [1.0, 0.72, 0.4], energy: 140, flicker: 0.18 });
+  });
+};
+
+buildRoom();
+const roomVertexCount = pos.length / 3;
+
+const mid = { x: (ENCOUNTER.spawns[0].at.x + ENCOUNTER.spawns[1].at.x) / 2,
+              y: (ENCOUNTER.spawns[0].at.y + ENCOUNTER.spawns[1].at.y) / 2 };
+const face = (from, to) => {
+  const dx = to.x - from.x, dy = to.y - from.y;
+  const len = Math.hypot(dx, dy) || 1;
+  return [dx / len, dy / len];
+};
+figure(ENCOUNTER.playerStart.x, ENCOUNTER.playerStart.y,
+       face(ENCOUNTER.playerStart, mid), PALETTE.player, PALETTE.playerAccent, "cape");
+ENCOUNTER.spawns.forEach((s) => {
+  figure(s.at.x, s.at.y, face(s.at, ENCOUNTER.playerStart),
+         PALETTE[s.archetype], PALETTE.playerAccent, "blade");
+});
+const totalVertexCount = pos.length / 3;
+
+
+const mul = (a, b) => {
+  const o = new Float32Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    o[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+  }
+  return o;
+};
+
+const perspective = (fovy, aspect, near, far) => {
+  const f = 1 / Math.tan(fovy / 2);
+  return new Float32Array([
+    f / aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far + near) / (near - far), -1,
+    0, 0, (2 * far * near) / (near - far), 0,
+  ]);
+};
+
+const ortho = (halfH, aspect, near, far) => {
+  const halfW = halfH * aspect;
+  return new Float32Array([
+    1 / halfW, 0, 0, 0,
+    0, 1 / halfH, 0, 0,
+    0, 0, -2 / (far - near), 0,
+    0, 0, -(far + near) / (far - near), 1,
+  ]);
+};
+
+const lookAt = (eye, target, up) => {
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const norm = (v) => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const z = norm(sub(eye, target));
+  const x = norm(cross(up, z));
+  const y = cross(z, x);
+  return new Float32Array([
+    x[0], y[0], z[0], 0,
+    x[1], y[1], z[1], 0,
+    x[2], y[2], z[2], 0,
+    -dot(x, eye), -dot(y, eye), -dot(z, eye), 1,
+  ]);
+};
+
+
+const canvas = document.getElementById("gl");
+const gl = canvas.getContext("webgl2", { antialias: true, alpha: false });
+if (!gl) {
+  document.body.innerHTML = '<div class="err">This page needs WebGL2, and this browser did not give one.</div>';
+  throw new Error("no webgl2");
+}
+
+const LIGHT_COUNT = lights.length;
+
+const VERT = `#version 300 es
+in vec3 aPos;
+in vec3 aNrm;
+in vec3 aCol;
+in float aMat;
+uniform mat4 uViewProj;
+out vec3 vPos;
+out vec3 vNrm;
+out vec3 vCol;
+out float vMat;
+void main() {
+  vPos = aPos;
+  vNrm = aNrm;
+  vCol = aCol;
+  vMat = aMat;
+  gl_Position = uViewProj * vec4(aPos, 1.0);
+}`;
+
+const FRAG = `#version 300 es
+precision highp float;
+in vec3 vPos;
+in vec3 vNrm;
+in vec3 vCol;
+in float vMat;
+uniform vec3 uLightPos[${LIGHT_COUNT}];
+uniform vec3 uLightCol[${LIGHT_COUNT}];
+uniform vec3 uEye;
+uniform float uEmissive;
+out vec4 outColor;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
+
+void main() {
+  vec3 n = normalize(vNrm);
+  vec3 albedo = vCol;
+
+  if (vMat > 0.5 && vMat < 1.5) {
+    vec2 cell = floor(vPos.xz);
+    vec2 f = abs(fract(vPos.xz) - 0.5);
+    float joint = smoothstep(0.44, 0.5, max(f.x, f.y));
+    albedo *= 0.82 + 0.36 * hash(cell);
+    albedo = mix(albedo, albedo * 0.45, joint);
+  }
+
+  if (vMat > 1.5) {           // emissive: lantern and fire bodies
+    outColor = vec4(pow(albedo * uEmissive, vec3(1.0 / 2.2)), 1.0);
+    return;
+  }
+
+  vec3 lit = albedo * vec3(0.030, 0.036, 0.058);      // night sky, the one light with no source
+  vec3 v = normalize(uEye - vPos);
+  for (int i = 0; i < ${LIGHT_COUNT}; i++) {
+    vec3 d = uLightPos[i] - vPos;
+    float dist = length(d);
+    vec3 l = d / max(dist, 0.001);
+    float atten = 1.0 / (1.0 + 0.12 * dist * dist);
+    float diff = max(dot(n, l), 0.0);
+    vec3 h = normalize(l + v);
+    float spec = pow(max(dot(n, h), 0.0), 24.0) * 0.06;
+    lit += uLightCol[i] * atten * (albedo * diff + spec);
+  }
+
+  float fog = 1.0 - exp(-0.0016 * pow(length(uEye - vPos), 2.0));
+  lit = mix(lit, vec3(0.012, 0.016, 0.030), clamp(fog, 0.0, 0.55));
+  outColor = vec4(pow(lit, vec3(1.0 / 2.2)), 1.0);
+}`;
+
+const compile = (type, src) => {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+};
+const program = gl.createProgram();
+gl.attachShader(program, compile(gl.VERTEX_SHADER, VERT));
+gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAG));
+gl.linkProgram(program);
+if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+gl.useProgram(program);
+
+const attrib = (name, data, size) => {
+  const loc = gl.getAttribLocation(program, name);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
+};
+const vao = gl.createVertexArray();
+gl.bindVertexArray(vao);
+attrib("aPos", pos, 3);
+attrib("aNrm", nrm, 3);
+attrib("aCol", col, 3);
+attrib("aMat", mat, 1);
+
+const uViewProj = gl.getUniformLocation(program, "uViewProj");
+const uEye = gl.getUniformLocation(program, "uEye");
+const uEmissive = gl.getUniformLocation(program, "uEmissive");
+const uLightPos = gl.getUniformLocation(program, "uLightPos");
+const uLightCol = gl.getUniformLocation(program, "uLightCol");
+
+const lightPos = new Float32Array(LIGHT_COUNT * 3);
+const lightCol = new Float32Array(LIGHT_COUNT * 3);
+lights.forEach((l, i) => { lightPos[i * 3] = l.x; lightPos[i * 3 + 1] = l.h; lightPos[i * 3 + 2] = l.y; });
+
+gl.enable(gl.DEPTH_TEST);
+gl.enable(gl.CULL_FACE);
+gl.cullFace(gl.BACK);
+gl.frontFace(gl.CW);
+gl.clearColor(0.012, 0.016, 0.030, 1);
+
+
+const DIMETRIC = Math.atan(0.5);
+const REST = { yaw: Math.PI / 4, pitch: DIMETRIC, dist: 30 };
+const cam = { ...REST };
+let ortho_ = false, showActors = true, flicker = true;
+
+const modeLine = document.getElementById("mode");
+const showMode = () => {
+  modeLine.textContent =
+    `${ortho_ ? "orthographic 2:1" : "perspective 38°"} · ${showActors ? "actors on" : "actors off"}`;
+};
+showMode();
+
+let dragging = false, lastX = 0, lastY = 0;
+canvas.addEventListener("pointerdown", (e) => {
+  dragging = true; lastX = e.clientX; lastY = e.clientY;
+  canvas.classList.add("dragging"); canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointerup", (e) => {
+  dragging = false; canvas.classList.remove("dragging"); canvas.releasePointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+  cam.yaw -= (e.clientX - lastX) * 0.006;
+  cam.pitch = Math.min(Math.PI / 2 - 0.02, Math.max(0.04, cam.pitch + (e.clientY - lastY) * 0.004));
+  lastX = e.clientX; lastY = e.clientY;
+});
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  cam.dist = Math.min(70, Math.max(9, cam.dist * Math.exp(e.deltaY * 0.0012)));
+}, { passive: false });
+addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase();
+  if (k === "o") ortho_ = !ortho_;
+  else if (k === "a") showActors = !showActors;
+  else if (k === "f") flicker = !flicker;
+  else if (k === "r") Object.assign(cam, REST);
+  else return;
+  showMode();
+});
+
+const resize = () => {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = Math.round(innerWidth * dpr);
+  canvas.height = Math.round(innerHeight * dpr);
+  gl.viewport(0, 0, canvas.width, canvas.height);
+};
+addEventListener("resize", resize);
+resize();
+
+const TARGET = [0, 1.6, 0];
+
+const frame = (nowMs) => {
+  const t = nowMs / 1000;
+  const aspect = canvas.width / canvas.height;
+
+  const eye = [
+    TARGET[0] + cam.dist * Math.cos(cam.pitch) * Math.sin(cam.yaw),
+    TARGET[1] + cam.dist * Math.sin(cam.pitch),
+    TARGET[2] + cam.dist * Math.cos(cam.pitch) * Math.cos(cam.yaw),
+  ];
+  const view = lookAt(eye, TARGET, [0, 1, 0]);
+  const proj = ortho_
+    ? ortho(cam.dist * 0.30, aspect, -200, 200)
+    : perspective((38 * Math.PI) / 180, aspect, 0.1, 300);
+
+  lights.forEach((l, i) => {
+    const amp = flicker ? l.flicker : 0;
+    const wobble = 1 + amp * (Math.sin(t * 7.3 + i * 2.1) * 0.6 + Math.sin(t * 17.9 + i) * 0.4);
+    const gain = (l.energy / 90) * 1.15 * wobble;
+    lightCol[i * 3] = l.colour[0] * gain;
+    lightCol[i * 3 + 1] = l.colour[1] * gain;
+    lightCol[i * 3 + 2] = l.colour[2] * gain;
+  });
+
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.uniformMatrix4fv(uViewProj, false, mul(proj, view));
+  gl.uniform3fv(uEye, eye);
+  gl.uniform3fv(uLightPos, lightPos);
+  gl.uniform3fv(uLightCol, lightCol);
+  gl.uniform1f(uEmissive, flicker ? 1 + 0.12 * Math.sin(t * 9.1) : 1);
+  gl.drawArrays(gl.TRIANGLES, 0, showActors ? totalVertexCount : roomVertexCount);
+
+  requestAnimationFrame(frame);
+};
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

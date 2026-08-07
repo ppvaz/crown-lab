@@ -1,0 +1,12 @@
+{
+  "id": "wayfarer_court",
+  "description": "Exploration hub: dialogue, quest acceptance and return.",
+  "exploration": true,
+  "arena": "training_octagon",
+  "playerStart": {
+    "x": -2,
+    "y": 0
+  },
+  "waves": [],
+  "timeLimitMs": null
+}

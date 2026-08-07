@@ -1,0 +1,35 @@
+{
+  "id": "shape_twin_bowls",
+  "description": "Shape series: two lobes and a neck. Neither lobe can be read from the other.",
+  "arena": "twin_bowls",
+  "playerStart": {
+    "x": -8,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -5,
+            "y": 1
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 7,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "The far lobe, so the duelist has to commit to the neck to reach the player."
+  ]
+}

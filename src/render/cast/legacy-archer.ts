@@ -1,0 +1,210 @@
+
+import type { ModelDef } from '../models';
+
+
+export const LEGACY_ARCHER: ModelDef = /* @__PURE__ */ (() => ({
+  id: 'archer',
+  heightPx: 46,
+  widthScale: 1,
+  flatArticulation: {
+    weapon: { pivot: [0.58, 0.48], rotationScale: 0.18 },
+  },
+  viewWidthScale: { profile: 0.76 },
+  viewPartOrder: {
+    front: ['body', 'legTrail', 'legLead', 'head', 'weapon'],
+    back: ['weapon', 'body', 'legTrail', 'legLead', 'head'],
+    profile: ['body', 'legTrail', 'legLead', 'head', 'weapon'],
+  },
+  shapes: [
+    {
+      kind: 'poly',
+      points: [
+        [-0.34, 0],
+        [-0.3, 0.66],
+        [0.3, 0.66],
+        [0.34, 0],
+      ],
+      fill: 'tint',
+      stroke: 'outline',
+      width: 1.5,
+    },
+    {
+      side: 'back',
+      kind: 'poly',
+      points: [
+        [-0.34, 0.62],
+        [-0.58, 0.38],
+        [-0.5, 0.08],
+        [-0.28, 0.18],
+        [-0.12, 0.04],
+        [0.08, 0.24],
+        [0.3, 0.62],
+      ],
+      fill: 'garment',
+      stroke: null,
+      shade: 0.76,
+    },
+    {
+      side: 'profile',
+      kind: 'poly',
+      points: [
+        [-0.28, 0.62],
+        [-0.62, 0.4],
+        [-0.54, 0.08],
+        [-0.34, 0.2],
+        [-0.18, 0.05],
+        [0.02, 0.34],
+      ],
+      fill: 'garment',
+      stroke: null,
+      shade: 0.74,
+    },
+    {
+      part: 'head',
+      kind: 'poly',
+      points: [
+        [-0.36, 0.6],
+        [0, 1.0],
+        [0.36, 0.6],
+      ],
+      fill: 'tint',
+      stroke: 'outline',
+      width: 1.5,
+    },
+    {
+      part: 'legTrail',
+      kind: 'poly',
+      points: [
+        [-0.26, 0.0],
+        [-0.24, 0.16],
+        [-0.06, 0.16],
+        [-0.08, 0.0],
+      ],
+      fill: 'tint',
+      stroke: null,
+      shade: 0.56,
+    },
+    {
+      part: 'legLead',
+      kind: 'poly',
+      points: [
+        [0.08, 0.0],
+        [0.06, 0.16],
+        [0.24, 0.16],
+        [0.26, 0.0],
+      ],
+      fill: 'tint',
+      stroke: null,
+      shade: 0.5,
+    },
+    {
+      side: 'front',
+      kind: 'line',
+      points: [
+        [-0.44, 0.42],
+        [-0.62, 0.92],
+      ],
+      stroke: 'garment',
+      width: 3,
+    },
+    {
+      side: 'back',
+      kind: 'line',
+      points: [
+        [-0.3, 0.46],
+        [-0.5, 0.96],
+      ],
+      stroke: 'garment',
+      width: 4,
+    },
+    {
+      side: 'profile',
+      kind: 'line',
+      points: [
+        [-0.34, 0.44],
+        [-0.5, 0.9],
+      ],
+      stroke: 'garment',
+      width: 3,
+    },
+    {
+      side: 'back',
+      kind: 'line',
+      points: [
+        [-0.58, 0.88],
+        [-0.38, 1.0],
+      ],
+      stroke: 'projectile',
+      width: 2,
+    },
+    {
+      kind: 'poly',
+      points: [
+        [-0.34, 0.0],
+        [-0.38, 0.14],
+        [0.38, 0.14],
+        [0.34, 0.0],
+      ],
+      fill: 'garment',
+      stroke: null,
+      shade: 0.8,
+    },
+    {
+      kind: 'poly',
+      points: [
+        [-0.34, 0.56],
+        [-0.18, 0.7],
+        [0.24, 0.68],
+        [0.4, 0.54],
+        [0.18, 0.48],
+        [-0.16, 0.5],
+      ],
+      fill: 'garment',
+      stroke: null,
+      shade: 0.82,
+    },
+    {
+      part: 'weapon',
+      kind: 'line',
+      points: [
+        [0.2, 0.58],
+        [0.58, 0.48],
+      ],
+      stroke: 'tint',
+      width: 3,
+    },
+    {
+      part: 'weapon',
+      kind: 'line',
+      points: [
+        [-0.12, 0.56],
+        [0.64, 0.62],
+      ],
+      stroke: 'tint',
+      width: 2.5,
+      shade: 0.72,
+    },
+    {
+      part: 'weapon',
+      kind: 'line',
+      points: [
+        [0.5, 0.08],
+        [0.78, 0.32],
+        [0.84, 0.56],
+        [0.66, 0.86],
+      ],
+      stroke: 'projectile',
+      width: 2,
+    },
+    {
+      part: 'weapon',
+      kind: 'line',
+      points: [
+        [0.5, 0.08],
+        [0.66, 0.86],
+      ],
+      stroke: 'hudDim',
+      width: 1,
+    },
+  ],
+}))();

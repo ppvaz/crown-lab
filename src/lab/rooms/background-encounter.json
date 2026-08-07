@@ -1,0 +1,25 @@
+{
+  "id": "background_encounter",
+  "description": "BACKGROUND ENCOUNTER — isolated distant-scenery readability test.",
+  "arena": "duel_diamond",
+  "playerStart": {
+    "x": -3,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "background_subject",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 3,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null
+}

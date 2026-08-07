@@ -1,0 +1,17 @@
+{
+  "id": "concept_lantern_cloister_live",
+  "description": "CONCEPT FIDELITY — Lantern Cloister, rendered live in WebGL from the same parameters.",
+  "arena": "concept_fallen_court",
+  "playerStart": { "x": 0, "y": 4.8 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": -2.7, "y": -2.2 } },
+    { "archetype": "duelist", "at": { "x": 2.7, "y": -2.2 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": [
+    "Simulation-identical to `concept_lantern_cloister` and to `_baked`. See that room's notes.",
+    "This one is `render/room-webgl-lab.ts`: the blockout's geometry rebuilt on the GPU every",
+    "frame through the runtime's own projection, so a parameter change costs a reload instead of a",
+    "Blender render and an export. The baked room is still what ships."
+  ]
+}

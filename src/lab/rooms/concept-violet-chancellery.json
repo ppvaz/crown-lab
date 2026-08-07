@@ -1,0 +1,12 @@
+{
+  "id": "concept_violet_chancellery",
+  "description": "CONCEPT FIDELITY — Violet Chancellery from Courts of the Fallen Crown.",
+  "arena": "concept_fallen_court",
+  "playerStart": { "x": 0, "y": 4.8 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": -2.7, "y": -2.2 } },
+    { "archetype": "duelist", "at": { "x": 2.7, "y": -2.2 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": ["Lab-only visual reconstruction; absent from canon and route."]
+}

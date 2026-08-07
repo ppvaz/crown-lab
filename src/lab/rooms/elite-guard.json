@@ -1,0 +1,30 @@
+{
+  "id": "elite_guard",
+  "description": "Boss instrument: a wall that only swings when the king asks it to.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "wall",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "elite_guard",
+          "at": {
+            "x": 0,
+            "y": -3.6
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 120000,
+  "notes": [
+    "The provocation instrument — `docs/05-EXPERIMENTS.md` §5's elite guard, and the direct apparatus for *A Muralha*'s key question ([ADR-009](../../docs/DECISIONS.md)).",
+    "Unprovoked it acts about once every one and a half phrases; a light attack into its frontal guard is absorbed and answered almost immediately. So the room is quiet until the player makes it loud, and what a run of it records is whether they chose to.",
+    "Bare for the same reason the rain study is bare: the question is behavioural, and a character would offer a second explanation for the answer."
+  ]
+}

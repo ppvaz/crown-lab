@@ -1,0 +1,25 @@
+{
+  "id": "concept_kit_gallery",
+  "description": "CONCEPT KIT — floors, walls, windows, and architectural details at gameplay scale.",
+  "arena": "concept_kit_octagon",
+  "playerStart": {
+    "x": 0,
+    "y": -5.8
+  },
+  "waves": [
+    {
+      "id": "inspection_pair",
+      "atMs": 0,
+      "spawns": [
+        { "archetype": "guard", "at": { "x": -3, "y": -0.5 } },
+        { "archetype": "duelist", "at": { "x": 3, "y": -0.5 } }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Laboratory construction gallery only. It is absent from canon, route, and the public registry.",
+    "The eight floor families are flush; wall, window, and detail samples are explicitly visual-only.",
+    "Room recipes may reuse a family but must author collision or topology separately when promoting it to playable architecture."
+  ]
+}

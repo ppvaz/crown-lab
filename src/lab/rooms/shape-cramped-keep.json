@@ -1,0 +1,32 @@
+{
+  "id": "shape_cramped_keep",
+  "description": "Shape series: 12 x 9. Is the 20 x 14 default oversized?",
+  "arena": "cramped_keep",
+  "playerStart": {
+    "x": -4.5,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 3.5,
+            "y": -2
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null
+}

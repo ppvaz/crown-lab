@@ -1,0 +1,35 @@
+{
+  "id": "shape_combat_bowl",
+  "description": "Shape series: the default room with a pillar in the middle of it.",
+  "arena": "combat_bowl",
+  "playerStart": {
+    "x": -7,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 6,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 0,
+            "y": 5
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "Opposite faces of the pillar, so the pair cannot be held in one glance at spawn."
+  ]
+}

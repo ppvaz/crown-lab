@@ -1,0 +1,39 @@
+{
+  "id": "chancellor",
+  "description": "Characterized arm of the rain instrument: the Chancellor.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "rain",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "chancellor",
+          "at": {
+            "x": 0,
+            "y": -4
+          }
+        }
+      ]
+    }
+  ],
+  "hazard": {
+    "kind": "books",
+    "count": 5,
+    "phaseTwoCount": 7,
+    "speed": 3.6,
+    "damage": 8
+  },
+  "timeLimitMs": 120000,
+  "notes": [
+    "The **treatment arm**: `projectile_rain_boss` with a character in it.",
+    "**`hazard` breaks the pair, and that is a decision rather than an oversight (designer, 2026-07-29: books that fly across the arena, and that hurt).** Everything else in this file exists to make the two arms the same fight; a hazard the control does not have is a mechanical difference, so a result measured between the arms can no longer be attributed to characterization alone. `tests/chancellor.test.ts` names it as the one licensed exception rather than dropping the check, so nothing *else* can drift in behind it. Two ways back if the pair is wanted intact: give the control the same hazard with the shelves undressed, or set `count` to 0. It needs an ADR line in `docs/DECISIONS.md` before any result from this pair is cited.",
+    "Selecting between these two encounters *is* the condition. That is deliberately not a boolean somewhere in the renderer: `lab/session.ts` keys every attempt by `combatId|encounterId|slowMoId`, so an encounter pair is the one shape that records which arm ran without a new axis to thread — the operator cannot forget to write it down, and a run's own record says which side of the comparison it belongs to.",
+    "Everything mechanical must match the control: same arena, same player start, same spawn position, same wave timing, and a boss whose stats are spread from the control's object in `lab/config.ts`. Only `archetype` differs, which is what carries silhouette, colour and name — and it is the reason those three did not each need their own flag.",
+    "The room is written out rather than spread from the control because the literal is what the reader compares; `tests/chancellor.test.ts` asserts the two are identical field for field apart from the archetype, so drift fails a test rather than depending on a spread nobody re-reads. An arm that quietly stops matching its control is the one defect that would make every result from this pair meaningless while still looking like it ran."
+  ]
+}

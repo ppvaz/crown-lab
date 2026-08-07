@@ -1,0 +1,38 @@
+{
+  "id": "pike_line",
+  "description": "One pike holding a gap the king's sword cannot cross, and a guard that closes it.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 4
+  },
+  "waves": [
+    {
+      "id": "line",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "pike_novice",
+          "at": {
+            "x": 0,
+            "y": -4
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -4.5,
+            "y": -2
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 90000,
+  "notes": [
+    "The pike novice's room, and it is a *combination* room on purpose ([ADR-021](../../docs/DECISIONS.md)). H11 is the hypothesis the whole orthogonal cast rests on — that offset timing and spatial overlap among simple enemies produce learnable choreography — and it has never had a room built to test it directly. A pike alone would only show that reach is annoying.",
+    "The composition is the smallest one that makes the question sharp. The pike holds a stand-off band whose floor is 2.64, outside the king's heavy at 2.4, so it cannot be answered from where the player is standing. The guard closes. Solving one puts the player in the other's range, which is the whole claim: the two enemies are individually trivial and jointly a spacing problem.",
+    "Two spawns, so `maxSimultaneousAttackers` (2) is not yet binding here. That is deliberate — H17 says the cap dominates readability, and a room that tests H11 while sitting on the cap would be measuring both at once.",
+    "Positions are asymmetric on purpose: the guard enters off the pike's line rather than beside it, so 'back away from the pike' and 'back away from the guard' are different directions from the opening frame."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "concept_flooded_nave",
+  "description": "CONCEPT FIDELITY — Flooded Nave from Courts Unbound.",
+  "arena": "concept_unbound_field",
+  "playerStart": { "x": -5.5, "y": 4.6 },
+  "waves": [{ "id": "inspection_pair", "atMs": 0, "spawns": [
+    { "archetype": "guard", "at": { "x": -1, "y": -1.3 } },
+    { "archetype": "duelist", "at": { "x": 5.8, "y": -3.7 } }
+  ] }],
+  "timeLimitMs": null,
+  "notes": ["Impossible-layout visual reconstruction; water and islands are presentational."]
+}

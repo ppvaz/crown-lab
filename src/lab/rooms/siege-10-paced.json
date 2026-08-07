@@ -1,0 +1,248 @@
+{
+  "id": "siege_10_paced",
+  "description": "Siege_10's roster, paced rather than gated: each wave is due 4.5s per body in the one before it.",
+  "arena": "assembly_octagon",
+  "playerStart": {
+    "x": 0,
+    "y": 5
+  },
+  "waves": [
+    {
+      "id": "w01",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 0,
+            "y": -6
+          }
+        }
+      ]
+    },
+    {
+      "id": "w02",
+      "atMs": 4500,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -6,
+            "y": -5
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 6,
+            "y": -5
+          }
+        }
+      ]
+    },
+    {
+      "id": "w03",
+      "atMs": 13500,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 0,
+            "y": -6
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -8,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 8,
+            "y": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "w04",
+      "atMs": 27000,
+      "spawns": [
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 0,
+            "y": -6
+          }
+        }
+      ]
+    },
+    {
+      "id": "w05",
+      "atMs": 31500,
+      "spawns": [
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": -6,
+            "y": -5
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 6,
+            "y": -5
+          }
+        }
+      ]
+    },
+    {
+      "id": "w06",
+      "atMs": 40500,
+      "spawns": [
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": -8,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 8,
+            "y": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "w07",
+      "atMs": 49500,
+      "spawns": [
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 0,
+            "y": -6
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 6,
+            "y": -5
+          }
+        }
+      ]
+    },
+    {
+      "id": "w08",
+      "atMs": 58500,
+      "spawns": [
+        {
+          "archetype": "archer",
+          "at": {
+            "x": -6,
+            "y": -5
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 6,
+            "y": -5
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 0,
+            "y": -6
+          }
+        }
+      ]
+    },
+    {
+      "id": "w09",
+      "atMs": 72000,
+      "spawns": [
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 8,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": -8,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 0,
+            "y": -6
+          }
+        }
+      ]
+    },
+    {
+      "id": "w10",
+      "atMs": 85500,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -6,
+            "y": -5
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 6,
+            "y": -5
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 0,
+            "y": -6
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": -8,
+            "y": 0
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 8,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": null,
+  "notes": [
+    "`siege_10`'s roster on a clock instead of a gate — the missing half of *A Caçada*.",
+    "§2.3's fifth clause is *\"new enemies enter before the room is empty\"*, and it had never run: `atMs: null` means \"wait until the room clears\" (`sim/encounter.ts`), and every wave in `siege_10` and `overlap_court` uses it. The `Hunt` preset carries the mode's four combat clauses and, measured alone, made the fight easier without changing how it was played. This encounter is the other half, and the composition is `siege_10`'s **wave for wave** so the two differ in the trigger and in nothing else.",
+    "**The cadence is proportional, not uniform, and that is the finding.** A fixed interval is generous to wave 1 (one guard) and brutal to wave 10 (five bodies), so the population piles up at the end and the difficulty comes from arithmetic rather than from pressure. Giving each wave time in proportion to what the previous one asked for produces the same overlap without the pile: at matched overlap (~23% of waves landing on survivors) the uniform 10s clock peaks at 6.5 living enemies and clears 8 of 20, and this one peaks at 5.3 — against `siege_10`'s own 4.9 — and clears 15. The room still empties seven times a run, so the king keeps catching up; it presses without ratcheting.",
+    "4.5s per body in the preceding wave. Faster mixes more and starts to pile (3.5s reaches 46% overlap but peaks at 6.5); slower stops overlapping at all (6.5s is 8%, which is the gated encounter wearing a clock.)",
+    "Untimed for the same reason siege_10 is: a clock would turn a pressure study into a speed",
+    "study, and the pressure is now the point."
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "id": "overlap_court",
+  "description": "Guards, then a duelist mid-fight, then an archer. Density escalation.",
+  "arena": "corner_keep",
+  "playerStart": {
+    "x": -6,
+    "y": -4
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -4,
+            "y": -5
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -7,
+            "y": -3
+          }
+        }
+      ]
+    },
+    {
+      "id": "w2",
+      "atMs": null,
+      "spawns": [
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 1.5,
+            "y": 0.8
+          }
+        }
+      ]
+    },
+    {
+      "id": "w3",
+      "atMs": null,
+      "spawns": [
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 7,
+            "y": 5
+          }
+        },
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 4,
+            "y": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "w4",
+      "atMs": null,
+      "spawns": [
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 7,
+            "y": 4
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 120000,
+  "notes": [
+    "Overlap by construction: the second wave lands while the first is still alive, which is what `maxSimultaneousAttackers` is actually being tested against. Kept out of the minimal build's critical path — it belongs to Phase 7.",
+    "No absolute time: the last beat waits for the arena to clear, so it always reads",
+    "as a distinct phrase rather than merging into the noise of the third."
+  ]
+}

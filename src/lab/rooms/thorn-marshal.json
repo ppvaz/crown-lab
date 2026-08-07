@@ -1,0 +1,32 @@
+{
+  "id": "thorn_marshal",
+  "description": "Characterized arm of the reach instrument: the Thorn Marshal.",
+  "arena": "rect_20x14",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "reach",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "thorn_marshal",
+          "at": {
+            "x": 0,
+            "y": -4
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 120000,
+  "notes": [
+    "The **treatment arm**: `reach_study` with a character in it, built to the shape ADR-008 established for `projectile_rain_boss` / `chancellor`.",
+    "It exists because that condition had exactly one instance, and one instance cannot separate 'characterization changes how a fight is played' from 'the Chancellor changes how that particular fight is played'. A second pair over a different question is the cheapest thing that can tell those apart.",
+    "Everything mechanical must match the control: same arena, same player start, same spawn position, same wave timing, and a boss spread from the control's object in `lab/config.ts`. Only `archetype` differs, and it is what carries silhouette, colour and name.",
+    "Written out rather than spread for the same reason the Chancellor's room is — the literal is what a reader compares. `tests/thorn-marshal.test.ts` asserts the two are identical field for field apart from the archetype.",
+    "Public since 2026-08-03 (ADR-038): the herald offers this room as an aside, `game/public-profile.ts` mirrors this encounter and his tuning field for field, and `cast/index-public.ts` ships his body. `reach_study` stays laboratory-only — the pair is a comparison only while the control does not travel — and ADR-005's gate stands over every claim the pair produces."
+  ]
+}
