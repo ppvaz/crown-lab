@@ -1,6 +1,6 @@
 
 import type { RunRecord } from '../lab/telemetry';
-import { parseRunRecord, runPathFromSearch } from '../lab/telemetry';
+import { parseRunRecord, runPathFromSearch, runTickFromSearch } from '../lab/telemetry';
 
 export const filePicker = (
   accept: string,
@@ -23,12 +23,13 @@ export interface RunLoaderHost {
   notice(text: string): void;
   adoptRecord(record: RunRecord): void;
   startReplay(): void;
+  seekReplay(tick: number): void;
   replaying(): boolean;
   replayStatus(): string;
 }
 
 export const createRunLoader = (host: RunLoaderHost) => {
-  const openRunRecord = (text: string, source: string): boolean => {
+  const openRunRecord = (text: string, source: string, atTick: number | null = null): boolean => {
     const parsed = parseRunRecord(text);
     if (!parsed.ok) {
       host.notice(`run not opened (${source}): ${parsed.reason}`);
@@ -40,6 +41,7 @@ export const createRunLoader = (host: RunLoaderHost) => {
     host.startReplay();
     if (!host.replaying()) note = `${note} — ${host.replayStatus()}`;
     host.notice(note);
+    if (atTick !== null && host.replaying()) host.seekReplay(atTick);
     return host.replaying();
   };
 
@@ -53,11 +55,12 @@ export const createRunLoader = (host: RunLoaderHost) => {
   const openRunFromSearch = (search: string): void => {
     const path = runPathFromSearch(search);
     if (path === null) return;
+    const atTick = runTickFromSearch(search);
     host.notice(`fetching run: ${path}`);
     void fetch(path)
       .then((res) => (res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`))))
       .then((text) => {
-        openRunRecord(text, path);
+        openRunRecord(text, path, atTick);
       })
       .catch((err: unknown) => {
         host.notice(`run not opened (${path}): ${err instanceof Error ? err.message : 'fetch failed'}`);

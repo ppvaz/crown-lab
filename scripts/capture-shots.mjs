@@ -2,19 +2,11 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import process from 'node:process';
 import { launchChrome, startViteServer, waitForServer } from './lib/harness.mjs';
 import { listArg, valueArg } from './lib/args.mjs';
+import { VIEWPORTS } from './lib/viewports.mjs';
 
 const PORT = 5198;
 const BASE = `http://localhost:${PORT}`;
-const VIEWPORTS = {
-  desktop: { viewport: { width: 1440, height: 900 } },
-  laptop: { viewport: { width: 1280, height: 720 } },
-  'mobile-landscape': {
-    viewport: { width: 984, height: 443 },
-    isMobile: true,
-    hasTouch: true,
-    deviceScaleFactor: 2.4375,
-  },
-};
+const CAPTURE_VIEWPORTS = ['desktop', 'laptop', 'mobile-landscape'];
 const SHOTS = [
   'weapon-contact',
   'perfect-parry',
@@ -230,7 +222,7 @@ const SHOT_ENCOUNTERS = {
 
 
 const shots = listArg('shots', SHOTS);
-const viewports = listArg('viewports', Object.keys(VIEWPORTS));
+const viewports = listArg('viewports', CAPTURE_VIEWPORTS);
 const outputRoot = valueArg('output', 'captures');
 const cast = valueArg('cast', '');
 const { proc: server, state: serverState } = startViteServer({ port: PORT });

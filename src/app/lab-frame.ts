@@ -236,8 +236,10 @@ export const createLabFrame = (
     let routePrompted = false;
 
     lab.touchControls?.setAvailable(kit.availableTouchActions());
-    fx.update(captureShot === null ? dtRealMs : 0);
-    if (captureShot === null) {
+
+
+    fx.update(captureShot === null && !stoodOnTick() ? dtRealMs : 0);
+    if (captureShot === null && !stoodOnTick()) {
       fx.applyShake(cam);
     } else {
       cam.shake = { x: 0, y: 0 };
@@ -560,7 +562,33 @@ export const createLabFrame = (
     preload ??= preloadLab(() => lab.world);
   const showThreshold = thresholdFromSearch(location.search);
 
+
+
+  let framesDrawn = 0;
+
+  const stoodOnTick = (): boolean => lab.replay !== null && lab.flags.paused;
+
+
+
+  const publishRunState = (): void => {
+    if (
+      lab.replay === null ||
+      roomPackagesPending.size > 0 ||
+      webglRoomsPending.size > 0 ||
+      castMeshPending.size > 0
+    ) {
+      return;
+    }
+    const root = document.documentElement;
+    root.dataset.runReady = 'true';
+    root.dataset.runTick = String(lab.replay.cursor);
+    root.dataset.runTicks = String(lab.replay.intents.length);
+    root.dataset.runPaused = String(lab.flags.paused);
+    root.dataset.runEncounter = dials.encounterId();
+  };
+
   const frame = (nowMs: number): void => {
+    framesDrawn += 1;
     const bootPreload = startPreload();
     const dtRealMs = Math.min(250, nowMs - lab.lastFrameMs);
     if (lab.run !== null) advanceVictory(lab.run, dtRealMs);
@@ -582,7 +610,7 @@ export const createLabFrame = (
 
       if (pausePlateVisible({
         paused: lab.flags.paused,
-        instrumented: captureShot !== null || showcase.active,
+        instrumented: captureShot !== null || showcase.active || stoodOnTick(),
       })) {
         drawPauseScreen(ctx, kit.layoutFrame(), lab.pal, { hover: false });
       }
@@ -601,6 +629,8 @@ export const createLabFrame = (
 
     lab.panelDueMs -= dtRealMs;
     if (lab.panelDueMs <= 0) {
+      document.documentElement.dataset.runFrames = String(framesDrawn);
+      publishRunState();
       updatePanel();
       syncFpsMeter();
       lab.panelDueMs = 100;

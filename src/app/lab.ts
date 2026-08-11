@@ -235,6 +235,7 @@ const runIo = createRunLoader({
     lab.lastRecord = record;
   },
   startReplay: () => flow.startReplay(),
+  seekReplay: (tick) => flow.seekReplay(tick),
   replaying: () => lab.replay !== null,
   replayStatus: () => lab.replayStatus,
 });

@@ -13,6 +13,10 @@ node_modules/.vite/
 coverage/
 captures/
 artifacts/
+# `npm run watch:run`: a stood-on tick's PNGs and the metrics beside them. Generated evidence of
+# exactly the kind the two above are, and doubly out under CLAUDE.md's distribution rule — the
+# frames are a private lab's, and the metrics belong to a pilot run that is not evidence at all.
+watch/
 
 # OS
 .DS_Store

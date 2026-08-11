@@ -61,6 +61,13 @@ export const runPathFromSearch = (search: string): string | null => {
   return raw.startsWith('/') ? raw : `/${raw}`;
 };
 
+export const runTickFromSearch = (search: string): number | null => {
+  const raw = new URLSearchParams(search).get('at')?.trim();
+  if (raw === undefined || raw === '') return null;
+  if (!/^\d+$/.test(raw)) return null;
+  return Number(raw);
+};
+
 export interface RunRecord {
   version: 4;
   meta: RunMeta;

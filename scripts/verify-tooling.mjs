@@ -17,6 +17,7 @@ const TOOL_ENTRIES = [
   ['src/lab/bench-kit.ts', 'npm run bench:sim'],
   ['src/app/frame.ts', 'npm run bench:sim'],
   ['src/lab/pilot-run.ts', 'npm run pilot'],
+  ['src/lab/metrics.ts', 'npm run watch:run'],
   ['src/render/soundbank.ts', 'npm run audio:plan, audio:gen and audio:check'],
   ['src/render/asset-registry-lab.ts', 'npm run audio:check'],
   ['scripts/room-zoom.ts', 'npm run measure:room-zoom and npm run rooms:camera'],

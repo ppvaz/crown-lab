@@ -8,6 +8,7 @@ import {
   operatorMetaFromSearch,
   parseRunRecord,
   runPathFromSearch,
+  runTickFromSearch,
 } from '../src/lab/telemetry';
 import type { RunMeta } from '../src/lab/telemetry';
 import { decodeIntents, decodeValues, intentCount } from '../src/lab/replay';
@@ -529,5 +530,27 @@ describe('a run named in the query string', () => {
     expect(runPathFromSearch('?run=runs/baseline20/pilot_siege_10_steady_seed8.json')).toBe(
       '/runs/baseline20/pilot_siege_10_steady_seed8.json',
     );
+  });
+});
+
+describe('a replay tick named in the query string', () => {
+  it('reads a whole tick count', () => {
+    expect(runTickFromSearch('?run=runs/x.json&at=0')).toBe(0);
+    expect(runTickFromSearch('?run=runs/x.json&at=1840')).toBe(1840);
+    expect(runTickFromSearch('?at=42 ')).toBe(42);
+  });
+
+  it('is absent when nothing asked for a tick', () => {
+    expect(runTickFromSearch('')).toBeNull();
+    expect(runTickFromSearch('?run=runs/x.json')).toBeNull();
+    expect(runTickFromSearch('?at=')).toBeNull();
+  });
+
+  it('refuses anything that is not a tick rather than rounding it to one', () => {
+    expect(runTickFromSearch('?at=-1')).toBeNull();
+    expect(runTickFromSearch('?at=12.5')).toBeNull();
+    expect(runTickFromSearch('?at=1e3')).toBeNull();
+    expect(runTickFromSearch('?at=last')).toBeNull();
+    expect(runTickFromSearch('?at=0x10')).toBeNull();
   });
 });

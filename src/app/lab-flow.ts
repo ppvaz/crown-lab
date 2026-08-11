@@ -281,6 +281,10 @@ export const createLabFlow = (
 
     lab.replay.cursor = clamped;
     kit.setPaused(true);
+
+
+
+    labCamera.cut(kit.layoutFrame().content);
     lab.notice = `replay tick ${clamped} / ${lab.replay.intents.length}`;
   };
 

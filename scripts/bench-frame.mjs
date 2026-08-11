@@ -1,27 +1,10 @@
 import process from 'node:process';
 import { launchChrome, startViteServer, waitForServer } from './lib/harness.mjs';
 import { flag, listArg, valueArg } from './lib/args.mjs';
+import { VIEWPORTS } from './lib/viewports.mjs';
 
 const PORT = 5199;
 const BASE = `http://localhost:${PORT}`;
-const VIEWPORTS = {
-  desktop: {
-    viewport: { width: 1440, height: 900 },
-    context: {},
-  },
-  laptop: {
-    viewport: { width: 1280, height: 720 },
-    context: {},
-  },
-  'mobile-landscape': {
-    viewport: { width: 984, height: 443 },
-    context: { deviceScaleFactor: 2.4375, isMobile: true, hasTouch: true },
-  },
-  'desktop-retina': {
-    viewport: { width: 1440, height: 900 },
-    context: { deviceScaleFactor: 2 },
-  },
-};
 const SHOTS = [
   'first-blade-room',
   'arena-training',
@@ -95,7 +78,7 @@ try {
       failures.push(`unknown viewport: ${viewportName}`);
       continue;
     }
-    const context = await browser.newContext({ viewport: form.viewport, ...form.context });
+    const context = await browser.newContext(form);
     await context.addInitScript(() => {
       window.__benchFrames = [];
       const raf = window.requestAnimationFrame.bind(window);
