@@ -75,6 +75,7 @@
     "audio:find": "node scripts/find-audio-candidates.mjs",
     "cast:rig": "node scripts/rig-cast-mesh.mjs",
     "cast:clips": "node scripts/author-cast-clips.mjs",
+    "budget": "node scripts/budget.mjs",
     "cast:plan": "node scripts/gen-cast.mjs --plan",
     "cast:gen": "node scripts/gen-cast.mjs",
     "cast:mesh": "node scripts/export-cast-mesh.mjs",

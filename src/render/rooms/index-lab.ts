@@ -398,3 +398,8 @@ export const LAB_ROOMS: RoomRegistry = {
   theme: (id) => THEMES[id],
   ambience: (encounterId) => AMBIENCE[encounterId] ?? {},
 };
+
+export const LAB_ROOM_DECLARATIONS = {
+  themed: Object.keys(THEME_BY_ENCOUNTER),
+  lit: Object.keys(AMBIENCE),
+} as const;

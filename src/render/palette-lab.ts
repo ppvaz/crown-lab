@@ -32,7 +32,20 @@ export const labArchetypeColor: ArchetypeColor = (archetype: EnemyArchetype) => 
       return LAB_PALETTE.pikeNovice;
     case 'pike_boss':
       return LAB_PALETTE.pikeBoss;
-    default:
+    case 'guard':
+    case 'duelist':
+    case 'archer':
+    case 'first_blade':
+    case 'queen':
+    case 'glass_regent':
+    case 'thorn_marshal':
       return publicArchetypeColor(archetype);
   }
+  return assertArchetypeHasColour(archetype);
+};
+
+const assertArchetypeHasColour = (archetype: never): never => {
+  throw new Error(
+    `no laboratory colour for archetype ${String(archetype)} — add a case to labArchetypeColor`,
+  );
 };
