@@ -45,6 +45,7 @@ export const ROOM_ABLATION_AXES = [
   'reflection',
   'lights',
   'masonry',
+  'textures',
   'msaa',
 ] as const;
 export type RoomAblationAxis = (typeof ROOM_ABLATION_AXES)[number];
@@ -107,9 +108,25 @@ const frag = (
   surfaces: readonly SurfaceDescription[],
   ambient: RGB,
   ablate: ReadonlySet<RoomAblationAxis> = new Set(),
+  features: { liquid?: boolean } = {},
 ): string => {
   const count = surfaces.length;
   const list = (values: readonly string[]): string => values.join(',\n  ');
+  const textureCount = surfaces.reduce(
+    (highest, surface) => Math.max(highest, (surface.texture?.slot ?? -1) + 1),
+    0,
+  );
+  const textured = textureCount > 0 && !ablate.has('textures');
+  const liquidEnabled = features.liquid === true && !ablate.has('liquid');
+  const textureUniforms = textured
+    ? Array.from({ length: textureCount }, (_, i) => `uniform sampler2D uTexture${i};`).join('\n')
+    : '';
+  const textureCases = textured
+    ? Array.from(
+        { length: textureCount },
+        (_, i) => `  if (slot == ${i}) return texture(uTexture${i}, uv).rgb;`,
+      ).join('\n')
+    : '';
   return `#version 300 es
 precision highp float;
 in vec3 vPos;
@@ -143,6 +160,7 @@ uniform float uRain;
  * (No backticks in here: this is inside a template literal. The same note is on the sky above.)
  */
 uniform float uTime;
+${textureUniforms}
 
 const int LAMP_BASE = ${count};
 const int KIND[${count}] = int[${count}](
@@ -153,10 +171,28 @@ const vec3 JOINT[${count}] = vec3[${count}](
   ${list(surfaces.map((s) => glslVec3(s.joint ?? s.colour)))});
 const float MORTAR[${count}] = float[${count}](
   ${list(surfaces.map((s) => (s.mortar ?? 0.02).toFixed(5)))});
+${textured ? `const int TEXTURE_SLOT[${count}] = int[${count}](
+  ${list(surfaces.map((s) => String(s.texture?.slot ?? -1)))});
+const vec2 TEXTURE_WORLD[${count}] = vec2[${count}](
+  ${list(surfaces.map((s) => `vec2(${(s.texture?.worldSize[0] ?? 1).toFixed(4)}, ${(s.texture?.worldSize[1] ?? 1).toFixed(4)})`))});
+const float TEXTURE_MIX[${count}] = float[${count}](
+  ${list(surfaces.map((s) => (s.texture?.strength ?? 0).toFixed(4)))});
+const vec3 TEXTURE_TINT[${count}] = vec3[${count}](
+  ${list(surfaces.map((s) => glslVec3(s.texture?.tint ?? [1, 1, 1])))});` : ''}
 
 out vec4 outColor;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
+
+${textured ? `vec2 surfaceUv(vec3 n, vec3 p) {
+  vec3 a = abs(n);
+  return a.z > max(a.x, a.y) ? p.xy : (a.x > a.y ? vec2(p.y, p.z) : vec2(p.x, p.z));
+}
+
+vec3 surfaceTexture(int slot, vec2 uv) {
+${textureCases}
+  return vec3(1.0);
+}` : ''}
 
 /**
  * One course of masonry: a block, a joint around it, and a little value per block.
@@ -194,7 +230,7 @@ vec3 coursed(vec3 albedo, int s, vec3 n, vec3 p) {
  * centre sits in the middle 30% of the cell and the wavefront reaches 0.3 of a cell, so a ring can
  * never cross into a neighbour and no seam can appear along the grid it would have been cut on.
  */
-vec2 rainChop(vec2 p, float t) {
+${liquidEnabled ? `vec2 rainChop(vec2 p, float t) {
   float cellSize = ${WEATHER.chopCell.toFixed(4)};
   vec2 cell = floor(p / cellSize);
   vec2 jitter = vec2(hash(cell), hash(cell + 7.31));
@@ -207,7 +243,7 @@ vec2 rainChop(vec2 p, float t) {
   float amp = (1.0 - age) * exp(-(front - r) * 6.0);
   float phase = (r - front) * ${(Math.PI * 2 / (WEATHER.chopCell * 0.5)).toFixed(5)};
   return normalize(d) * cos(phase) * amp;
-}
+}` : ''}
 
 void main() {
   int s = int(vSrf + 0.5);
@@ -222,10 +258,15 @@ void main() {
   vec3 n = normalize(vNrm);
   vec3 albedo = vCol;
   int kind = KIND[s];
-  ${ablate.has('masonry') ? '' : 'if (kind == 1 || kind == 2) albedo = coursed(albedo, s, n, vPos);'}
+  ${textured ? `int textureSlot = TEXTURE_SLOT[s];
+  if (textureSlot >= 0) {
+    vec2 uv = surfaceUv(n, vPos) / TEXTURE_WORLD[s];
+    vec3 painted = surfaceTexture(textureSlot, uv) * TEXTURE_TINT[s];
+    albedo = mix(albedo, painted, TEXTURE_MIX[s]);
+  }${ablate.has('masonry') ? '' : ' else if (kind == 1 || kind == 2) {\n    albedo = coursed(albedo, s, n, vPos);\n  }'}` : ablate.has('masonry') ? '' : 'if (kind == 1 || kind == 2) albedo = coursed(albedo, s, n, vPos);'}
 
   float wet = 0.0;
-  ${ablate.has('liquid') ? '' : `if (uLiquid > 0.0 && kind == 2 && n.z > 0.9 && abs(vPos.z) < 0.06) {
+  ${liquidEnabled ? `if (uLiquid > 0.0 && kind == 2 && n.z > 0.9 && abs(vPos.z) < 0.06) {
     wet = uLiquid;
     vec2 slope = vec2(0.0);
     ${ablate.has('ripples') ? '' : `for (int i = 0; i < ${RIPPLE_SLOTS}; i++) {
@@ -251,7 +292,7 @@ void main() {
     }
     n = normalize(vec3(-slope.x, -slope.y, 1.0));
     albedo *= 1.0 - ${LIQUID.darken.toFixed(4)} * wet;
-  }`}
+  }` : ''}
 
   vec3 lit = albedo * vec3(${ambient.map((c) => c.toFixed(6)).join(', ')});
   vec3 v = normalize(vec3(1.0, 1.0, 1.0));
@@ -266,7 +307,7 @@ void main() {
     lit += uLightCol[i] * atten
          * (albedo * max(dot(n, l), 0.0) + pow(max(dot(n, hv), 0.0), gloss) * spec);
   }`}
-  ${ablate.has('liquid') || ablate.has('reflection') ? '' : `if (wet > 0.0) {
+  ${!liquidEnabled || ablate.has('reflection') ? '' : `if (wet > 0.0) {
     vec3 mirror = reflect(-v, n);
     for (int i = 0; i < ${lightCount}; i++) {
       vec3 d = uLightPos[i] - vPos;
@@ -291,6 +332,25 @@ const compile = (gl: WebGL2RenderingContext, type: number, source: string): WebG
   return shader;
 };
 
+const loadRoomTextures = async (
+  source: RoomMeshSource,
+  onFailure: (reason: string) => void,
+): Promise<ImageBitmap[] | null> => {
+  try {
+    return await Promise.all((source.textures ?? []).map(async (texture) => {
+      const response = await fetch(texture.url);
+      if (!response.ok) throw new Error(`texture ${response.status}: ${texture.url}`);
+      return createImageBitmap(await response.blob(), {
+        colorSpaceConversion: 'none',
+        premultiplyAlpha: 'none',
+      });
+    }));
+  } catch (error) {
+    onFailure(error instanceof Error ? error.message : String(error));
+    return null;
+  }
+};
+
 export const contextScale = (ctx: CanvasRenderingContext2D): number => {
   const scale = ctx.getTransform().a;
   return Number.isFinite(scale) && scale > 0 ? Math.min(scale, 4) : 1;
@@ -307,9 +367,10 @@ export const roomShaderSources = (
   lightCount: number,
   ambient: RGB,
   ablate: ReadonlySet<RoomAblationAxis> = new Set(),
+  features: { liquid?: boolean } = {},
 ): { vertex: string; fragment: string } => ({
   vertex: vert(surfaces.length, lightCount),
-  fragment: frag(lightCount, surfaces, ambient, ablate),
+  fragment: frag(lightCount, surfaces, ambient, ablate, features),
 });
 
 const referenceEnergy = (lights: readonly Light[]): number =>
@@ -327,15 +388,22 @@ export const createWebglRoom = async (
 
   const room = await loadRoomMesh(source, arena, (reason) => options.onFailure?.(reason));
   if (room === null) return null;
-  return buildRenderer(room, options, fail);
+  const textureSource = options.ablate?.includes('textures')
+    ? { ...source, textures: [] }
+    : source;
+  const textures = await loadRoomTextures(textureSource, (reason) => options.onFailure?.(reason));
+  if (textures === null) return null;
+  return buildRenderer(room, textures, source.liquid === true, options, fail);
 };
 
 const buildRenderer = (
   room: LoadedRoomMesh,
+  textureImages: readonly ImageBitmap[],
+  hasLiquid: boolean,
   options: WebglRoomOptions,
   fail: (reason: string) => null,
 ): { painter: RoomLayerPainter; occluders: SortedOccluder[] } | null => {
-  const { lights, behind, masses, massesRange, surfaces } = room;
+  const { lights, behind, masses, massesRange, surfaces, lightExposure } = room;
   const ablate: ReadonlySet<RoomAblationAxis> = new Set(options.ablate ?? []);
 
   const canvas = document.createElement('canvas');
@@ -347,7 +415,13 @@ const buildRenderer = (
   });
   if (gl === null) return fail('no WebGL2 context');
 
-  const sources = roomShaderSources(surfaces, lights.length, room.ambient, ablate);
+  const sources = roomShaderSources(
+    surfaces,
+    lights.length,
+    room.ambient,
+    ablate,
+    { liquid: hasLiquid },
+  );
   let program: WebGLProgram;
   try {
     const created = gl.createProgram();
@@ -366,6 +440,29 @@ const buildRenderer = (
     return fail(error instanceof Error ? error.message : String(error));
   }
   gl.useProgram(program);
+
+  const maxTextures = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS) as number;
+  if (textureImages.length > maxTextures) {
+    return fail(`room asks for ${textureImages.length} textures, WebGL exposes ${maxTextures}`);
+  }
+  gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+  for (const [slot, bitmap] of textureImages.entries()) {
+    const texture = gl.createTexture();
+    if (texture === null) {
+      for (const image of textureImages) image.close();
+      return fail(`texture ${slot} could not be created`);
+    }
+    gl.activeTexture(gl.TEXTURE0 + slot);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.uniform1i(gl.getUniformLocation(program, `uTexture${slot}`), slot);
+    bitmap.close();
+  }
 
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
@@ -429,7 +526,7 @@ const buildRenderer = (
     const weather = currentWeather();
     const response = roomResponse(world, weather);
 
-    const rings = liquid.update(world);
+    const rings = hasLiquid ? liquid.update(world) : [];
     rippleData.fill(0);
     rings.forEach((ring: Ripple, i: number) => {
       rippleData[i * 4] = ring.at.x;
@@ -451,7 +548,7 @@ const buildRenderer = (
       const { tint, blend } = lean(
         Math.min(surge, 1), response.chill, response.mourning, response.storm,
       );
-      const gain = (light.energy / reference) * 1.15 * answer;
+      const gain = (light.energy / reference) * 1.15 * lightExposure * answer;
       for (let c = 0; c < 3; c++) {
         lightCol[i * 3 + c] = (light.colour[c] * (1 - blend) + tint[c] * blend) * gain;
         lampTint[i * 3 + c] = tint[c];
@@ -466,7 +563,7 @@ const buildRenderer = (
     gl.uniform1f(uTime, response.timeMs / 1000);
     gl.uniform1fv(uFlameSway, flameSway);
     gl.uniform4fv(uRipples, rippleData);
-    gl.uniform1f(uLiquid, filmStrength(LIQUID.strength, weather));
+    gl.uniform1f(uLiquid, hasLiquid ? filmStrength(LIQUID.strength, weather) : 0);
     gl.uniform1f(uRain, weather.rain);
     gl.uniform3fv(uLightPos, lightPos);
     gl.uniform3fv(uLightCol, lightCol);
@@ -498,7 +595,7 @@ const buildRenderer = (
   let massesReady = false;
 
   const paintDrips = (ctx: CanvasRenderingContext2D, cam: Camera, timeMs: number): void => {
-    if (LIQUID.strength <= 0) return;
+    if (!hasLiquid || LIQUID.strength <= 0) return;
     const drips = dripsAt(timeMs);
     if (drips.length === 0) return;
     const alpha = ctx.globalAlpha;

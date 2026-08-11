@@ -10,5 +10,5 @@
     },
     "allowImportingTsExtensions": true
   },
-  "include": ["scripts", "src/env.d.ts"]
+  "include": ["scripts", "src/env.d.ts", "src/assets/audio/manifest.mjs"]
 }

@@ -54,7 +54,7 @@ export const UI_ELEMENTS = [
     kind: 'control',
     profiles: ['lab'],
     instanced: true,
-    what: 'one of the 40 lab command buttons',
+    what: 'one of the 41 lab command buttons',
   },
   {
     id: 'dom.coop.code',

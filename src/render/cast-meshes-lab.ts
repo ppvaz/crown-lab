@@ -1,12 +1,12 @@
 
 import { ISO_Z } from './mesh';
 import { MESH_KING_BELL } from './cast/king-bell-mesh-lab';
-import { MESH_GUARD } from './cast/guard-mesh-lab';
 import { POLISHED_FIRST_BLADE } from './cast/first-blade';
 import { MESH_DUELIST } from './cast/duelist-mesh-lab';
+import { MESH_GLASS_REGENT } from './cast/glass-regent-mesh-lab';
 import type { AttackPhases, BodyClipRole } from './mesh-clips-lab';
 
-export type CastMeshId = 'player' | 'guard' | 'first_blade' | 'duelist' | 'archer';
+export type CastMeshId = 'player' | 'guard' | 'first_blade' | 'duelist' | 'archer' | 'glass_regent';
 
 export interface CastMeshSpec {
   id: CastMeshId;
@@ -14,6 +14,11 @@ export interface CastMeshSpec {
   heightPx: number;
   forwardFacing?: number;
   bodyTopFraction?: number;
+  hover?: {
+    lift: number;
+    breath: number;
+    sway: number;
+  };
   clipNames?: Partial<Record<BodyClipRole, readonly string[]>>;
   attackPhases?: AttackPhases;
   sockets?: {
@@ -38,13 +43,14 @@ export const CAST_MESHES: Readonly<Record<CastMeshId, CastMeshSpec>> = {
     clipNames: {
       attackLight: ['left_slash', 'slash', 'attack'],
       attackHeavy: ['attack'],
+      power: ['power'],
     },
   },
 
   guard: {
     id: 'guard',
     glb: '/assets-cast/guard/guard.cmb',
-    heightPx: MESH_GUARD.heightPx * 1.15,
+    heightPx: 52,
     bodyTopFraction: 0.72895,
     clipNames: { run: ['walking'] },
   },
@@ -69,7 +75,23 @@ export const CAST_MESHES: Readonly<Record<CastMeshId, CastMeshSpec>> = {
     heightPx: 42,
     clipNames: { run: ['walking'] },
   },
+
+  glass_regent: {
+    id: 'glass_regent',
+    glb: '/assets-cast/glass_regent/glass_regent.cmb',
+    heightPx: MESH_GLASS_REGENT.heightPx,
+    hover: { lift: 0.8, breath: 0.16, sway: 0.13 },
+    clipNames: {
+      idle: ['hit_reaction_with_bow'],
+      walk: ['hit_reaction_with_bow'],
+      run: ['hit_reaction_with_bow'],
+      step: ['hit_reaction_with_bow'],
+      attackHeavy: ['shield_push'],
+      parry: ['block10'],
+      roar: ['left_slash'],
+    },
+  },
 };
 
 export const CAST_MESH_IDS: readonly CastMeshId[] =
-  ['player', 'guard', 'first_blade', 'duelist', 'archer'];
+  ['player', 'guard', 'first_blade', 'duelist', 'archer', 'glass_regent'];

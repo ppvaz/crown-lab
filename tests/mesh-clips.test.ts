@@ -1,14 +1,18 @@
 
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
   ATTACK_PHASES,
+  BODY_CLIP_ROLES,
   IDLE_FALLBACK,
   bindBodyClips,
   enemyClipDrive,
   playerClipDrive,
 } from '../src/render/mesh-clips-lab';
 import type { BodyClip } from '../src/render/mesh-body-lab';
+import { buildMeshBodyFromCmb } from '../src/render/mesh-body-lab';
 import { DEFAULT_COMBAT, DEFAULT_SLOWMO_ID, SLOWMO_PRESETS } from '../src/lab/config';
 import { ENCOUNTERS } from '../src/lab/encounters';
 import { createWorld } from '../src/sim/encounter';
@@ -140,6 +144,41 @@ describe('the blade cannot disagree with the hitbox', () => {
   });
 });
 
+describe('power casting owns the upper-body silhouette', () => {
+  const powerBank = bindBodyClips([
+    ...PACK,
+    { name: 'power', durationSec: 0.5, tracks: [] },
+  ]);
+  const cfg = { ...DEFAULT_COMBAT, power: 'lightning' } as CombatConfig;
+
+  it('raises through the channel wind-up and holds the cast pose after it', () => {
+    const at = (powerChannelMs: number) => playerClipDrive(
+      world,
+      { ...bodyIn('idle', 0), powerChannelMs },
+      cfg,
+      powerBank,
+    )!;
+    expect(at(100).role).toBe('power');
+    expect(at(100).at).toBeCloseTo(0.5, 9);
+    expect(at(200).at).toBe(1);
+    expect(at(2_000).at).toBe(1);
+  });
+
+  it('does not replace the ordinary state when no channel is active', () => {
+    expect(playerClipDrive(world, bodyIn('idle', 0), cfg, powerBank)!.role).not.toBe('power');
+  });
+
+  it('is present in the committed king rather than falling back to his idle', () => {
+    const bytes = readFileSync(resolve(__dirname, '../assets-cast/king/king.cmb'));
+    const mesh = buildMeshBodyFromCmb(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
+    );
+    const committed = bindBodyClips(mesh.clips, CAST_MESHES.player.clipNames, mesh.clipRoles);
+    expect(committed.unbound).not.toContain('power');
+    expect(committed.clip.power?.name).toBe('power');
+  });
+});
+
 describe('the states with no deadline', () => {
   it('walks on the same 620 ms cycle the primitive king walks on', () => {
     const GAIT_CYCLE_MS = 620;
@@ -155,6 +194,37 @@ describe('the states with no deadline', () => {
     expect(apart(at(perCycle * 8), at(0))).toBeLessThan(1e-6);
     expect(apart(at(perCycle * 2.5), 0.5)).toBeLessThan(1e-6);
     expect(apart(at(perCycle * 0.25), 0.25)).toBeLessThan(1e-6);
+  });
+
+  it('spends one stride of the run on a step, not the whole cycle', () => {
+    const stepping = (elapsedMs: number) => ({
+      ...bodyIn('step', elapsedMs),
+      facing: 0,
+      vel: { x: 8, y: 0 },
+    });
+    const ms = DEFAULT_COMBAT.player.step.durationMs;
+    expect(driveOf(stepping(0)).at).toBeCloseTo(0, 6);
+    expect(driveOf(stepping(ms / 2)).at).toBeCloseTo(0.25, 6);
+    expect(driveOf(stepping(ms)).at).toBeCloseTo(0.5, 6);
+    expect(driveOf(stepping(ms)).clip.name).toBe('Running');
+    expect(driveOf(stepping(ms)).scrubbed).toBe(true);
+    const slower = {
+      ...DEFAULT_COMBAT,
+      player: { ...DEFAULT_COMBAT.player, step: { ...DEFAULT_COMBAT.player.step, durationMs: 900 } },
+    };
+    expect(driveOf(stepping(450), slower).at).toBeCloseTo(0.25, 6);
+    expect(driveOf(stepping(900), slower).at).toBeCloseTo(0.5, 6);
+  });
+
+  it('runs the step backwards when the king is stepping backwards', () => {
+    const back = { ...bodyIn('step', 0), facing: 0, vel: { x: -8, y: 0 } };
+    const ms = DEFAULT_COMBAT.player.step.durationMs;
+    const at = (elapsedMs: number) => driveOf({ ...back, state: { ...back.state, elapsedMs } }).at;
+    expect(at(0)).toBeCloseTo(0.5, 6);
+    expect(at(ms / 2)).toBeCloseTo(0.25, 6);
+    expect(at(ms)).toBeCloseTo(0, 6);
+    const across = { ...bodyIn('step', ms), facing: 0, vel: { x: 0, y: 8 } };
+    expect(driveOf(across).at).toBeCloseTo(0.5, 6);
   });
 
   it('picks the run clip only above a real fraction of the walk speed', () => {
@@ -317,6 +387,17 @@ describe('the other state machine: an enemy', () => {
     }
   });
 
+  it('stands still when it is standing still, whatever the state says', () => {
+    for (const kind of ['approach', 'reposition', 'sequence_reposition', 'edge_reposition'] as const) {
+      const still = enemyIn(kind, 0);
+      for (const tick of [0, 17, 40, 93]) {
+        const d = enemyClipDrive({ ...world2, tick }, still, DEFAULT_COMBAT, bank)!;
+        expect(d.role).toBe('idle');
+        expect(d.at).toBe(0);
+      }
+    }
+  });
+
   it('gives ground with the same reversed cycle a king does', () => {
     const tick = 40;
     const ahead = { ...enemyIn('approach', 0), vel: { x: ecfg.moveSpeed * 0.4, y: 0 } };
@@ -334,5 +415,41 @@ describe('the other state machine: an enemy', () => {
   it('scrubs a stagger over the archetype own window', () => {
     expect(drive(enemyIn('stagger', 0)).at).toBeCloseTo(0, 6);
     expect(drive(enemyIn('stagger', ecfg.staggerMs)).at).toBeCloseTo(1, 6);
+  });
+});
+
+describe('the Glass Regent, who floats and therefore has no gait anywhere', () => {
+  const bytes = readFileSync(resolve(__dirname, '../assets-cast/glass_regent/glass_regent.cmb'));
+  const mesh = buildMeshBodyFromCmb(
+    bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
+  );
+  const spec = CAST_MESHES.glass_regent;
+  const bank = bindBodyClips(mesh.clips, spec.clipNames, mesh.clipRoles);
+
+  it('answers every role with a clip, so nothing falls back in the fight', () => {
+    for (const role of BODY_CLIP_ROLES) expect(bank.clip[role], role).not.toBeNull();
+  });
+
+  const source = ['Attack', 'Block10', 'Hit_Reaction', 'Hit_Reaction_with_Bow',
+    'Left_Slash', 'Running', 'Shield_Push_Left', 'Walking'] as const;
+  const boundTo = (role: (typeof BODY_CLIP_ROLES)[number]) =>
+    source[mesh.clipRoles?.[role] ?? -1];
+
+  it('lands every pinned role on the clip that was chosen for it', () => {
+    for (const role of ['idle', 'walk', 'run', 'step'] as const) {
+      expect(boundTo(role), role).toBe('Hit_Reaction_with_Bow');
+    }
+    expect(boundTo('roar')).toBe('Left_Slash');
+    expect(boundTo('attackHeavy')).toBe('Shield_Push_Left');
+    expect(boundTo('parry')).toBe('Block10');
+  });
+
+  it('puts no locomotion clip on any role, which is what floating means', () => {
+    for (const role of BODY_CLIP_ROLES) {
+      const name = boundTo(role);
+      if (name === undefined) continue;
+      expect(name, `${role} must not stride`).not.toBe('Walking');
+      expect(name, `${role} must not stride`).not.toBe('Running');
+    }
   });
 });

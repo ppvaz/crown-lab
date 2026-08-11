@@ -176,7 +176,7 @@ const DUELIST_MESH: Mesh = merge(
 
 export const MESH_DUELIST: ModelDef = /* @__PURE__ */ (() => ({
   id: 'mesh_duelist',
-  heightPx: 45,
+  heightPx: 52,
   widthScale: 1,
   shapes: [],
   mesh: DUELIST_MESH,

@@ -3,8 +3,7 @@ import { COMBAT_PRESETS, DEFAULT_SLOWMO_ID, SLOWMO_PRESETS } from '../lab/config
 import { DEFAULT_ENCOUNTER_ID } from '../lab/encounters';
 import { DEFAULT_PRESENTATION_ID, PRESENTATION_PRESETS } from '../lab/presentation';
 import { ORCHESTRATION_POLICIES } from '../lab/orchestrator';
-import { DEFAULT_MATERIAL_PACK } from '../render/soundbank';
-import { MATERIAL_PACKS } from '../render/materials-lab';
+import { DEFAULT_MATERIAL, MATERIAL_PACKS } from '../render/materials-lab';
 import { MODEL_BANKS } from '../render/cast/banks-lab';
 import { DEFAULT_MODEL_BANK } from '../render/models';
 import { modeIdFor, modeProfile } from '../lab/modes';
@@ -48,7 +47,7 @@ export class LabDials {
     this.slowMoIndex = this.slowMoIds.indexOf(DEFAULT_SLOWMO_ID);
     this.encounterIndex = encounterIds.indexOf(DEFAULT_ENCOUNTER_ID);
     this.presentationIndex = this.presentationIds.indexOf(DEFAULT_PRESENTATION_ID);
-    this.packIndex = this.packIds.indexOf(DEFAULT_MATERIAL_PACK);
+    this.packIndex = this.packIds.indexOf(DEFAULT_MATERIAL.id);
     this.modelBankIndex = this.modelBankIds.indexOf(DEFAULT_MODEL_BANK);
   }
 
@@ -78,7 +77,7 @@ export class LabDials {
     this.slowMoIndex = this.slowMoIds.indexOf(DEFAULT_SLOWMO_ID);
     this.encounterIndex = this.encounterIds.indexOf(DEFAULT_ENCOUNTER_ID);
     this.presentationIndex = this.presentationIds.indexOf(DEFAULT_PRESENTATION_ID);
-    this.packIndex = this.packIds.indexOf(DEFAULT_MATERIAL_PACK);
+    this.packIndex = this.packIds.indexOf(DEFAULT_MATERIAL.id);
     this.modelBankIndex = this.modelBankIds.indexOf(DEFAULT_MODEL_BANK);
     this.seed = 1;
     this.aim.set('mouse');

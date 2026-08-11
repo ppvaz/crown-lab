@@ -169,14 +169,17 @@ export const DEFAULT_COMBAT: CombatConfig = {
       channelWindupMs: 200,
       tickIntervalMs: 200,
       staminaPerTick: 9,
-      damageRampTick: 4,
-      damageRampMult: 3.1,
+
+
+
+      damageRampTick: 2,
+      damageRampMult: 2.2,
       channelMoveMult: 0.3,
       releaseRecoveryMs: 250,
       castMs: 0,
       recoveryMs: 180,
       cooldownMs: 2600,
-      staminaCost: 22,
+      staminaCost: 12,
       range: 5.0,
       arcDeg: 80,
       damage: 5,
@@ -184,7 +187,9 @@ export const DEFAULT_COMBAT: CombatConfig = {
       originOffset: 0.55,
       sweepMs: 110,
       maxTargets: 0,
-      falloff: 0.55,
+
+
+      falloff: 0.85,
       distance: 0,
       iframeMs: 0,
       forceSpeed: 0,

@@ -1,0 +1,13 @@
+{
+  "room": "route_the_guardroom",
+  "panel": ".crown-private/concept-art/rooms/route-the-guardroom-concept-v1.png",
+  "crop": [0, 0, 1586, 992],
+  "method": "fitted, not clicked: `npm run rooms:panel` fits a line to each straight run of the floor's gold perimeter trim. This panel draws that trim only on the two front slab edges — the back wall bases carry no trim, only a soft shadow seam occluded by the leaning furniture — so the back runs are declared absent and no corners exist.",
+  "confidence": "front runs good to ~0.14 px rms over 235-243 samples each. frontLeft slope 0.50763 is 1.5% from the runtime's +0.5; frontRight slope -0.55741 is 11.5% from -0.5 — so the panel disagrees with the runtime frame by ~11% on at least one edge, and with only two fitted runs the parallel-projection test cannot even be completed. Look-only reference; the arena polygon owns the geometry.",
+  "runs": {
+    "frontLeft": { "x0": 250, "x1": 550, "y0": 600, "y1": 860 },
+    "frontRight": { "x0": 950, "x1": 1300, "y0": 600, "y1": 860 },
+    "backLeft": { "absent": "no trim drawn: the wall base is a soft shadow seam behind the shield rack and stools" },
+    "backRight": { "absent": "no trim drawn: the wall base is a soft shadow seam behind the chest, table and shield" }
+  }
+}

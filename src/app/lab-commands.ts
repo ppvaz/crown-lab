@@ -10,6 +10,7 @@ import { AIM_MODES } from './input';
 import { retryRoom } from './route-run';
 import {
   browseCastClip,
+  cycleCastCapeSway,
   castMeshStatus,
   setCastMeshEnabled,
   warmCastMeshes,
@@ -67,6 +68,7 @@ export const createLabCommands = (
     'Backslash',
     'Backquote',
     'KeyM', 'Digit3', 'Digit5',
+    'LabCape',
     'KeyN',
     'F9',
   ]);
@@ -84,6 +86,7 @@ export const createLabCommands = (
         }
         else flow.restart();
         break;
+
       case 'KeyC':
         flow.toggleRoute();
         break;
@@ -229,6 +232,19 @@ export const createLabCommands = (
         audio.setPack(MATERIAL_PACKS[dials.packId()]);
         lab.notice = `material: ${dials.packId()}`;
         break;
+
+
+      case 'LabCape': {
+        const status = castMeshStatus();
+        if (!status.ready) {
+          lab.notice = status.wanted
+            ? 'cape: mesh still loading'
+            : 'cape: turn the mesh king on first';
+          break;
+        }
+        lab.notice = `cape sway: ${cycleCastCapeSway()}`;
+        break;
+      }
       case 'Digit4':
         dials.modelBankIndex = cycle(dials.modelBankIndex, dials.modelBankIds.length, 1);
         lab.models = cloneBank(MODEL_BANKS[dials.modelBankId()]);
@@ -267,7 +283,7 @@ export const createLabCommands = (
         }
         setCastMeshEnabled(wanted);
         lab.castClipOverride = null;
-        lab.notice = wanted ? 'mesh king: on' : 'mesh king: off';
+        lab.notice = wanted ? 'mesh dressing: on' : 'mesh dressing: off';
         break;
       }
 

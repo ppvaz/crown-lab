@@ -3,9 +3,12 @@ import { castMeshFromSearch } from '../src/app/lab-cast-mesh';
 import { CAST_MESHES } from '../src/render/cast-meshes-lab';
 
 describe('asking for the skinned cast from the address bar', () => {
-  it('is off unless the host explicitly opts in', () => {
-    expect(castMeshFromSearch('')).toBe(false);
-    expect(castMeshFromSearch('?capture=arena-training')).toBe(false);
+  it('defaults to the mesh arm', () => {
+    expect(castMeshFromSearch('')).toBe(true);
+    expect(castMeshFromSearch('?capture=arena-training')).toBe(true);
+  });
+
+  it('accepts an explicit primitive arm and refuses unknown arms', () => {
     expect(castMeshFromSearch('?cast=meshh')).toBe(false);
     expect(castMeshFromSearch('?cast=off')).toBe(false);
     expect(castMeshFromSearch('?cast=silhouette')).toBe(false);

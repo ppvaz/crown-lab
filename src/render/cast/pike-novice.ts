@@ -4,7 +4,7 @@ import { STANDARD_ORDER, boot, ellipse, line, poly } from './shape';
 
 export const POLISHED_PIKE_NOVICE: ModelDef = /* @__PURE__ */ (() => ({
   id: 'pike_novice',
-  heightPx: 56,
+  heightPx: 57,
   widthScale: 1.1,
   flatArticulation: {
     weapon: { pivot: [0.34, 0.5], rotationScale: 0.85, releaseScale: 2.6 },

@@ -131,6 +131,19 @@ export const drawProjectiles = (
       const half = 0.52 * ISO_X * cam.zoom;
       const wide = half * 0.44;
 
+      const pulse = critical ? 0.55 + 0.45 * Math.sin(now / 110) : 0.3;
+      ctx.globalAlpha = pulse * 0.45;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.ellipse(air.x, air.y, half * 1.6, half * 1.6 * (ISO_Y / ISO_X), 0, 0, TAU);
+      ctx.fill();
+
+      ctx.globalAlpha = 1;
+      if (opts.shotBody?.(ctx, cam, world, shot, pal) === true) {
+        ctx.globalAlpha = 1;
+        continue;
+      }
+
 
 
       const yaw = now / 1180 + shot.id * 2.3;
@@ -161,13 +174,6 @@ export const drawProjectiles = (
         ctx.closePath();
         ctx.fill();
       };
-
-      const pulse = critical ? 0.55 + 0.45 * Math.sin(now / 110) : 0.3;
-      ctx.globalAlpha = pulse * 0.45;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.ellipse(air.x, air.y, half * 1.6, half * 1.6 * (ISO_Y / ISO_X), 0, 0, TAU);
-      ctx.fill();
 
       const faces: { pts: { x: number; y: number }[]; depth: number; lit: number }[] = [];
       for (let k = 0; k < 4; k++) {

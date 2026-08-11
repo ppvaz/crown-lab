@@ -33,6 +33,7 @@ export const GLASS_REGENT: EnemyConfig = {
     reserveCooldownMs: 260,
     homingRateRad: 1.8,
     wardPushCooldownMs: 700,
+    rebukeMs: 300,
   },
   attacks: [
     {

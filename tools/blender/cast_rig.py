@@ -262,6 +262,29 @@ def mesh_islands(mesh):
     return islands
 
 
+def weld_coincident(obj, distance):
+
+    before_vertices = len(obj.data.vertices)
+    before_islands = len(mesh_islands(obj.data))
+    if distance <= 0:
+        return {
+            'weldedVertices': 0,
+            'islandsBeforeWeld': before_islands,
+            'islandsAfterWeld': before_islands,
+        }
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=distance)
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
+    return {
+        'weldedVertices': before_vertices - len(obj.data.vertices),
+        'islandsBeforeWeld': before_islands,
+        'islandsAfterWeld': len(mesh_islands(obj.data)),
+    }
+
+
 def repair_islands(obj, arm):
 
     mesh = obj.data
@@ -291,6 +314,46 @@ def repair_islands(obj, arm):
                 obj.vertex_groups[name].add([index], w / total, 'REPLACE')
             repaired += 1
     return {'islands': len(islands), 'repaired': repaired}
+
+
+def island_vertices(mesh, box):
+
+
+
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bm.verts.ensure_lookup_table()
+
+    lo = Vector((min(v.co.x for v in bm.verts), min(v.co.y for v in bm.verts),
+                 min(v.co.z for v in bm.verts)))
+    hi = Vector((max(v.co.x for v in bm.verts), max(v.co.y for v in bm.verts),
+                 max(v.co.z for v in bm.verts)))
+    span = Vector((max(hi.x - lo.x, 1e-9), max(hi.y - lo.y, 1e-9), max(hi.z - lo.z, 1e-9)))
+
+    def frac(point):
+        return ((point.x - lo.x) / span.x, (point.y - lo.y) / span.y, (point.z - lo.z) / span.z)
+
+    chosen = set()
+    for island in mesh_islands(mesh):
+        pts = [bm.verts[i].co for i in island]
+        f_lo = frac(Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts))))
+        f_hi = frac(Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts))))
+        f_mid = tuple((a + b) / 2 for a, b in zip(f_lo, f_hi))
+        if box.get('xMin') is not None and f_lo[0] < box['xMin']:
+            continue
+        if box.get('xMax') is not None and f_hi[0] > box['xMax']:
+            continue
+        if box.get('yMax') is not None and f_hi[1] > box['yMax']:
+            continue
+        if box.get('yMin') is not None and f_lo[1] < box['yMin']:
+            continue
+        if box.get('zMin') is not None and f_mid[2] < box['zMin']:
+            continue
+        if box.get('zMax') is not None and f_mid[2] > box['zMax']:
+            continue
+        chosen.update(island)
+    bm.free()
+    return chosen
 
 
 def prop_vertices(mesh, grip, grip_radius, axis_xy, axis_radius):
@@ -400,7 +463,7 @@ def arm_direction(arm, bone):
     return along.normalized() if along.length > 1e-6 else None
 
 
-def grip_seat(body, bone, bone_head):
+def grip_seat(body, bone, bone_head, bone_tail=None):
 
 
 
@@ -419,6 +482,19 @@ def grip_seat(body, bone, bone_head):
         return bone_head, {'seat': 'bone head',
                            'seatReason': f'{bone} drives only {len(held)} vertices above 0.5'}
 
+    if bone_tail is not None:
+        along = bone_tail - bone_head
+        reach = along.length
+        if reach > 1e-6:
+            near = []
+            for point in held:
+                offset = point - bone_head
+                t = max(0.0, min(1.0, offset.dot(along) / along.length_squared))
+                if (offset - along * t).length <= reach:
+                    near.append(point)
+            if len(near) >= 8:
+                held = near
+
     centre = Vector((0, 0, 0))
     for point in held:
         centre += point
@@ -433,6 +509,8 @@ def place_weapon(body, arm, spec, units, scale):
     weapon.name = 'cast_weapon'
     points = [v.co.copy() for v in weapon.data.vertices]
     centre, axis = long_axis(points)
+    if spec.get('flip'):
+        axis = -axis
     reach = [(p - centre).dot(axis) for p in points]
     span = max(reach) - min(reach)
     low, high = min(reach) / span, max(reach) / span
@@ -450,7 +528,13 @@ def place_weapon(body, arm, spec, units, scale):
         aim = Vector(declared).normalized()
     turn = axis.rotation_difference(aim).to_matrix().to_4x4()
     bone_head = arm.data.bones[spec['bone']].head_local.copy()
-    joint, seat = grip_seat(body, spec['bone'], bone_head)
+    bone_tail = arm.data.bones[spec['bone']].tail_local.copy()
+    if spec.get('seatPoint') is not None:
+        joint = Vector(spec['seatPoint'])
+        seat = {'seat': 'procedural mitten centre', 'seatVertices': 0,
+                'seatGap': round((joint - bone_head).length, 4)}
+    else:
+        joint, seat = grip_seat(body, spec['bone'], bone_head, bone_tail)
     weapon.data.transform(
         Matrix.Translation(joint) @ turn @ Matrix.Scale(factor, 4) @ Matrix.Translation(-grip))
     weapon.matrix_world = body.matrix_world.copy()
@@ -485,7 +569,9 @@ def albedo_of(material):
     return links[0].from_node.image if links else None
 
 
-def merge_materials(body, tmp_dir):
+def merge_materials(body, tmp_dir, shares=None, pad=2):
+
+
 
 
     materials = list(body.data.materials)
@@ -493,18 +579,24 @@ def merge_materials(body, tmp_dir):
         return {'materials': len(materials), 'atlas': False}
 
     slots = len(materials)
-    strip = ATLAS // slots
+    if shares is None:
+        shares = [1.0 / slots] * slots
+    total = sum(shares)
+    heights = [max(4, int(ATLAS * s / total)) for s in shares]
+    heights[-1] = ATLAS - sum(heights[:-1])
+    offsets = [sum(heights[:i]) for i in range(slots)]
     buffer = np.zeros((ATLAS, ATLAS, 4), dtype=np.float32)
     buffer[:, :, 3] = 1.0
     for index, material in enumerate(materials):
         image = albedo_of(material) if material else None
         if image is None:
             continue
+        strip = heights[index]
         scaled = image.copy()
         scaled.scale(ATLAS, strip)
         pixels = np.zeros(ATLAS * strip * 4, dtype=np.float32)
         scaled.pixels.foreach_get(pixels)
-        buffer[index * strip:(index + 1) * strip, :, :] = pixels.reshape((strip, ATLAS, 4))
+        buffer[offsets[index]:offsets[index] + strip, :, :] = pixels.reshape((strip, ATLAS, 4))
         bpy.data.images.remove(scaled)
 
     atlas = bpy.data.images.new('cast_atlas', ATLAS, ATLAS, alpha=False)
@@ -513,10 +605,13 @@ def merge_materials(body, tmp_dir):
 
     uv = body.data.uv_layers.active
     for poly in body.data.polygons:
-        base = poly.material_index / slots
+        index = poly.material_index
+        inner = max(1, heights[index] - 2 * pad)
+        base = (offsets[index] + pad) / ATLAS
+        scale = inner / ATLAS
         for loop in poly.loop_indices:
             u, v = uv.data[loop].uv
-            uv.data[loop].uv = (u, v / slots + base)
+            uv.data[loop].uv = (u, base + v * scale)
 
     merged = bpy.data.materials.new('cast')
     merged.use_nodes = True
@@ -532,7 +627,8 @@ def merge_materials(body, tmp_dir):
         poly.material_index = 0
 
     as_png(atlas, os.path.join(tmp_dir, 'atlas.png'))
-    return {'materials': slots, 'atlas': True}
+    return {'materials': slots, 'atlas': True, 'pixels': ATLAS,
+            'strips': heights, 'pad': pad}
 
 
 def as_png(image, path):
@@ -580,6 +676,9 @@ def main():
     props = json.loads(opt.get('props', '[]'))
     weapons = json.loads(opt.get('weapons', '[]'))
     tpose = opt.get('tpose', '0') == '1'
+    weld = float(opt.get('weld', '0'))
+    if weld < 0:
+        raise RuntimeError(f'weld distance must be non-negative, got {weld}')
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
@@ -592,6 +691,7 @@ def main():
 
     body = link_mesh(os.path.expanduser(opt['body']))
     body.name = opt.get('name', 'cast_body')
+    report.update(weld_coincident(body, weld))
 
     if tpose:
         targets, swing = measure_arm_directions(body, arm, scale, units, sole)
@@ -613,8 +713,19 @@ def main():
 
     prop_sets = []
     for prop in props:
-        prop_sets.append((prop['bone'], prop_vertices(
-            body.data, prop['grip'], prop['gripRadius'], prop['axis'], prop['axisRadius'])))
+        if 'islands' in prop:
+            prop_sets.append((prop['bone'], island_vertices(body.data, prop['islands'])))
+        else:
+            prop_sets.append((prop['bone'], prop_vertices(
+                body.data, prop['grip'], prop['gripRadius'], prop['axis'], prop['axisRadius'])))
+
+    for prop, (bone, indices) in zip(props, prop_sets):
+        if prop.get('offset') is None or not indices:
+            continue
+        delta = Vector(prop['offset'])
+        for index in indices:
+            body.data.vertices[index].co += delta
+        print(f'  reseated {len(indices)} vertices by {tuple(prop["offset"])} for {bone}')
 
     is_prop = set().union(*[s for _, s in prop_sets]) if prop_sets else set()
     body_top = max(v.co.z for v in body.data.vertices if v.index not in is_prop)
@@ -667,7 +778,8 @@ def main():
         'vertices': len(body.data.vertices),
         'joints': len(arm.data.bones),
         'clips': sorted(a.name for a in bpy.data.actions),
-        'propVertices': {bone: len(idx) for bone, idx in prop_sets},
+        'propVertices': {bone: sum(len(idx) for b, idx in prop_sets if b == bone)
+                         for bone, _ in prop_sets},
         'bodyTopFraction': round(top_fraction, 5),
         'scale': scale,
         'tpose': tpose,
@@ -675,4 +787,5 @@ def main():
     print('CAST_RIG ' + json.dumps(report))
 
 
-main()
+if __name__ == '__main__':
+    main()

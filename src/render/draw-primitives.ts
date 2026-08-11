@@ -19,6 +19,8 @@ const WALK_STATES = new Set([
   'step',
 ]);
 const GAIT_CYCLE_MS = 620;
+
+
 export const gaitPhaseFor = (world: World, state: string): number =>
   WALK_STATES.has(state)
     ? ((world.tick * TICK_MS) / GAIT_CYCLE_MS) * Math.PI * 2
@@ -137,6 +139,90 @@ export const groundWedge = (
     ctx.lineTo(p.x, p.y);
   }
   ctx.closePath();
+};
+
+const TIP_ALPHA = 0.22;
+export const strokeGroundRangeArc = (
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  origin: { x: number; y: number },
+  facing: number,
+  range: number,
+  arcDeg: number,
+  color: string,
+  alpha: number,
+  width = 1,
+  dash: readonly number[] | null = null,
+): void => {
+  const half = (arcDeg * DEG) / 2;
+  const steps = Math.max(8, Math.round(arcDeg / 5));
+  const at = (a: number): { x: number; y: number } =>
+    worldToScreen(cam, {
+      x: origin.x + Math.cos(a) * range,
+      y: origin.y + Math.sin(a) * range,
+    });
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  if (dash !== null) ctx.setLineDash([...dash]);
+  for (let i = 0; i < steps; i++) {
+    const from = facing - half + (i / steps) * half * 2;
+    const to = facing - half + ((i + 1) / steps) * half * 2;
+    const offset = Math.abs((from + to) / 2 - facing) / Math.max(1e-6, half);
+    const falloff = TIP_ALPHA + (1 - TIP_ALPHA) * (1 - offset * offset);
+    const a = at(from);
+    const b = at(to);
+    ctx.globalAlpha = alpha * falloff;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+  ctx.restore();
+};
+
+export const strokeGroundAim = (
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  origin: { x: number; y: number },
+  facing: number,
+  innerRange: number,
+  outerRange: number,
+  arcDeg: number,
+  rays: number,
+  color: string,
+  alpha: number,
+  width = 1,
+): void => {
+  const half = (arcDeg * DEG) / 2;
+  const steps = 5;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  for (let ray = 0; ray < rays; ray++) {
+    const angle = rays === 1 ? facing : facing - half + (ray / (rays - 1)) * half * 2;
+    const direction = { x: Math.cos(angle), y: Math.sin(angle) };
+    const at = (distance: number): { x: number; y: number } =>
+      worldToScreen(cam, {
+        x: origin.x + direction.x * distance,
+        y: origin.y + direction.y * distance,
+      });
+    for (let i = 0; i < steps; i++) {
+      const from = innerRange + ((outerRange - innerRange) * i) / steps;
+      const to = innerRange + ((outerRange - innerRange) * (i + 1)) / steps;
+      const a = at(from);
+      const b = at(to);
+      ctx.globalAlpha = alpha * (1 - (i + 0.5) / steps) ** 1.4;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
 };
 
 export const drawSlashArc = (

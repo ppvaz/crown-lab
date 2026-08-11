@@ -25,7 +25,7 @@ export const preloadLab = (liveWorld: () => World): Preload => {
       console.warn(`[preload] no encounter for baked room ${id} — check asset-registry-lab.ts`);
       continue;
     }
-    webglRoomFor(id, arena, liveWorld);
+    if (id === liveWorld().encounter.defId) webglRoomFor(id, arena, liveWorld);
     roomPainterFor(id, liveWorld);
   }
 

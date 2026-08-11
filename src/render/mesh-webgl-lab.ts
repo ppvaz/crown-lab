@@ -13,11 +13,14 @@ import type { CastMeshSpec } from './cast-meshes-lab';
 import { bodyScale, modelTopUnits } from './cast-meshes-lab';
 import { measureForwardFacing, missingSockets, socketPose } from './mesh-pose-lab';
 import type { PoseScratch, SocketPose } from './mesh-pose-lab';
-import { blendPoses, createPose, createScratch, jointMatrices, samplePose } from './mesh-pose-lab';
+import {
+  blendPoses, createPose, createScratch, jointMatrices, pinRootMotion, rootJoint, samplePose,
+} from './mesh-pose-lab';
+import { driveCape, findCapeChain } from './cape-lab';
 
 const MAX_JOINTS = 64;
 
-const vert = (joints: number): string => `#version 300 es
+export const vert = (joints: number): string => `#version 300 es
 in vec3 aPos;
 in vec3 aNrm;
 in vec2 aUv;
@@ -43,7 +46,7 @@ void main() {
   gl_Position = uProj * (uModel * posed);
 }`;
 
-const frag = (): string => `#version 300 es
+export const frag = (): string => `#version 300 es
 precision highp float;
 
 in vec3 vNrm;
@@ -85,6 +88,7 @@ export const bodyModelMatrix = (
   forwardFacing: number,
   scale: number,
   bindFoot: number,
+  elevation: number = 0,
   out: Float32Array = new Float32Array(16),
 ): Float32Array => {
   const yaw = facing - forwardFacing;
@@ -95,7 +99,7 @@ export const bodyModelMatrix = (
   out[8] = s; out[9] = -c; out[10] = 0; out[11] = 0;
   out[12] = at.x;
   out[13] = at.y;
-  out[14] = -bindFoot * scale;
+  out[14] = -bindFoot * scale + elevation;
   out[15] = 1;
   return out;
 };
@@ -114,6 +118,7 @@ const compile = (gl: WebGL2RenderingContext, type: number, source: string): WebG
 export interface MeshSubject {
   pos: { x: number; y: number };
   facing: number;
+  vel?: { x: number; y: number };
 }
 
 export interface MeshBodyOptions {
@@ -121,12 +126,13 @@ export interface MeshBodyOptions {
   combat: () => CombatConfig;
   saturation?: () => number;
   flatColour?: () => readonly [number, number, number];
+  capeSway?: () => number;
   drive: (world: World, subject: MeshSubject, bank: BodyClipBank) => BodyClipDrive | null;
   onFailure?: (reason: string) => void;
 }
 
 export interface CastMeshBody {
-  draw: (ctx: CanvasRenderingContext2D, cam: Camera, subject: MeshSubject) => void;
+  draw: (ctx: CanvasRenderingContext2D, cam: Camera, subject: MeshSubject) => boolean;
   socket: (slot: 'weapon' | 'shield') => SocketPose | null;
   clipNames: readonly string[];
   unbound: readonly BodyClipRole[];
@@ -185,6 +191,11 @@ const buildRenderer = (
     premultipliedAlpha: true,
   });
   if (gl === null) return fail('no WebGL2 context for the king');
+  let contextLost = false;
+  canvas.addEventListener('webglcontextlost', () => {
+    contextLost = true;
+    options.onFailure?.(`${spec.id}: WebGL context lost; drawing the primitive silhouette`);
+  }, { once: true });
 
   const jointCount = mesh.skeleton.jointNode.length;
   let program: WebGLProgram;
@@ -254,6 +265,8 @@ const buildRenderer = (
   gl.clearColor(0, 0, 0, 0);
 
   const bank: BodyClipBank = bindBodyClips(mesh.clips, spec.clipNames, mesh.clipRoles);
+  const capeChain = findCapeChain(mesh.skeleton);
+  const root = rootJoint(mesh.skeleton);
   const pose = createPose(mesh.skeleton);
   const fadeFrom = createPose(mesh.skeleton);
   const scratch: PoseScratch = createScratch(mesh.skeleton);
@@ -283,8 +296,16 @@ const buildRenderer = (
     );
   }
 
-  const setModel = (subject: MeshSubject): void => {
-    bodyModelMatrix(subject.pos, subject.facing, forwardFacing, scale, mesh.bindFoot, model);
+  const setModel = (subject: MeshSubject, timeMs: number): void => {
+    const hover = spec.hover;
+    if (hover === undefined) {
+      bodyModelMatrix(subject.pos, subject.facing, forwardFacing, scale, mesh.bindFoot, 0, model);
+      return;
+    }
+    const phase = subject.pos.x * 1.7 + subject.pos.y * 2.3;
+    const lift = hover.lift + Math.sin(timeMs / 2300 + phase) * hover.breath;
+    const facing = subject.facing + Math.sin(timeMs / 3700 + phase * 1.3) * hover.sway;
+    bodyModelMatrix(subject.pos, facing, forwardFacing, scale, mesh.bindFoot, lift, model);
   };
 
   const bodyBox = (cam: Camera, subject: MeshSubject) => {
@@ -317,7 +338,8 @@ const buildRenderer = (
     gl.viewport(0, 0, widthPx, heightPx);
   };
 
-  const draw = (ctx: CanvasRenderingContext2D, cam: Camera, subject: MeshSubject): void => {
+  const draw = (ctx: CanvasRenderingContext2D, cam: Camera, subject: MeshSubject): boolean => {
+    if (contextLost || gl.isContextLost()) return false;
     const world = options.world();
     const response = roomResponse(world, currentWeather());
 
@@ -325,7 +347,7 @@ const buildRenderer = (
     const clip = overrideClip === null
       ? drive?.clip ?? null
       : mesh.clips[overrideClip] ?? null;
-    if (clip === null) return;
+    if (clip === null) return false;
     const seconds = overrideClip === null
       ? drive!.seconds
       : Math.max(0, Math.min(1, overrideAt)) * clip.durationSec;
@@ -351,9 +373,12 @@ const buildRenderer = (
     fadeRemaining = Math.max(0, fadeRemaining - dtMs);
 
     samplePose(pose, mesh.skeleton, clip, seconds);
+    pinRootMotion(pose, mesh.skeleton, root);
     if (fadeRemaining > 0 && fadeTotal > 0) {
       blendPoses(pose, fadeFrom, fadeRemaining / fadeTotal);
     }
+    driveCape(pose, capeChain, world.tick, subject.vel ?? null, subject.facing,
+      options.capeSway?.() ?? 0);
     jointMatrices(matrices, mesh.skeleton, pose, scratch);
     showingNow = { clip: clip.name, role, at: seconds / Math.max(1e-6, clip.durationSec) };
 
@@ -376,8 +401,19 @@ const buildRenderer = (
     resizeTo(Math.round(cam.width * scaleFactor), Math.round(cam.height * scaleFactor));
     gl.useProgram(program);
     gl.bindVertexArray(vao);
+
+
+    const box = bodyBox(cam, subject);
+    const sx = Math.max(0, Math.floor(box.x * scaleFactor));
+    const sh = Math.min(canvas.height, Math.ceil(box.h * scaleFactor));
+    const sy = Math.max(0, Math.min(canvas.height - sh,
+      Math.floor(canvas.height - (box.y + box.h) * scaleFactor)));
+    const sw = Math.min(canvas.width - sx, Math.ceil(box.w * scaleFactor));
+    if (sw <= 0 || sh <= 0) return false;
+    gl.enable(gl.SCISSOR_TEST);
+    gl.scissor(sx, sy, Math.max(0, sw), Math.max(0, sh));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    setModel(subject);
+    setModel(subject, response.timeMs);
     gl.uniformMatrix4fv(uProj, false, isoProjection(cam));
     gl.uniformMatrix4fv(uModel, false, model);
     gl.uniformMatrix4fv(uJoint, false, matrices);
@@ -393,13 +429,14 @@ const buildRenderer = (
     }
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.drawElements(gl.TRIANGLES, mesh.index.length, gl.UNSIGNED_INT, 0);
+    gl.disable(gl.SCISSOR_TEST);
 
-    const box = bodyBox(cam, subject);
     ctx.drawImage(
       canvas,
       box.x * scaleFactor, box.y * scaleFactor, box.w * scaleFactor, box.h * scaleFactor,
       box.x, box.y, box.w, box.h,
     );
+    return true;
   };
 
   return {

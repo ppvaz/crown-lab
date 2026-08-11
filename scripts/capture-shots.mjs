@@ -232,6 +232,7 @@ const SHOT_ENCOUNTERS = {
 const shots = listArg('shots', SHOTS);
 const viewports = listArg('viewports', Object.keys(VIEWPORTS));
 const outputRoot = valueArg('output', 'captures');
+const cast = valueArg('cast', '');
 const { proc: server, state: serverState } = startViteServer({ port: PORT });
 
 try {
@@ -254,7 +255,9 @@ try {
     for (const shot of shots) {
       const label = `${viewportName}/${shot}`;
       try {
-        await page.goto(`${BASE}/?capture=${encodeURIComponent(shot)}`);
+        const search = new URLSearchParams({ capture: shot });
+        if (cast) search.set('cast', cast);
+        await page.goto(`${BASE}/?${search}`);
         await page.waitForSelector(
           `html[data-capture-ready="true"][data-capture-shot="${shot}"]`,
           { timeout: 30_000 },

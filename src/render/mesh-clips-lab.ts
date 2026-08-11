@@ -14,12 +14,13 @@ export type BodyClipRole =
   | 'parry'
   | 'stagger'
   | 'step'
+  | 'power'
   | 'roar'
   | 'dead';
 
 export const BODY_CLIP_ROLES: readonly BodyClipRole[] = [
   'idle', 'walk', 'run', 'attackLight', 'attackHeavy',
-  'guard', 'parry', 'stagger', 'step', 'roar', 'dead',
+  'guard', 'parry', 'stagger', 'step', 'power', 'roar', 'dead',
 ];
 
 export const BODY_CLIP_NAMES: Readonly<Record<BodyClipRole, readonly string[]>> = {
@@ -33,6 +34,7 @@ export const BODY_CLIP_NAMES: Readonly<Record<BodyClipRole, readonly string[]>> 
   parry: ['shield_push', 'block'],
   stagger: ['hit_reaction'],
   step: ['running', 'walking'],
+  power: ['power_cast', 'power'],
   roar: ['roar', 'shout', 'taunt'],
   dead: ['hit_reaction'],
 };
@@ -89,7 +91,17 @@ export const ATTACK_PHASES: AttackPhases = { contact: 0.52, settle: 0.7 };
 
 const PARRY_SPAN = 0.35;
 
+const STEP_STRIDE = 0.5;
+
+const AT_REST_SPEED = 1e-6;
+
 const GUARD_RAISE_SEC = 0.22;
+
+const advanceRatio = (vel: { x: number; y: number }, facing: number): number => {
+  const speed = Math.hypot(vel.x, vel.y);
+  if (speed < 1e-4) return 1;
+  return (Math.cos(facing) * vel.x + Math.sin(facing) * vel.y) / speed;
+};
 
 export interface BodyClipDrive {
   role: BodyClipRole;
@@ -121,6 +133,12 @@ const rolePosition = (
 ): RolePosition => {
   const pc = cfg.player;
   const state = player.state;
+
+  if (player.powerChannelMs > 0 && cfg.power !== 'none') {
+    const windupMs = Math.max(1, cfg.powers[cfg.power].channelWindupMs);
+    const at = Math.min(1, player.powerChannelMs / windupMs);
+    return { role: 'power', at: () => at, scrubbed: true, fadeSec: 0.08 };
+  }
 
   switch (state.kind) {
     case 'windup':
@@ -156,7 +174,11 @@ const rolePosition = (
     }
 
     case 'step': {
-      const at = phaseProgress(state.elapsedMs, pc.step.durationMs);
+
+
+      const t = phaseProgress(state.elapsedMs, pc.step.durationMs);
+      const travelled = STEP_STRIDE * t;
+      const at = advanceRatio(player.vel, player.facing) < 0 ? STEP_STRIDE - travelled : travelled;
       return { role: 'step', at: () => at, scrubbed: true, fadeSec: 0.04 };
     }
 
@@ -194,14 +216,18 @@ const locomotion = (
   {
     {
       const speed = Math.hypot(vel.x, vel.y);
+
+
+
+
+      if (speed <= AT_REST_SPEED) {
+        return { role: 'idle', at: () => 0, scrubbed: false, fadeSec: 0.16 };
+      }
       const phase = gaitPhaseFor(world, 'move') / TAU;
       const wrapped = phase - Math.floor(phase);
 
 
-      const forward =
-        speed < 1e-4
-          ? 1
-          : (Math.cos(facing) * vel.x + Math.sin(facing) * vel.y) / speed;
+      const forward = advanceRatio(vel, facing);
       const at = forward < 0 ? 1 - wrapped : wrapped;
       return {
         role: forward >= 0 && speed > moveSpeed * 0.7 ? 'run' : 'walk',
@@ -246,7 +272,16 @@ export const enemyClipDrive = (
   const state = enemy.state;
   const { contact, settle } = phases;
 
+
+
+  const rebukeTotal = ecfg.volley?.rebukeMs ?? 0;
+  const rebuking = (enemy.rebukeMs ?? 0) > 0 && rebukeTotal > 0;
+
   const position = ((): RolePosition => {
+    if (rebuking) {
+      const through = 1 - (enemy.rebukeMs ?? 0) / rebukeTotal;
+      return { role: 'parry', at: () => Math.max(0, Math.min(1, through)), scrubbed: true, fadeSec: 0.05 };
+    }
     switch (state.kind) {
       case 'telegraph': {
         const def = ecfg.attacks[state.attackIndex];

@@ -1,0 +1,114 @@
+{
+  "family": "kernel_guard texture albedos",
+  "status": "v1 WebPs remain wired to the lab-only live kernel_guard mesh; v2 WebPs are preserved as unpromoted candidates because none passed exact four-edge tiling; all source PNGs remain recoverable from the recorded built-in generation outputs",
+  "service": "OpenAI built-in image generation",
+  "modelVersion": "unknown (the built-in image generation surface did not report a model id)",
+  "licenceTermsOnGenerationDate": "unknown",
+  "runtimeEncoding": "1024x1024 lossy WebP, cwebp 1.6.0, quality 86, method 6, sharp YUV, metadata stripped",
+  "referenceImages": [
+    "captures/concepts/route-storytelling/02-the-guardroom-materials.png",
+    "captures/concepts/route-storytelling/02-the-guardroom-objects.png"
+  ],
+  "runtimeWiring": {
+    "colourSpace": "WebP bytes are sRGB and are uploaded as WebGL2 SRGB8_ALPHA8, so sampling decodes once to linear before room lighting and the shader's final display encoding.",
+    "wall": {
+      "materials": ["guard-stone", "guard-coping", "guard-slab"],
+      "worldSize": [5, 2.25],
+      "strength": 0.96,
+      "linearTint": [0.4, 0.52, 0.82]
+    },
+    "floor": {
+      "materials": ["guard-floor"],
+      "worldSize": [5.4, 5.4],
+      "strength": 0.72,
+      "linearTint": [1, 1, 1]
+    },
+    "wood": {
+      "materials": ["guard-wood"],
+      "worldSize": [5.6, 5.6],
+      "strength": 0.65,
+      "linearTint": [1, 1, 1]
+    },
+    "roomLightExposure": 0.35,
+    "liquid": false,
+    "reviewCapture": "captures/guardroom-fidelity-final/desktop/arena-training.png",
+    "reviewComparison": {
+      "concept": "captures/concepts/route-storytelling/02-the-guardroom.png",
+      "sheet": "captures/guardroom-fidelity-final/concept-current-comparison.png",
+      "kind": "bounded visual diff; no pixel delta because the source panel has only two measurable floor runs and the runtime capture includes actors and HUD",
+      "nextLever": "focal architecture and light placement: throne/dais, full-height rear banner, paired rear lanterns, then window recess and pilaster depth"
+    },
+    "note": "The wall tint lets the generated map supply courses and chips while the room palette owns value and hue. The exposure is stored in the baked room manifest; lamp-energy ratios still classify windows versus open flames."
+  },
+  "assets": [
+    {
+      "file": "wall-ashlar-albedo-v1.webp",
+      "generatedAt": "2026-08-11T11:27:49-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 4.79,
+        "topBottomEdgeRmse255": 22.36,
+        "result": "wired v1; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo texture for the Crown Lab guardroom wall mesh\nInput images: Image 1 is the approved guardroom material reference board; use specifically the dark ashlar wall block swatch in the top row, second tile, as the material and palette reference only\nPrimary request: create a square, perfectly edge-to-edge seamless dark blue-black ashlar masonry texture, with broad rectangular dressed-stone blocks in staggered horizontal courses, restrained hand-painted/cartoonized surface variation, fine chips and occasional hairline cracks, and very subtle warm bronze wear in only a few recesses\nStyle/medium: polished stylized 3D game material, hand-painted and graphic rather than photographic\nComposition/framing: orthographic straight-on surface texture filling the entire canvas; uniform texel density; exact seamless tiling on all four edges\nLighting/mood: flat neutral albedo; no directional light, no cast shadows, no ambient occlusion, no vignette, no highlights\nColor palette: near-black navy stone matching the reference, slightly lighter bevel-facing variation, charcoal joints\nMaterials/textures: readable block scale with crisp but not high-contrast mortar; broad low-frequency variation that survives an isometric gameplay camera\nConstraints: albedo/color only; no normal-map purple, no height-map grayscale, no metallic map; no isolated slab, no border, no frame, no perspective, no floor plane, no objects, no symbols, no gold trim, no text, no watermark\nAvoid: photorealistic scan grain, noisy pebbles, moss, dirt splatter, strong cracks, high-contrast white mortar, baked lighting, obvious repetition within one tile"
+    },
+    {
+      "file": "floor-flagstone-albedo-v1.webp",
+      "generatedAt": "2026-08-11T11:30:33-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 4.0,
+        "topBottomEdgeRmse255": 12.17,
+        "result": "wired v1; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo texture for the Crown Lab guardroom playable-floor mesh\nInput images: Image 1 is the approved guardroom material reference board; use the dark floor slabs and the full guardroom floor as palette/material references only\nPrimary request: create a square, perfectly edge-to-edge seamless dark blue-black dressed flagstone floor texture, made of large square and gently rectangular slabs in a restrained grid, subtle hand-painted/cartoonized wear, faint fine scratches, and rare hairline cracks; keep the center areas calm and low contrast for combat readability\nStyle/medium: polished stylized 3D game material, graphic and hand-painted rather than photographic\nComposition/framing: orthographic top-down surface texture filling the entire canvas; uniform texel density; exact seamless tiling on all four edges\nLighting/mood: flat neutral albedo; no directional light, no cast shadows, no ambient occlusion, no vignette, no highlights\nColor palette: near-black navy slate with charcoal joints and only minute muted warm wear\nMaterials/textures: joints readable at gameplay scale but shallower and quieter than wall mortar; broad low-frequency variation only\nConstraints: albedo/color only; no concentric rings, no star emblem, no gold inlay, no border, no isolated tile, no bevelled outer frame, no perspective, no objects, no text, no watermark\nAvoid: photorealistic scan grain, noisy pebbles, cobblestone, moss, dirt splatter, strong cracks, high-contrast joints, baked lighting, obvious repetition within one tile"
+    },
+    {
+      "file": "wood-planks-albedo-v1.webp",
+      "generatedAt": "2026-08-11T11:31:19-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 18.46,
+        "topBottomEdgeRmse255": 7.37,
+        "result": "wired v1; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo texture for the Crown Lab guardroom wood props\nInput images: Image 1 is the approved guardroom material reference board; use the dark timber crate/plank swatches in the lower left and the wood props in the guardroom object board as palette/material references only\nPrimary request: create a square, perfectly edge-to-edge seamless dark aged oak plank texture, long narrow boards running vertically, restrained hand-painted/cartoonized grain, slight board-to-board value variation, tiny edge nicks and rare shallow splits\nStyle/medium: polished stylized 3D game material, graphic and hand-painted rather than photographic\nComposition/framing: orthographic straight-on surface texture filling the entire canvas; uniform texel density; exact seamless tiling on all four edges\nLighting/mood: flat neutral albedo; no directional light, no cast shadows, no ambient occlusion, no vignette, no highlights\nColor palette: deep desaturated brown oak, nearly black in joints, with minimal warm bronze-brown edge wear\nMaterials/textures: broad readable grain, clean plank rhythm, quiet enough to sit behind gold and iron fittings\nConstraints: bare wood only; no metal straps, nails, rivets, hinges, frame, border, isolated crate, perspective, objects, symbols, text, or watermark\nAvoid: orange wood, photorealistic scan grain, bark, knots on every board, severe rot, moss, dirt splatter, strong cracks, baked lighting, obvious repetition within one tile"
+    },
+    {
+      "file": "wall-ashlar-albedo-v2-candidate.webp",
+      "generatedAt": "2026-08-11T11:53:07-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-45aef702-7b66-4413-944d-948bf20bf850.png",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 3.42,
+        "topBottomEdgeRmse255": 16.0,
+        "result": "candidate only; improved but rejected for exact tiling and residual baked relief"
+      },
+      "prompt": "Use case: precise-object-edit\nAsset type: v2 seamless albedo texture for the Crown Lab guardroom wall mesh\nInput images: Image 1 is the edit target, the wired v1 wall albedo; Image 2 is the approved guardroom material-board style reference\nPrimary request: repair Image 1 into a genuinely seamless repeating texture. Make the left edge continue exactly into the right edge and the top edge continue exactly into the bottom edge, including every mortar line and partial block. Remove the visible top/bottom mismatch measured in v1. Preserve the dark blue-black staggered ashlar design and block scale.\nStyle/medium: restrained hand-painted stylized game albedo, graphic rather than photographic\nLighting/mood: flatten the v1 relief substantially; color information only, with no bevel highlights, directional shading, ambient occlusion, cast shadows, or vignette\nMaterials/textures: broad low-frequency stone variation, very sparse fine chips, fewer cracks than v1, crisp charcoal joints without deep black cavities\nConstraints: change only seam continuity, baked relief, and excess crack frequency; keep the same palette, rectangular running-bond layout, square canvas, orthographic surface view, and uniform texel density; fill the canvas edge to edge\nAvoid: isolated tiles, outer border, frame, perspective, objects, symbols, gold trim, text, watermark, photoreal grain, moss, dirt splatter, bright mortar, obvious repeated landmark"
+    },
+    {
+      "file": "floor-flagstone-albedo-v2-candidate.webp",
+      "generatedAt": "2026-08-11T11:53:54-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-51cda027-6eb7-4ce6-84af-fa1ccce605a0.png",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 4.07,
+        "topBottomEdgeRmse255": 9.73,
+        "result": "candidate only; improved but rejected for exact tiling"
+      },
+      "prompt": "Use case: precise-object-edit\nAsset type: v2 seamless albedo texture for the Crown Lab guardroom playable floor\nInput images: Image 1 is the edit target, the wired v1 floor albedo; Image 2 is the approved guardroom material-board style reference\nPrimary request: repair Image 1 into a genuinely seamless repeating floor texture. Make left/right and top/bottom edges continue exactly, including every joint. Remove the v1 edge mismatch and reduce the obvious 2x2 repeating landmark pattern while preserving a restrained large-slab layout.\nStyle/medium: calm hand-painted stylized game albedo, graphic rather than photographic\nLighting/mood: flat color only; remove bevel lighting, directional shading, ambient occlusion, highlights, cast shadows, and vignette\nMaterials/textures: dark blue-black dressed flagstone, shallow charcoal joints, extremely quiet slab-to-slab value variation, almost no cracks; center areas must remain calm for combat telegraphs\nConstraints: change only seam continuity, repetition, and excess relief; keep the palette, large-scale flagstone identity, square canvas, top-down orthographic surface view, and uniform texel density; no authored floor markings\nAvoid: concentric rings, star, gold inlay, isolated tile, outer border, frame, perspective, objects, text, watermark, cobblestone, moss, dirt, bright joints, obvious repeated landmark"
+    },
+    {
+      "file": "wood-planks-albedo-v2-candidate.webp",
+      "generatedAt": "2026-08-11T11:54:57-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-6d4a91cd-16bd-4eee-91d0-98b592c1d47b.png",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 2.44,
+        "topBottomEdgeRmse255": 3.04,
+        "result": "candidate only; materially improved but rejected for exact tiling and slight baked edge shading"
+      },
+      "prompt": "Use case: precise-object-edit\nAsset type: v2 seamless albedo texture for the Crown Lab guardroom wooden props\nInput images: Image 1 is the edit target, the wired v1 oak-plank albedo; Image 2 is the approved guardroom material-board style reference\nPrimary request: repair Image 1 into a genuinely seamless repeating texture. The vertical boards must continue through the top edge into the bottom edge with no horizontal join, cutoff grain, value step, or repeated plank ends. The left and right edges must also continue exactly. Preserve the same dark aged-oak board width and vertical orientation.\nStyle/medium: restrained hand-painted stylized game albedo, graphic rather than photographic\nLighting/mood: flat color only; remove the warm edge glow and all directional shading, ambient occlusion, bevel highlights, cast shadows, and vignette\nMaterials/textures: sparse broad grain, rare small knots, minimal board-to-board variation, nearly black narrow gaps; quiet behind gold and iron fittings\nConstraints: change only seam continuity and baked lighting; keep palette, vertical boards, square canvas, orthographic surface view, and uniform texel density; every board crossing the top must be the same board crossing the bottom\nAvoid: horizontal plank ends or seams anywhere, metal straps, nails, rivets, hinges, border, frame, crate, perspective, objects, symbols, text, watermark, orange wood, bark, rot, moss, dramatic cracks, obvious repeated knot"
+    }
+  ]
+}

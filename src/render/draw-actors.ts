@@ -12,7 +12,7 @@ import { MARA_DOWNED_TOP_PX, MARA_TOP_PX, drawMaraFigure } from './escort';
 import { reportUiRect } from './ui-probe';
 import { drawBladeCrescent } from './apotheosis/render';
 import type { DrawOpts, KingDressing } from './draw';
-import { drawSlashArc, footprint, gaitPhaseFor, groundWedge, sceneTimeMs } from './draw-primitives';
+import { drawSlashArc, footprint, gaitPhaseFor, sceneTimeMs, strokeGroundRangeArc } from './draw-primitives';
 
 export const drawProjectedGuardShield = (
   ctx: CanvasRenderingContext2D,
@@ -212,12 +212,17 @@ export const drawPlayer = (
   if ((kind === 'windup' || kind === 'active') && p.state.attack !== null) {
     const def = playerAttackDef(p.state, pc)!;
     const live = kind === 'active';
-    const t = live ? 1 : Math.min(1, p.state.elapsedMs / Math.max(1, def.windupMs));
-    groundWedge(ctx, cam, p.pos, p.facing, def.range * (live ? 1 : 0.35 + t * 0.65), def.arcDeg);
-    ctx.globalAlpha = live ? 0.45 : 0.12;
-    ctx.fillStyle = pal.playerAccent;
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    strokeGroundRangeArc(
+      ctx,
+      cam,
+      p.pos,
+      p.facing,
+      def.range,
+      def.arcDeg,
+      pal.playerAccent,
+      live ? 0.42 : 0.18,
+      live ? 1.25 : 1,
+    );
     if (live && opts.apotheosis.combatFx) {
       drawBladeCrescent(
         ctx,
@@ -237,11 +242,17 @@ export const drawPlayer = (
 
   if (kind === 'guard' || kind === 'parry') {
     const arc = kind === 'parry' ? pc.parry.arcDeg : pc.guard.arcDeg;
-    groundWedge(ctx, cam, p.pos, p.facing, pc.radius + 0.75, arc);
-    ctx.globalAlpha = kind === 'parry' ? 0.42 : 0.2;
-    ctx.fillStyle = kind === 'parry' ? pal.parryFlash : pal.hudText;
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    strokeGroundRangeArc(
+      ctx,
+      cam,
+      p.pos,
+      p.facing,
+      pc.radius + 0.75,
+      arc,
+      kind === 'parry' ? pal.parryFlash : pal.hudText,
+      kind === 'parry' ? 0.55 : 0.26,
+      kind === 'parry' ? 1.5 : 1,
+    );
   }
 
   const body =
@@ -259,8 +270,8 @@ export const drawPlayer = (
 
 
 
-  if (dressing.body !== undefined) {
-    dressing.body(ctx, cam, p);
+  const hostBodyDrawn = dressing.body?.(ctx, cam, p) ?? false;
+  if (hostBodyDrawn) {
     if (guarding) {
       drawProjectedGuardShield(
         ctx, cam, world, p.pos, p.facing, pc.radius, pal.parryFlash, kind === 'parry' ? 1 : 0.62,

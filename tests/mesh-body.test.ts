@@ -5,6 +5,7 @@ import { buildMeshBody } from '../src/render/mesh-body-lab';
 import { bodyModelMatrix } from '../src/render/mesh-webgl-lab';
 import { measureForwardFacing } from '../src/render/mesh-pose-lab';
 import { CAST_MESHES, CAST_MESH_IDS, bodyScale, heightUnits, modelTopUnits } from '../src/render/cast-meshes-lab';
+import { BODY_CLIP_ROLES } from '../src/render/mesh-clips-lab';
 import { buildSkinnedFixture } from './support/skinned-glb';
 
 const mesh = buildMeshBody(buildSkinnedFixture().glb);
@@ -94,6 +95,14 @@ describe('the model matrix, which is where the axis change lives', () => {
     expect(feet.y).toBeCloseTo(1.5, 6);
     expect(feet.z).toBeCloseTo(0, 6);
   });
+
+  it('lifts a body by the elevation it is given, after the soles term', () => {
+    const m = bodyModelMatrix({ x: 2, y: -1 }, FORWARD, 0, SCALE, 0.4, 1.0);
+    const centre = apply(m, [0, 0.4, 0]);
+    expect(centre.x).toBeCloseTo(2, 6);
+    expect(centre.y).toBeCloseTo(-1, 6);
+    expect(centre.z).toBeCloseTo(1.0, 6);
+  });
 });
 
 describe('the bind measurements the renderer scales by', () => {
@@ -143,10 +152,44 @@ describe('the bind measurements the renderer scales by', () => {
     }
   });
 
-  it('leaves the king the only body that runs', () => {
-    expect(CAST_MESHES.player.clipNames?.run).toBeUndefined();
-    for (const id of CAST_MESH_IDS.filter((i) => i !== 'player')) {
-      expect(CAST_MESHES[id].clipNames?.run).toEqual(['walking']);
+  it('gives every body a run it could have, borrowed, authored or none', () => {
+    for (const id of CAST_MESH_IDS) {
+      const names = CAST_MESHES[id].clipNames;
+      const authored = names?.idle !== undefined;
+      if (CAST_MESHES[id].hover !== undefined) {
+
+
+        expect(names?.idle, `${id} floats and must name a still idle`).toBeDefined();
+        for (const role of ['walk', 'run', 'step'] as const) {
+          expect(names?.[role], `${id} floats: ${role} must not stride`).toEqual(names?.idle);
+        }
+        expect(names?.roar, `${id} floats: roar must not fall through to the walk`).toBeDefined();
+      } else if (authored) {
+        expect(names?.run, `${id} authored its own gait`).toEqual(['run']);
+      } else if (id === 'player') {
+        expect(names?.run, 'the king borrowing his own sprint').toBeUndefined();
+      } else {
+        expect(names?.run, `${id} still borrows`).toEqual(['walking']);
+      }
+    }
+  });
+
+  it('leaves no authored role to a tie-break', () => {
+    for (const id of CAST_MESH_IDS) {
+      const names = CAST_MESHES[id].clipNames;
+      if (names?.idle === undefined || CAST_MESHES[id].hover !== undefined) continue;
+      for (const role of BODY_CLIP_ROLES) {
+        expect(names[role], `${id} authored a pack but left ${role} to the default`).toBeDefined();
+      }
+    }
+  });
+
+  it('states the phases of a swing it authored', () => {
+    for (const id of CAST_MESH_IDS) {
+      const spec = CAST_MESHES[id];
+      if (spec.clipNames?.attackLight?.[0] !== 'attacklight') continue;
+      expect(spec.attackPhases, `${id}`).toBeDefined();
+      expect(spec.attackPhases!.contact).toBeLessThan(spec.attackPhases!.settle);
     }
   });
 

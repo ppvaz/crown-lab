@@ -45,11 +45,14 @@ import {
 } from './lab-rooms';
 import { setRoomScale } from '../render/room-webgl-lab';
 import {
+  castCapeSway,
   castMeshActors,
   castMeshDrawn,
   castMeshPending,
   castMeshStatus,
+  meshDressingEnabled,
   enemyMeshBody,
+  shotMeshBody,
 } from './lab-cast-mesh';
 import { drawLoadingScreen } from '../render/loading-screen';
 import { drawTitleScreen, thresholdFromSearch } from '../render/title-screen';
@@ -259,9 +262,12 @@ export const createLabFrame = (
 
     if (showcase.draw(ctx, cam, lab.models, lab.pal, lab.pres, frame.content, dtRealMs)) return;
 
+    const meshDressing = meshDressingEnabled();
     const room =
-      webglRoomFor(lab.world.encounter.defId, lab.world.arena, () => lab.world) ??
-      roomPainterFor(lab.world.encounter.defId, () => lab.world);
+      (meshDressing
+        ? webglRoomFor(lab.world.encounter.defId, lab.world.arena, () => lab.world) ??
+          roomPainterFor(lab.world.encounter.defId, () => lab.world)
+        : null);
     const conceptScene = conceptArenaScene(ctx, lab.world, cam, lab.pal);
     drawScene(ctx, lab.world, cam, {
       ...(room === null
@@ -283,6 +289,7 @@ export const createLabFrame = (
       models: lab.models,
       kingDressing: kit.kingDressings(),
       enemyBody: (archetype) => enemyMeshBody(archetype)?.draw ?? null,
+      shotBody: shotMeshBody,
       showHitboxes: lab.flags.showHitboxes,
       aimDistance: lab.aimDistance,
       mazePortalDirection: lab.mazePortalDirection,
@@ -396,6 +403,9 @@ export const createLabFrame = (
           ? 'mesh — still loading'
           : 'primitives (wanted mesh, no file — run npm run cast:mesh)';
     const lines = [`  king body    ${body} (\` toggle)`];
+    if (king.ready && castCapeSway() !== 'off') {
+      lines.push(`  cape         ${castCapeSway()} sway, closed-form`);
+    }
     if (king.ready && king.showing !== null) {
       const showing = king.showing;
       const held = showing.role === 'override';
@@ -454,7 +464,9 @@ export const createLabFrame = (
       `  turntable    ${showcase.role() ?? 'off'} / ${showcase.state().id} (8 role / 9 state)`,
       `  maze portal  steps ${lab.mazePortalDirection} (U toggle)`,
       `  room render  ${
-        webglRoomFor(lab.world.encounter.defId, lab.world.arena, () => lab.world) !== null
+        !meshDressingEnabled()
+          ? 'drawn — primitives (mesh dressing off)'
+          : webglRoomFor(lab.world.encounter.defId, lab.world.arena, () => lab.world) !== null
           ? 'live — webgl, lit by the fight'
           : webglRoomsPending.has(lab.world.encounter.defId)
             ? 'live — mesh still loading'
@@ -538,14 +550,18 @@ export const createLabFrame = (
             devicePixelRatio: window.devicePixelRatio || 1,
             viewport: { width: canvas.clientWidth, height: canvas.clientHeight },
             liveRoom:
+              meshDressingEnabled() &&
               webglRoomFor(lab.world.encounter.defId, lab.world.arena, () => lab.world) !== null,
           }),
         });
 
-  const preload = preloadLab(() => lab.world);
+  let preload: ReturnType<typeof preloadLab> | null = null;
+  const startPreload = (): ReturnType<typeof preloadLab> =>
+    preload ??= preloadLab(() => lab.world);
   const showThreshold = thresholdFromSearch(location.search);
 
   const frame = (nowMs: number): void => {
+    const bootPreload = startPreload();
     const dtRealMs = Math.min(250, nowMs - lab.lastFrameMs);
     if (lab.run !== null) advanceVictory(lab.run, dtRealMs);
     lab.lastFrameMs = nowMs;
@@ -557,7 +573,7 @@ export const createLabFrame = (
     input.update(dtRealMs);
 
 
-    if (!preload.done()) {
+    if (!bootPreload.done()) {
       clock.clear();
       drawLoadingScreen(ctx, kit.layoutFrame(), lab.pal);
     } else {
@@ -629,5 +645,5 @@ export const createLabFrame = (
   };
 
 
-  return { frame, resize, updatePanel, syncFpsMeter };
+  return { frame, resize, updatePanel, syncFpsMeter, startPreload };
 };

@@ -66,6 +66,10 @@ describe('stemLevel', () => {
 });
 
 describe('material sample paths', () => {
+  it('uses the tempered bank as the lab default', () => {
+    expect(DEFAULT_MATERIAL.id).toBe('tempered');
+  });
+
   it('names every sample file rather than deriving it from the cue', () => {
     for (const cue of ALL_CUES) {
       const file = CUES[cue].material;
@@ -259,7 +263,7 @@ describe('the music bed', () => {
   });
 
   it('keeps the resting cutoff above the parry cue', () => {
-    const parryTop = CUES['parry'].tonal?.freq ?? 0;
+    const parryTop = Math.max(...CUES['parry'].tonal.map((l) => l.freq), 0);
     expect(MUSIC_OPEN_HZ).toBeGreaterThan(parryTop);
     expect(MUSIC_STAGGER_HZ).toBeLessThan(parryTop);
   });
@@ -303,8 +307,8 @@ describe('the music bed', () => {
 
   it('gives both boss roars a pack-independent low, rough cue', () => {
     expect(CUES.roar.material).toBe(null);
-    expect(CUES.roar.transient?.freq).toBeLessThan(200);
-    expect(CUES.roar.tonal?.toFreq).toBeLessThan(CUES.roar.tonal?.freq ?? 0);
+    for (const layer of CUES.roar.transient) expect(layer.freq).toBeLessThan(200);
+    for (const layer of CUES.roar.tonal) expect(layer.toFreq).toBeLessThan(layer.freq);
     expect(ESSENTIAL_CUES.has('roar')).toBe(true);
   });
 

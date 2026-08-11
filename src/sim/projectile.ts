@@ -285,6 +285,7 @@ export const stepProjectiles = (world: World, cfg: CombatConfig, dtMs: Ms): void
         if (dist(shot.pos, owner.pos) <= reach) {
           if ((shot.shardIntegrity ?? 0) > 0 && owner.state.kind !== 'stagger') {
             returnShard(world, shot, volley, player.pos, owner.pos, owner.id, cfg, cfg.enemies[owner.archetype].radius);
+            owner.rebukeMs = volley.rebukeMs;
             survivors.push(shot);
           } else {
             shatterShard(world, shot, owner, volley, 'enemy', owner.id);

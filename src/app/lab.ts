@@ -12,7 +12,13 @@ import { LabDials } from './lab-dials';
 import { LabEventFeed } from './lab-events';
 import { createLabState } from './lab-state';
 import { createLabKit, type LabHarness } from './lab-kit';
-import { castMeshFromSearch, configureCastMesh, setCastMeshEnabled } from './lab-cast-mesh';
+import {
+  castCapeFromSearch,
+  castMeshFromSearch,
+  configureCastMesh,
+  setCastCapeSway,
+  setCastMeshEnabled,
+} from './lab-cast-mesh';
 import { createLabFlow } from './lab-flow';
 import { createLabCommands } from './lab-commands';
 import { createLabFrame } from './lab-frame';
@@ -56,6 +62,7 @@ import {
 } from './route-run';
 import { Audio } from '../render/audio';
 import { MATERIAL_PACKS } from '../render/materials-lab';
+import { meshDownloadAllowed } from '../render/heavy-assets';
 import { ShowcaseLab } from './showcase-lab';
 import { InputSource } from './input';
 import type { AimMode } from './input';
@@ -209,7 +216,8 @@ configureCastMesh({
   combat: () => lab.combat,
   saturation: () => lab.pres.visual.saturation,
 });
-if (castMeshFromSearch(location.search)) setCastMeshEnabled(true);
+setCastMeshEnabled(meshDownloadAllowed() && castMeshFromSearch(location.search));
+setCastCapeSway(castCapeFromSearch(location.search));
 const kit = createLabKit(lab, harness, { updatePanel: () => frameCtl.updatePanel() });
 const flow = createLabFlow(lab, kit, harness, { resize: () => frameCtl.resize() });
 const runLabCommand = createLabCommands(lab, kit, harness, flow, {
@@ -280,6 +288,7 @@ if (captureShot === null || captureShot.id === 'herald-room' || captureShot.rout
 } else {
   flow.restart();
 }
+frameCtl.startPreload();
 if (captureShot !== null) {
   prepareCaptureWorld(
     lab.world,

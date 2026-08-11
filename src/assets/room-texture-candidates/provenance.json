@@ -1,0 +1,264 @@
+{
+  "family": "First Crown route architecture texture candidates",
+  "status": "Fourteen unwired v1 wall/floor WebP candidates cover every route room except kernel_guard; the Dog-leg Passage's two exact-periodic v2 WebPs were promoted into src/assets/rooms/kernel-duelist/textures/ on 2026-08-11 when its live room mesh arrived, and their -candidate copies remain here as the recorded source of that promotion. No v1 candidate in this file is registered to a mesh.",
+  "service": "OpenAI built-in image generation",
+  "modelVersion": "unknown (the built-in image generation surface did not report a model id)",
+  "licenceTermsOnGenerationDate": "unknown",
+  "generatedOn": "2026-08-11",
+  "runtimeEncoding": "v1: 1024x1024 lossy WebP, cwebp 1.6.0, quality 86, method 6, sharp YUV, metadata stripped. Dog-leg v2: that same lossy stage is decoded, opposite 1px borders are averaged onto both sides, then the exact-periodic pixels are stored as lossless WebP with metadata stripped.",
+  "scope": {
+    "architectureOnly": true,
+    "objectsIncluded": false,
+    "liquidsIncluded": false,
+    "missingObjectSheets": [
+      "The Long Siege",
+      "The Antechamber",
+      "The First Blade"
+    ],
+    "antechamberConstraint": "No seals, sockets, circles, pedestal bases or other puzzle geometry were baked into the floor albedo; the three mid-floor pedestals require a deliberately authored object callout sheet."
+  },
+  "assets": [
+    {
+      "room": "The Court",
+      "encounterId": "wayfarer_court",
+      "file": "wayfarer-court/textures/wall-ashlar-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/01-the-court-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-b0a3fc72-6410-4804-85e9-a9364e5b98e6.png",
+      "generatedAt": "2026-08-11T12:11:53-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 2.22,
+        "topBottomEdgeRmse255": 1.58,
+        "result": "candidate only; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo texture for The Court wall masonry in Crown Lab\nInput image: the approved 01-the-court-materials board; use its dark staggered ashlar swatch as the material and palette reference only\nPrimary request: a square edge-to-edge repeating dark blue-black dressed-stone wall, broad rectangular blocks in quiet staggered courses, restrained hand-painted variation, sparse tiny chips\nStyle/medium: stylized graphic game albedo, not photographic\nComposition: orthographic straight-on surface filling the whole canvas, uniform texel density, exact seamless continuation on all four edges\nLighting: flat color only, no directional light, bevel lighting, ambient occlusion, cast shadow, highlight, or vignette\nConstraints: architecture material only; no floor medallion, star, gold inlay, border, frame, window, cloth, wood, objects, text, or watermark; calm low contrast"
+    },
+    {
+      "room": "The Court",
+      "encounterId": "wayfarer_court",
+      "file": "wayfarer-court/textures/floor-flagstone-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/01-the-court-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-f20db942-92bd-4cd9-82ac-639899b29c84.png",
+      "generatedAt": "2026-08-11T12:11:20-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 2.8,
+        "topBottomEdgeRmse255": 2.28,
+        "result": "candidate only; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo texture for The Court playable floor in Crown Lab\nInput image: the approved 01-the-court-materials board; use its plain dark dressed slabs as the material and palette reference only\nPrimary request: a square edge-to-edge repeating top-down floor of large near-black navy dressed-stone slabs, shallow charcoal joints, extremely quiet value variation and almost no cracks so combat telegraphs remain clear\nStyle/medium: stylized graphic game albedo, not photographic\nComposition: orthographic top-down surface filling the whole canvas, uniform texel density, exact seamless continuation on all four edges\nLighting: flat color only, no directional light, bevel lighting, ambient occlusion, cast shadow, highlight, or vignette\nConstraints: architecture material only; no star, ring, gold inlay, authored floor markings, border, isolated tile, objects, text, or watermark"
+    },
+    {
+      "room": "The Dog-leg Passage",
+      "encounterId": "kernel_duelist",
+      "file": "kernel-duelist/textures/wall-ashlar-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/03-the-dog-leg-passage-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-881d8394-5b6b-46e6-8fa5-528efeab90d8.png",
+      "generatedAt": "2026-08-11T12:15:09-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 3.33,
+        "topBottomEdgeRmse255": 24.14,
+        "result": "candidate only; rejected for exact tiling"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for Dog-leg Passage wall masonry in Crown Lab\nUse the approved material board's dark staggered ashlar swatch as reference only. Create square edge-to-edge repeating near-black navy rectangular wall blocks in compact staggered courses, restrained hand-painted surface variation, sparse chips, very few cracks. Orthographic straight-on, uniform texel density, exact seamless continuation on all edges. Flat color only: no bevel lighting, directional shading, ambient occlusion, shadows, highlights, vignette. Architecture material only: no gold, window, soot streaks, broken glass, fabric, dirt, rubble, symbols, border, objects, text, watermark. Stylized graphic game albedo, calm and non-photographic."
+    },
+    {
+      "room": "The Dog-leg Passage",
+      "encounterId": "kernel_duelist",
+      "file": "kernel-duelist/textures/floor-diagonal-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/03-the-dog-leg-passage-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-29110fe1-fb57-46ec-b6df-4df1312015a5.png",
+      "generatedAt": "2026-08-11T12:14:25-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 2.48,
+        "topBottomEdgeRmse255": 2.72,
+        "result": "candidate only; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for Dog-leg Passage playable floor in Crown Lab\nUse the approved material board's plain diagonal dark slabs as reference only. Create square edge-to-edge repeating top-down large dressed-stone slabs set on a restrained 45-degree diagonal grid, near-black navy with shallow charcoal joints and extremely quiet variation for combat readability. Exact seamless continuation on all edges, uniform texel density. Flat color only: no bevel lighting, AO, shadow, highlight, vignette. No gold inlay, concentric diamond emblem, soot, dirt, rubble, cracks, objects, border, text, watermark. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The Dog-leg Passage",
+      "encounterId": "kernel_duelist",
+      "file": "kernel-duelist/textures/wall-ashlar-albedo-v2-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/03-the-dog-leg-passage-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-a0758afc-a0fc-448f-b241-8c9ca181de1c.png",
+      "generatedAt": "2026-08-11T13:42:10-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "periodicFinish": "Crop 1024x1024 at source offset +100+100; encode q86/m6/sharp-YUV; decode; average each opposing 1px border pair onto both borders; lossless WebP stores the decoded periodic artifact. A 2x2 sheet was reviewed after the initial mirrored finish was rejected for visible bands.",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 0,
+        "topBottomEdgeRmse255": 0,
+        "result": "exact-periodic encoded WebP; visually approved for promotion"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: source albedo texture for The Dog-leg Passage wall masonry in Crown Lab\nPrimary request: create a square edge-to-edge field of near-black navy dressed-stone wall blocks in compact staggered horizontal ashlar courses, matching the approved Dog-leg Passage material board's dark masonry language. Restrained hand-painted mineral variation, sparse tiny chips, very few cracks, calm low contrast.\nStyle/medium: stylized graphic game albedo, non-photographic\nComposition/framing: orthographic straight-on surface filling the entire square canvas, uniform texel density, no isolated sample tile, no border. Keep the pattern rhythm regular enough to survive mirrored periodic finishing without an obvious central motif.\nLighting/mood: flat intrinsic color only; no directional light, bevel lighting, ambient occlusion, cast shadow, highlight, glow, or vignette\nColor palette: blue-black and charcoal navy with only very subtle cool-grey mineral variation\nConstraints: architecture material only; no floor pattern, gold, window, glass, fabric, wood, soot streaks, rubble, dirt piles, symbols, frame, objects, text, or watermark\nAvoid: photorealism, perspective, depth-of-field, presentation board, swatch card, edge darkening, large unique cracks"
+    },
+    {
+      "room": "The Dog-leg Passage",
+      "encounterId": "kernel_duelist",
+      "file": "kernel-duelist/textures/floor-diagonal-albedo-v2-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/03-the-dog-leg-passage-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-8b740419-8807-4cdf-8e7e-c82342c916a2.png",
+      "generatedAt": "2026-08-11T13:42:57-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "periodicFinish": "Crop 992x992 at source offset +14+0 and resize to 1024x1024 so the generated diagonal grid lands on its measured period; encode q86/m6/sharp-YUV; decode; average each opposing 1px border pair onto both borders; lossless WebP stores the decoded periodic artifact. A 2x2 sheet was reviewed after the initial mirrored finish was rejected for large tonal diamonds.",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 0,
+        "topBottomEdgeRmse255": 0,
+        "result": "exact-periodic encoded WebP; visually approved for promotion"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: source albedo texture for The Dog-leg Passage playable floor in Crown Lab\nPrimary request: create a square edge-to-edge top-down field of large near-black navy dressed-stone floor slabs laid on a restrained 45-degree diagonal grid, matching the approved Dog-leg Passage material board's plain diagonal slab language. Shallow charcoal joints, extremely quiet broad mineral variation, almost no cracks so combat telegraphs remain clear.\nStyle/medium: stylized graphic game albedo, non-photographic\nComposition/framing: exact orthographic top-down surface filling the entire square canvas, uniform texel density, no isolated sample tile, no border. Keep the diagonal rhythm regular enough to survive mirrored periodic finishing without a conspicuous central emblem.\nLighting/mood: flat intrinsic color only; no directional light, bevel lighting, ambient occlusion, cast shadow, highlight, reflection, glow, or vignette\nColor palette: near-black navy slabs with subtle charcoal-blue variation and dark joints\nConstraints: architecture material only; no gold inlay, concentric diamonds, centre emblem, star, soot, dirt, rubble, authored arena markings, objects, text, or watermark\nAvoid: photorealism, perspective, wetness, presentation board, swatch card, edge darkening, large unique cracks"
+    },
+    {
+      "room": "The Gallery",
+      "encounterId": "spacing_archer",
+      "file": "spacing-archer/textures/wall-ashlar-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/04-the-gallery-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-8ee64ea0-4cd0-4be8-bfd9-c1901e155d66.png",
+      "generatedAt": "2026-08-11T12:12:56-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 10.38,
+        "topBottomEdgeRmse255": 24.8,
+        "result": "candidate only; rejected for exact tiling"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for The Gallery wall masonry in Crown Lab\nUse the approved material board's dark rectangular ashlar as reference only. Create square edge-to-edge repeating blue-black wall blocks in measured staggered horizontal courses, slightly longer and more formal than the passage, restrained hand-painted variation, rare chips and hairline cracks. Orthographic straight-on, uniform texel density, exact seamless continuation on all edges. Flat color only with no bevel lighting, AO, shadows, highlights, vignette. No arched windows, timber, targets, arrows, door, rubble, gold, heraldry, border, objects, text, watermark. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The Gallery",
+      "encounterId": "spacing_archer",
+      "file": "spacing-archer/textures/floor-flagstone-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/04-the-gallery-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-e4ad1f8f-58e8-4947-aab0-088113b4063e.png",
+      "generatedAt": "2026-08-11T12:13:45-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 3.32,
+        "topBottomEdgeRmse255": 3.07,
+        "result": "candidate only; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for The Gallery playable floor in Crown Lab\nUse the approved material board's plain dressed dark stone as reference only. Create square edge-to-edge repeating top-down large blue-black gallery slabs in a restrained orthogonal layout, shallow charcoal joints, broad nearly invisible value shifts and almost no cracks so combat telegraphs stay clear. Exact seamless continuation on all edges, uniform texel density. Flat color only: no bevel lighting, AO, shadows, highlights, vignette. No crosshair, target rings, gold inlay, arrows, wood, rubble, authored markings, border, objects, text, watermark. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The Upper Hall",
+      "encounterId": "overlap_court",
+      "file": "overlap-court/textures/wall-ashlar-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/05-the-upper-hall-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-4f77e416-a64c-4b6d-b553-ba7a35cc2e68.png",
+      "generatedAt": "2026-08-11T12:17:54-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 18.07,
+        "topBottomEdgeRmse255": 6.96,
+        "result": "candidate only; rejected for exact tiling"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for Upper Hall wall masonry in Crown Lab\nUse the approved material board's formal dark rectangular ashlar swatch as reference only. Create square edge-to-edge repeating blue-black dressed-stone wall blocks in disciplined staggered courses, restrained hand-painted variation, sparse worn corners and very few cracks. Orthographic straight-on, exact seamless continuation on all edges, uniform texel density. Flat color only: no bevel light, AO, shadow, highlight, vignette. No shields, banners, scrolls, tables, crates, rubble, gold trim, star, border, objects, text, watermark. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The Upper Hall",
+      "encounterId": "overlap_court",
+      "file": "overlap-court/textures/floor-flagstone-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/05-the-upper-hall-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-d950cf7e-0eb1-40ef-a097-99478209248e.png",
+      "generatedAt": "2026-08-11T12:16:24-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 2.74,
+        "topBottomEdgeRmse255": 3.04,
+        "result": "candidate only; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for Upper Hall playable floor in Crown Lab\nUse the approved material board's large four-slab dark floor swatch as reference only. Create square edge-to-edge repeating top-down very large blue-black rectangular flagstones in a restrained orthogonal grid, shallow charcoal joints, quiet broad variation, rare fine scratches, almost no cracks for telegraph clarity. Exact seamless continuation on all edges, uniform texel density. Flat color only, no bevel light, AO, shadow, highlight, vignette. No compass star, gold border, rubble, furniture, objects, authored markings, text, watermark. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The Long Siege",
+      "encounterId": "siege_10",
+      "file": "siege-10/textures/wall-heat-scarred-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/06-the-long-siege-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-7795d0ce-0638-4d1b-af60-4e1b8ece28d9.png",
+      "generatedAt": "2026-08-11T12:17:07-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 2.99,
+        "topBottomEdgeRmse255": 2.49,
+        "result": "candidate only; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for Long Siege wall masonry in Crown Lab\nUse the approved material board's dark battered ashlar and dry heat-scarred stone as palette references only. Create square edge-to-edge repeating near-black charcoal-navy rectangular wall blocks in irregular staggered courses, restrained hand-painted wear, sparse hairline heat discoloration in muted ember-brown but no glowing cavities. Orthographic straight-on, exact seamless continuation on all edges, uniform texel density. Flat color only: no emissive glow, bevel lighting, AO, shadow, highlight, vignette. Dry stone only; no lava, liquid, window, boards, iron plates, rubble, gold, objects, border, text, watermark. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The Long Siege",
+      "encounterId": "siege_10",
+      "file": "siege-10/textures/floor-heat-scarred-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/06-the-long-siege-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-56de0d7a-0f8c-4a25-8fea-6b37ea03d7f5.png",
+      "generatedAt": "2026-08-11T12:18:23-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 7.11,
+        "topBottomEdgeRmse255": 6.77,
+        "result": "candidate only; rejected for exact tiling"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for Long Siege playable floor in Crown Lab\nUse the approved material board's plain dark slabs and restrained dry heat wear as references only. Create square edge-to-edge repeating top-down large charcoal-navy dressed floor slabs, shallow joints, quiet soot-darkened variation and extremely sparse muted ember-brown hairlines, keeping most of every slab calm for combat telegraphs. Exact seamless continuation on all edges, uniform texel density. Flat color only: no emissive glow, bevel light, AO, shadow, highlight, vignette. Dry floor only; no lava, molten cracks, liquids, siege debris, gold rings, authored markings, rubble, objects, border, text, watermark. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The Antechamber",
+      "encounterId": "upper_hall",
+      "file": "upper-hall/textures/wall-ashlar-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/07-the-antechamber-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-8f2ff3cd-d6bf-405f-a8d7-819b91d274e1.png",
+      "generatedAt": "2026-08-11T12:19:30-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 2.24,
+        "topBottomEdgeRmse255": 22.0,
+        "result": "candidate only; rejected for exact tiling"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for Antechamber wall masonry in Crown Lab\nUse the approved material board's precise dark rectangular ashlar swatch as reference only. Create square edge-to-edge repeating blue-black dressed-stone wall blocks in measured staggered courses, formal and quiet, restrained hand-painted variation, rare chips and almost no cracks. Orthographic straight-on, exact seamless continuation on all edges, uniform texel density. Flat color only: no bevel light, AO, shadow, highlight, vignette. No star relief, window, document, wax seal, banner, gold trim, pedestal, puzzle symbols, border, objects, text, watermark. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The Antechamber",
+      "encounterId": "upper_hall",
+      "file": "upper-hall/textures/floor-diagonal-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/07-the-antechamber-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-48d98404-001d-49ad-b885-c3a835c24d78.png",
+      "generatedAt": "2026-08-11T12:20:39-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 4.18,
+        "topBottomEdgeRmse255": 4.15,
+        "result": "candidate only; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for Antechamber playable floor in Crown Lab\nUse the approved material board's plain large diagonal dark slabs as reference only. Create square edge-to-edge repeating top-down large blue-black dressed-stone slabs on a restrained diagonal grid, shallow charcoal joints, calm broad variation and almost no cracks for puzzle and combat readability. Exact seamless continuation on all edges, uniform texel density. Flat color only: no bevel light, AO, shadow, highlight, vignette. Critically exclude all seals, circles, star emblems, glowing marks, pedestal bases, sockets, gold inlay, authored puzzle markings, objects, border, text, watermark; those are separate load-bearing geometry. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The First Blade",
+      "encounterId": "first_blade",
+      "file": "first-blade/textures/wall-ashlar-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/08-the-first-blade-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-cf97e6a9-6776-46cd-8c18-7d2e1d28fd05.png",
+      "generatedAt": "2026-08-11T12:20:14-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 1.96,
+        "topBottomEdgeRmse255": 1.81,
+        "result": "candidate only; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for First Blade chamber wall masonry in Crown Lab\nUse the approved material board's severe near-black rectangular ashlar swatch as reference only. Create square edge-to-edge repeating black-navy dressed-stone wall blocks in disciplined staggered courses, slightly taller and more austere than prior rooms, restrained hand-painted variation, rare sharp hairline wear. Orthographic straight-on, exact seamless continuation on all edges, uniform texel density. Flat color only: no bevel light, AO, shadow, highlight, vignette. No crossed swords, red glass, iron bars, blades, banners, timber, brass, glowing coals, gold, border, objects, text, watermark. Stylized graphic game albedo, non-photographic."
+    },
+    {
+      "room": "The First Blade",
+      "encounterId": "first_blade",
+      "file": "first-blade/textures/floor-flagstone-albedo-v1-candidate.webp",
+      "referenceImage": "captures/concepts/route-storytelling/08-the-first-blade-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-410444b6-e8f6-452c-af25-8de2f7493671.png",
+      "generatedAt": "2026-08-11T12:21:38-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 1.99,
+        "topBottomEdgeRmse255": 2.27,
+        "result": "candidate only; not mathematically seamless"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: seamless tileable albedo for First Blade playable floor in Crown Lab\nUse the approved material board's plain four-slab black stone as reference only. Create square edge-to-edge repeating top-down very large black-navy dressed floor slabs in an austere orthogonal grid, narrow charcoal joints, minimal broad variation, sparse fine scratches and nearly no cracks so duel telegraphs dominate. Exact seamless continuation on all edges, uniform texel density. Flat color only: no bevel light, AO, shadow, highlight, vignette. No sword emblem, circle, red cloth, gold inlay, brass, embers, authored arena markings, objects, border, text, watermark. Stylized graphic game albedo, non-photographic."
+    }
+  ]
+}

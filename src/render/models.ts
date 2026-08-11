@@ -173,7 +173,7 @@ const poseFromFor = (state: string, tell?: string): Pose | undefined => {
 const FOLD_AT_WAIST = new Set(['dead', 'stagger']);
 
 
-export const DEFAULT_MODEL_BANK = 'silhouette';
+export const DEFAULT_MODEL_BANK = 'mesh';
 
 
 export interface ModelDrawOpts {

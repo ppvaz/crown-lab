@@ -4,7 +4,7 @@ import { STANDARD_ORDER, boot, ellipse, line, poly } from './shape';
 
 export const POLISHED_ARCHER: ModelDef = /* @__PURE__ */ (() => ({
   id: 'archer',
-  heightPx: 53,
+  heightPx: 56,
   widthScale: 1.04,
   flatArticulation: { weapon: { pivot: [0.5, 0.5], rotationScale: 0.18 } },
   viewWidthScale: { profile: 0.76 },

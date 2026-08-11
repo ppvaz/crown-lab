@@ -1,0 +1,83 @@
+{
+  "family": "kernel_duelist texture albedos",
+  "status": "Both v2 exact-periodic WebPs are promoted and wired to the lab-only live kernel_duelist mesh; the rejected mirrored-finish intermediates were never promoted and the v1 candidates remain unwired in the candidates package for failure reference only",
+  "service": "OpenAI built-in image generation",
+  "modelVersion": "unknown (the built-in image generation surface did not report a model id)",
+  "licenceTermsOnGenerationDate": "unknown",
+  "runtimeEncoding": "the lossy 1024x1024 q86/m6/sharp-YUV stage is decoded, opposite 1px borders are averaged onto both sides, and the exact-periodic pixels are stored as lossless WebP with metadata stripped — the decoded runtime artifact, not the pre-encode source, is what passed",
+  "referenceImages": [
+    "captures/concepts/route-storytelling/03-the-dog-leg-passage-materials.png",
+    "captures/concepts/route-storytelling/03-the-dog-leg-passage-objects.png"
+  ],
+  "runtimeWiring": {
+    "colourSpace": "WebP bytes are sRGB and are uploaded as WebGL2 SRGB8_ALPHA8, so sampling decodes once to linear before room lighting and the shader's final display encoding.",
+    "wall": {
+      "materials": [
+        "duel-stone",
+        "duel-coping",
+        "duel-slab"
+      ],
+      "worldSize": [
+        5,
+        2.25
+      ],
+      "strength": 0.96,
+      "linearTint": [
+        0.4,
+        0.52,
+        0.82
+      ]
+    },
+    "floor": {
+      "materials": [
+        "duel-floor"
+      ],
+      "worldSize": [
+        5.4,
+        5.4
+      ],
+      "strength": 0.72,
+      "linearTint": [
+        1,
+        1,
+        1
+      ]
+    },
+    "liquid": false,
+    "note": "Wiring mirrors the guardroom's division of labour: the generated wall map supplies courses and chips while the room palette owns value and hue. The approved object callout sheet is dressing-eligible later; nothing from it was baked into these albedos."
+  },
+  "assets": [
+    {
+      "room": "The Dog-leg Passage",
+      "encounterId": "kernel_duelist",
+      "file": "wall-ashlar-albedo-v2.webp",
+      "referenceImage": "captures/concepts/route-storytelling/03-the-dog-leg-passage-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-a0758afc-a0fc-448f-b241-8c9ca181de1c.png",
+      "generatedAt": "2026-08-11T13:42:10-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "periodicFinish": "Crop 1024x1024 at source offset +100+100; encode q86/m6/sharp-YUV; decode; average each opposing 1px border pair onto both borders; lossless WebP stores the decoded periodic artifact. A 2x2 sheet was reviewed after the initial mirrored finish was rejected for visible bands.",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 0,
+        "topBottomEdgeRmse255": 0,
+        "result": "exact-periodic encoded WebP; visually approved for promotion"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: source albedo texture for The Dog-leg Passage wall masonry in Crown Lab\nPrimary request: create a square edge-to-edge field of near-black navy dressed-stone wall blocks in compact staggered horizontal ashlar courses, matching the approved Dog-leg Passage material board's dark masonry language. Restrained hand-painted mineral variation, sparse tiny chips, very few cracks, calm low contrast.\nStyle/medium: stylized graphic game albedo, non-photographic\nComposition/framing: orthographic straight-on surface filling the entire square canvas, uniform texel density, no isolated sample tile, no border. Keep the pattern rhythm regular enough to survive mirrored periodic finishing without an obvious central motif.\nLighting/mood: flat intrinsic color only; no directional light, bevel lighting, ambient occlusion, cast shadow, highlight, glow, or vignette\nColor palette: blue-black and charcoal navy with only very subtle cool-grey mineral variation\nConstraints: architecture material only; no floor pattern, gold, window, glass, fabric, wood, soot streaks, rubble, dirt piles, symbols, frame, objects, text, or watermark\nAvoid: photorealism, perspective, depth-of-field, presentation board, swatch card, edge darkening, large unique cracks"
+    },
+    {
+      "room": "The Dog-leg Passage",
+      "encounterId": "kernel_duelist",
+      "file": "floor-diagonal-albedo-v2.webp",
+      "referenceImage": "captures/concepts/route-storytelling/03-the-dog-leg-passage-materials.png",
+      "sourceOutput": "/Users/pedro.junior-ext/.codex/generated_images/019ff136-efdb-7d53-a1a7-9cd22690aafc/exec-8b740419-8807-4cdf-8e7e-c82342c916a2.png",
+      "generatedAt": "2026-08-11T13:42:57-03:00",
+      "evidence": "filesystem birth and modification time of the built-in image-generation output",
+      "periodicFinish": "Crop 992x992 at source offset +14+0 and resize to 1024x1024 so the generated diagonal grid lands on its measured period; encode q86/m6/sharp-YUV; decode; average each opposing 1px border pair onto both borders; lossless WebP stores the decoded periodic artifact. A 2x2 sheet was reviewed after the initial mirrored finish was rejected for large tonal diamonds.",
+      "tileValidation": {
+        "leftRightEdgeRmse255": 0,
+        "topBottomEdgeRmse255": 0,
+        "result": "exact-periodic encoded WebP; visually approved for promotion"
+      },
+      "prompt": "Use case: stylized-concept\nAsset type: source albedo texture for The Dog-leg Passage playable floor in Crown Lab\nPrimary request: create a square edge-to-edge top-down field of large near-black navy dressed-stone floor slabs laid on a restrained 45-degree diagonal grid, matching the approved Dog-leg Passage material board's plain diagonal slab language. Shallow charcoal joints, extremely quiet broad mineral variation, almost no cracks so combat telegraphs remain clear.\nStyle/medium: stylized graphic game albedo, non-photographic\nComposition/framing: exact orthographic top-down surface filling the entire square canvas, uniform texel density, no isolated sample tile, no border. Keep the diagonal rhythm regular enough to survive mirrored periodic finishing without a conspicuous central emblem.\nLighting/mood: flat intrinsic color only; no directional light, bevel lighting, ambient occlusion, cast shadow, highlight, reflection, glow, or vignette\nColor palette: near-black navy slabs with subtle charcoal-blue variation and dark joints\nConstraints: architecture material only; no gold inlay, concentric diamonds, centre emblem, star, soot, dirt, rubble, authored arena markings, objects, text, or watermark\nAvoid: photorealism, perspective, wetness, presentation board, swatch card, edge darkening, large unique cracks"
+    }
+  ]
+}

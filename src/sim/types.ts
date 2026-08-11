@@ -191,6 +191,7 @@ export interface Enemy {
   hitstopMs?: Ms;
   warded?: boolean;
   wardPushCooldownMs?: Ms;
+  rebukeMs?: Ms;
   staggerOverrideMs?: Ms;
   hasSlammed?: boolean;
 }
@@ -438,6 +439,7 @@ export interface EnemyConfig {
       openingShoveMs: Ms;
     };
     reserveCooldownMs: Ms;
+    rebukeMs: Ms;
     wardPushMs: Ms;
     homingRateRad: number;
     wardPushCooldownMs: Ms;

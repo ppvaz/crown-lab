@@ -1,5 +1,12 @@
 
-import { MODEL_TURNTABLE_STATES, drawModel, modelTurntableMotion, poseAt, poseFor } from '../src/render/models';
+import {
+  DEFAULT_MODEL_BANK,
+  MODEL_TURNTABLE_STATES,
+  drawModel,
+  modelTurntableMotion,
+  poseAt,
+  poseFor,
+} from '../src/render/models';
 import { FIRST_BLADE_CROWNED } from '../src/render/cast/first-blade-crowned';
 import { MODEL_BANKS } from '../src/render/cast/banks-lab';
 import { DEFAULT_MODELS } from '../src/render/cast/index-lab';
@@ -45,6 +52,13 @@ const duelist = DEFAULT_MODELS.models.duelist;
 const archer = DEFAULT_MODELS.models.archer;
 const firstBlade = DEFAULT_MODELS.models.first_blade;
 const chancellor = DEFAULT_MODELS.models.chancellor;
+
+describe('the default model bank', () => {
+  it('starts the lab on the mesh models', () => {
+    expect(DEFAULT_MODEL_BANK).toBe('mesh');
+    expect(MODEL_BANKS[DEFAULT_MODEL_BANK]).toBeDefined();
+  });
+});
 
 describe('the Captain of the Guard', () => {
   it('wears rank, not a crown', () => {

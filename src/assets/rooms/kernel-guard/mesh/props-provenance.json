@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "room": "kernel_guard",
+  "concept": {
+    "sheet": "captures/concepts/route-storytelling/02-the-guardroom-objects.png",
+    "prompt": "unknown",
+    "note": "Every submitted image was a crop of this approved callout sheet. No object was inferred from the room panel."
+  },
+  "generation": {
+    "service": "Meshy image-to-3d",
+    "model": "meshy-5",
+    "generatedAt": "2026-08-11",
+    "licenceTermsOnGenerationDate": "unknown",
+    "prompt": "none (image-to-3d from the submitted crop)",
+    "parameters": {
+      "topology": "triangle",
+      "targetPolycount": 12000,
+      "shouldTexture": true,
+      "enablePbr": false,
+      "symmetryMode": "auto"
+    },
+    "totalConsumedCredits": 165,
+    "evidence": "The task ids, submitted crop paths, completion timestamps, parameters, and consumed-credit values were copied from the generation-time receipts in the gitignored tools/blender/build/meshy-room directory."
+  },
+  "promotion": {
+    "artifact": "src/assets/rooms/kernel-guard/mesh/kernel_guard.glb",
+    "sourceGlbs": "tools/blender/build/meshy-room/*.glb (gitignored probe outputs)",
+    "bakeScript": "tools/blender/kernel_guard.py",
+    "placementHelper": "tools/blender/prop_kit.py",
+    "textures": "The generated texture atlases and UVs are not present in the room bake. Imported meshes are promoted to room-owned stone, wood, iron, or cloth materials so the room palette and box-projected albedos remain authoritative.",
+    "scope": "Guardroom only. This record does not authorize props for rooms without approved object callout sheets."
+  },
+  "props": [
+    {
+      "id": "shield-rack",
+      "taskId": "019ff13f-454e-7c67-90e5-718731e90324",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/shield-rack.png",
+      "finishedAt": "2026-08-11T14:37:04.449Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-wood"
+    },
+    {
+      "id": "kite-shield",
+      "taskId": "019ff13f-4116-70a4-9e43-b3eaf0afb3fe",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/kite-shield.png",
+      "finishedAt": "2026-08-11T14:37:02.930Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-cloth"
+    },
+    {
+      "id": "spear-stand",
+      "taskId": "019ff13f-4b14-7c67-ba6c-fbb1f8f985f6",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/spear-stand.png",
+      "finishedAt": "2026-08-11T14:37:05.590Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-wood"
+    },
+    {
+      "id": "chest",
+      "taskId": "019ff137-c370-7ea5-9555-2e9803a67b4a",
+      "submittedInput": "tools/blender/build/meshy-inputs/chest.png",
+      "finishedAt": "2026-08-11T14:28:51.919Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-wood"
+    },
+    {
+      "id": "duty-table",
+      "taskId": "019ff13f-3ef1-7c67-8bf9-85c5d5a537ec",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/duty-table.png",
+      "finishedAt": "2026-08-11T14:37:01.321Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-wood"
+    },
+    {
+      "id": "padded-stool",
+      "taskId": "019ff13f-4334-7210-a284-4b96cdc8de6c",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/padded-stool.png",
+      "finishedAt": "2026-08-11T14:37:52.543Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-wood"
+    },
+    {
+      "id": "bucket",
+      "taskId": "019ff13f-3aff-7c66-a779-4f7b5cedc4ab",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/bucket.png",
+      "finishedAt": "2026-08-11T14:37:51.564Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-wood"
+    },
+    {
+      "id": "belt-gloves",
+      "taskId": "019ff13f-3641-7c66-87a1-c35bc68c02a7",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/belt-gloves.png",
+      "finishedAt": "2026-08-11T14:36:58.969Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-iron"
+    },
+    {
+      "id": "wall-targe",
+      "taskId": "019ff140-fe7e-70b4-8d90-914f415df19b",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/wall-targe.png",
+      "finishedAt": "2026-08-11T14:38:18.199Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-cloth"
+    },
+    {
+      "id": "candle-plinth",
+      "taskId": "019ff13f-3ce9-70a4-ae4-c7d2f9dd7e94",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/candle-plinth.png",
+      "finishedAt": "2026-08-11T14:37:00.565Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-stone"
+    },
+    {
+      "id": "standing-banner",
+      "taskId": "019ff13f-4d28-703a-8f12-75f8984c6bd4",
+      "submittedInput": "tools/blender/build/meshy-inputs/props/standing-banner.png",
+      "finishedAt": "2026-08-11T14:37:07.262Z",
+      "consumedCredits": 15,
+      "roomMaterial": "guard-cloth"
+    }
+  ]
+}

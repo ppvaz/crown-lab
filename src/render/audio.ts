@@ -1,7 +1,14 @@
 
 import type { MusicStems, ResolvedPresentation } from '../lab/presentation';
 import { musicDownloadAllowed, setHeavyLoading } from './heavy-assets';
-import type { AudioCue, MaterialPack, MusicBed } from './soundbank';
+import type {
+  AudioCue,
+  CueDef,
+  MaterialPack,
+  MusicBed,
+  TonalLayer,
+  TransientLayer,
+} from './soundbank';
 import {
   ALL_CUES,
   CUES,
@@ -16,6 +23,21 @@ import {
 } from './soundbank';
 
 export type { AudioCue } from './soundbank';
+
+export interface CueShape {
+  spanMs?: number;
+  intensity?: number;
+}
+
+const nominalSpanMs = (def: CueDef): number => {
+  let end = 0;
+  for (const layer of def.transient) end = Math.max(end, (layer.atMs ?? 0) + layer.durationMs);
+  for (const layer of def.tonal) end = Math.max(end, (layer.atMs ?? 0) + layer.durationMs);
+  return Math.max(1, end);
+};
+
+const freqHeat = (heat: number): number => 1 + 0.5 * heat;
+const gainHeat = (heat: number): number => 1 + 0.25 * heat;
 
 const MUSIC_STEM_KEYS: readonly (keyof MusicStems)[] = [
   'strings',
@@ -296,7 +318,7 @@ export class Audio {
   }
 
 
-  play(cue: AudioCue, pan = 0): void {
+  play(cue: AudioCue, pan = 0, shape: CueShape = {}): void {
     if (!this.enabled || this.ctx === null || this.master === null) return;
     const scale = this.gainFor(cue);
     if (scale <= 0) return;
@@ -304,16 +326,25 @@ export class Audio {
     const layers = this.pres?.audio;
     const def = CUES[cue];
     const dest = this.destinationFor(pan);
+    const now = this.ctx.currentTime;
+
+    const span = def.stretch === true ? (shape.spanMs ?? 0) : 0;
+    const stretch = span > 0 ? span / nominalSpanMs(def) : 1;
+    const heat = def.reactive === true ? Math.max(0, Math.min(1, shape.intensity ?? 0)) : 0;
 
     const sample = this.samples.get(cue);
     if (sample !== undefined && (layers?.material ?? true)) {
-      this.playSample(sample, scale, dest);
+      this.playSample(sample, scale, dest, now);
     }
-    if (def.transient !== null && (layers?.transient ?? true)) {
-      this.playTransient(def.transient, scale, dest);
+    if (layers?.transient ?? true) {
+      for (const layer of def.transient) {
+        this.playTransient(layer, scale, dest, now + (layer.atMs ?? 0) * stretch / 1000, stretch, heat);
+      }
     }
-    if (def.tonal !== null && (layers?.tonal ?? true)) {
-      this.playTonal(def.tonal, scale, dest);
+    if (layers?.tonal ?? true) {
+      for (const layer of def.tonal) {
+        this.playTonal(layer, scale, dest, now + (layer.atMs ?? 0) * stretch / 1000, stretch, heat);
+      }
     }
   }
 
@@ -333,7 +364,7 @@ export class Audio {
     return 0.94 + jitter() * 0.12;
   }
 
-  private playSample(buffer: AudioBuffer, scale: number, dest: AudioNode): void {
+  private playSample(buffer: AudioBuffer, scale: number, dest: AudioNode, at: number): void {
     const ctx = this.ctx as AudioContext;
     const src = ctx.createBufferSource();
     src.buffer = buffer;
@@ -342,27 +373,29 @@ export class Audio {
     gain.gain.value = 0.85 * scale;
     src.connect(gain);
     gain.connect(dest);
-    src.start();
+    src.start(at);
   }
 
   private playTransient(
-    def: { gain: number; freq: number; durationMs: number },
+    def: TransientLayer,
     scale: number,
     dest: AudioNode,
+    now: number,
+    stretch = 1,
+    heat = 0,
   ): void {
     const ctx = this.ctx as AudioContext;
     if (this.noiseBuffer === null) return;
-    const now = ctx.currentTime;
-    const dur = def.durationMs / 1000;
+    const dur = (def.durationMs * stretch) / 1000;
 
     const src = ctx.createBufferSource();
     src.buffer = this.noiseBuffer;
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(def.gain * scale, now);
+    gain.gain.setValueAtTime(def.gain * scale * gainHeat(heat), now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.value = def.freq * this.pitchJitter;
+    filter.frequency.value = def.freq * this.pitchJitter * freqHeat(heat);
     src.connect(filter);
     filter.connect(gain);
     gain.connect(dest);
@@ -371,17 +404,19 @@ export class Audio {
   }
 
   private playTonal(
-    def: { freq: number; toFreq: number; durationMs: number; gain: number; type: OscillatorType },
+    def: TonalLayer,
     scale: number,
     dest: AudioNode,
+    now: number,
+    stretch = 1,
+    heat = 0,
   ): void {
     const ctx = this.ctx as AudioContext;
-    const now = ctx.currentTime;
-    const dur = def.durationMs / 1000;
-    const bend = this.pitchJitter;
+    const dur = (def.durationMs * stretch) / 1000;
+    const bend = this.pitchJitter * freqHeat(heat);
 
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(def.gain * scale, now);
+    gain.gain.setValueAtTime(def.gain * scale * gainHeat(heat), now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
     gain.connect(dest);
 

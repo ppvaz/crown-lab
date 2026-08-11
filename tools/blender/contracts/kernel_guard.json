@@ -1,0 +1,102 @@
+{
+  "room": "kernel_guard",
+  "projection": {
+    "kind": "orthographic",
+    "isoX": 34,
+    "isoY": 17,
+    "elevationY": 34,
+    "wallUnits": 5.4
+  },
+  "arena": {
+    "halfExtents": {
+      "x": 10,
+      "y": 7
+    },
+    "span": 17,
+    "vertices": [
+      {
+        "x": -6.5,
+        "y": -7
+      },
+      {
+        "x": 6.5,
+        "y": -7
+      },
+      {
+        "x": 10,
+        "y": -3.5
+      },
+      {
+        "x": 10,
+        "y": 3.5
+      },
+      {
+        "x": 6.5,
+        "y": 7
+      },
+      {
+        "x": -6.5,
+        "y": 7
+      },
+      {
+        "x": -10,
+        "y": 3.5
+      },
+      {
+        "x": -10,
+        "y": -3.5
+      }
+    ]
+  },
+  "camera": {
+    "pushInCeiling": 2.236842105263158,
+    "shortestReachArchetype": "guard",
+    "viewports": [
+      {
+        "id": "desktop 1440x900",
+        "contentBox": {
+          "w": 1392,
+          "h": 798
+        },
+        "dsf": 1,
+        "resting": 1.0069204152249136
+      },
+      {
+        "id": "laptop 1280x720",
+        "contentBox": {
+          "w": 1232,
+          "h": 618
+        },
+        "dsf": 1,
+        "resting": 0.6955017301038062
+      },
+      {
+        "id": "mobile-landscape 984x443",
+        "contentBox": {
+          "w": 952,
+          "h": 347
+        },
+        "dsf": 2.4375,
+        "resting": 0.4757785467128028
+      }
+    ]
+  },
+  "raster": {
+    "widthPx": 2999,
+    "heightPx": 1976,
+    "effectiveScale": 2.594088622291022,
+    "drivenBy": "mobile-landscape 984x443",
+    "decodedMbPerLayer": 22.605987548828125,
+    "origin": {
+      "x": 0,
+      "y": 0,
+      "elevation": 2.7
+    }
+  },
+  "budget": {
+    "maxDrawsPerFrame": 4,
+    "decodedMbCeiling": 90.4239501953125,
+    "decodePeakMbCeiling": 180.847900390625
+  },
+  "contentHash": "b36e2b981f341f84"
+}

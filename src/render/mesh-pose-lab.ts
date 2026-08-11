@@ -84,6 +84,19 @@ export const samplePose = (
   for (const track of clip.tracks) applyTrack(pose, skeleton, track, seconds);
 };
 
+export const rootJoint = (skeleton: BodySkeleton): number => {
+  const joints = new Set(skeleton.jointNode);
+  for (const node of skeleton.jointNode) {
+    if (!joints.has(skeleton.parent[node])) return node;
+  }
+  return skeleton.jointNode[0];
+};
+
+export const pinRootMotion = (pose: BodyPose, skeleton: BodySkeleton, root: number): void => {
+  pose.t[root * 3] = skeleton.restT[root * 3];
+  pose.t[root * 3 + 2] = skeleton.restT[root * 3 + 2];
+};
+
 export const blendPoses = (from: BodyPose, to: BodyPose, alpha: number): void => {
   const t = Math.max(0, Math.min(1, alpha));
   if (t <= 0) return;

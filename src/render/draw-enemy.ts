@@ -12,7 +12,9 @@ import { drawBurning, drawFrostShards, drawTurncoatRing } from './power-fx';
 import { reportUiRect } from './ui-probe';
 import { drawBladeCrescent } from './apotheosis/render';
 import type { DrawOpts } from './draw';
-import { TAU, footprint, gaitPhaseFor, groundWedge, mixHex, sceneTimeMs, screenPolygon, telegraphProgress } from './draw-primitives';
+import { TAU, footprint, gaitPhaseFor, groundWedge, mixHex, sceneTimeMs, screenPolygon, strokeGroundAim, strokeGroundRangeArc, telegraphProgress } from './draw-primitives';
+
+const AIM_LENGTH = 1.5;
 
 const LIGHTNING_CONE: Readonly<Partial<Record<EnemyArchetype, string>>> = {
   chancellor: 'rain_focus',
@@ -46,17 +48,16 @@ const drawUnparryableRim = (
   range: number,
   arcDeg: number,
   color: string,
-  progress: number,
+  alpha: number,
 ): void => {
   const half = (arcDeg * Math.PI) / 360;
   const teeth = Math.max(8, Math.ceil(arcDeg / 10));
   ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
   ctx.strokeStyle = color;
   ctx.lineJoin = 'miter';
   ctx.lineCap = 'round';
-  ctx.globalAlpha = 0.42 + progress * 0.38;
-  ctx.lineWidth = Math.max(1.2, 1.7 * cam.zoom);
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = 1;
   ctx.beginPath();
   for (let index = 0; index <= teeth * 2; index += 1) {
     const unit = index / (teeth * 2);
@@ -70,34 +71,6 @@ const drawUnparryableRim = (
     else ctx.lineTo(point.x, point.y);
   }
   ctx.stroke();
-
-  const tangent = { x: -Math.sin(facing), y: Math.cos(facing) };
-  for (let index = 0; index < 3; index += 1) {
-    const distance = range * (0.44 + index * 0.18);
-    const width = range * (0.08 + index * 0.012);
-    const tip = {
-      x: at.x + Math.cos(facing) * (distance - range * 0.09),
-      y: at.y + Math.sin(facing) * (distance - range * 0.09),
-    };
-    const left = {
-      x: at.x + Math.cos(facing) * distance + tangent.x * width,
-      y: at.y + Math.sin(facing) * distance + tangent.y * width,
-    };
-    const right = {
-      x: at.x + Math.cos(facing) * distance - tangent.x * width,
-      y: at.y + Math.sin(facing) * distance - tangent.y * width,
-    };
-    const a = worldToScreen(cam, left);
-    const b = worldToScreen(cam, tip);
-    const c = worldToScreen(cam, right);
-    ctx.globalAlpha = (0.32 + progress * 0.52) * (0.72 + index * 0.14);
-    ctx.lineWidth = Math.max(1, 1.5 * cam.zoom);
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.lineTo(c.x, c.y);
-    ctx.stroke();
-  }
   ctx.restore();
 };
 
@@ -161,25 +134,44 @@ export const drawEnemy = (
   const def = ecfg.attacks[enemy.state.attackIndex];
 
   if (opts.pres.visual.telegraphs && enemy.state.kind === 'telegraph' && def !== undefined) {
-    const t = telegraphProgress(
-      def,
-      enemy.state.elapsedMs,
-      enemy.state.telegraphJitterMs,
-    );
     const color = def.parryable ? pal.telegraph : pal.unparryable;
 
     if (def.kind === 'rain') {
-      footprint(ctx, cam, enemy.pos, opts.cfg.enemies[enemy.archetype].radius * (1 + t * 1.8));
-    } else {
-
-      groundWedge(ctx, cam, enemy.pos, enemy.facing, def.range, def.arcDeg);
+      footprint(ctx, cam, enemy.pos, ecfg.radius * 1.9);
       ctx.save();
-      ctx.globalAlpha = def.parryable ? 0.28 : 0.52;
+      ctx.globalAlpha = def.parryable ? 0.2 : 0.34;
       ctx.strokeStyle = color;
-      ctx.lineWidth = def.parryable ? 1.25 : 1.75;
-      if (def.parryable) ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 1;
       ctx.stroke();
       ctx.restore();
+    } else if (def.kind === 'projectile' || def.kind === 'volley') {
+
+      strokeGroundAim(
+        ctx,
+        cam,
+        enemy.pos,
+        enemy.facing,
+        ecfg.radius + 0.2,
+        ecfg.radius + AIM_LENGTH,
+        def.arcDeg,
+        def.kind === 'volley' ? 3 : 1,
+        color,
+        def.parryable ? 0.34 : 0.5,
+      );
+    } else {
+
+      strokeGroundRangeArc(
+        ctx,
+        cam,
+        enemy.pos,
+        enemy.facing,
+        def.range,
+        def.arcDeg,
+        color,
+        def.parryable ? 0.26 : 0.4,
+        1,
+        def.parryable ? [4, 6] : null,
+      );
       if (!def.parryable) {
         drawUnparryableRim(
           ctx,
@@ -189,20 +181,10 @@ export const drawEnemy = (
           def.range,
           def.arcDeg,
           color,
-          t,
+          0.28,
         );
       }
-      groundWedge(ctx, cam, enemy.pos, enemy.facing, def.range * t, def.arcDeg);
     }
-    const subtle = def.parryable;
-    ctx.globalAlpha = subtle ? 0.06 + t * 0.22 : 0.12 + t * 0.2;
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.globalAlpha = subtle ? 0.34 + t * 0.5 : 0.72;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = subtle ? 1.5 : 1.75;
-    ctx.stroke();
-    ctx.globalAlpha = 1;
 
     if (lightningConeAttack(enemy.archetype) === def.id && def.kind !== 'rain') {
       lightningArcs(
@@ -210,7 +192,7 @@ export const drawEnemy = (
         cam,
         enemy.pos,
         enemy.facing,
-        def.range * t,
+        def.range,
         def.arcDeg,
         pal.lightning,
         enemy.state.elapsedMs / 1000,
@@ -219,11 +201,17 @@ export const drawEnemy = (
   }
 
   if (enemy.state.kind === 'attack' && def !== undefined && def.kind === 'melee') {
-    groundWedge(ctx, cam, enemy.pos, enemy.facing, def.range, def.arcDeg);
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = def.parryable ? pal.telegraph : pal.unparryable;
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    strokeGroundRangeArc(
+      ctx,
+      cam,
+      enemy.pos,
+      enemy.facing,
+      def.range,
+      def.arcDeg,
+      def.parryable ? pal.telegraph : pal.unparryable,
+      0.5,
+      1.25,
+    );
     if (opts.apotheosis.combatFx) {
       drawBladeCrescent(
         ctx,
@@ -264,15 +252,16 @@ export const drawEnemy = (
 
   const defence = ecfg.defence;
   if (opts.pres.visual.telegraphs && defence !== undefined && enemyGuardIsUp(enemy, ecfg)) {
-    groundWedge(ctx, cam, enemy.pos, enemy.facing, ecfg.radius + 0.75, defence.arcDeg);
-    ctx.globalAlpha = 0.14;
-    ctx.fillStyle = pal.hudText;
-    ctx.fill();
-    ctx.globalAlpha = 0.3;
-    ctx.strokeStyle = pal.hudText;
-    ctx.lineWidth = 1.25;
-    ctx.stroke();
-    ctx.globalAlpha = 1;
+    strokeGroundRangeArc(
+      ctx,
+      cam,
+      enemy.pos,
+      enemy.facing,
+      ecfg.radius + 0.75,
+      defence.arcDeg,
+      pal.hudText,
+      0.24,
+    );
   }
 
   const staggered = enemy.state.kind === 'stagger';
@@ -391,8 +380,9 @@ export const drawEnemy = (
   const meshBody = opts.enemyBody?.(enemy.archetype) ?? null;
   commands.push({
     slot: 'body',
-    draw: () =>
-      meshBody !== null ? meshBody(ctx, cam, enemy) : drawModel(ctx, cam, opts.models, enemy.archetype, {
+    draw: () => {
+      if (meshBody !== null && meshBody(ctx, cam, enemy)) return;
+      drawModel(ctx, cam, opts.models, enemy.archetype, {
         at: enemy.pos,
         facing: enemy.facing,
         radius: ecfg.radius,
@@ -422,7 +412,8 @@ export const drawEnemy = (
         weaponContact,
         elevationPx,
         shadowScale: falling ? 0.35 + easedFall * 0.65 : gliding ? 0.72 : 1,
-      }),
+      });
+    },
   });
 
 

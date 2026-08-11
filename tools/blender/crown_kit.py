@@ -224,6 +224,8 @@ def setup_blockout_render(samples=16):
     shading.single_color = (0.62, 0.62, 0.64)
     shading.show_shadows = True
     shading.show_cavity = True
+    shading.use_world_space_lighting = True
+    shading.studiolight_rotate_z = math.radians(-60.0)
     scene.display.render_aa = f"{samples}" if samples in (5, 8, 11, 16, 32) else "16"
     scene.render.film_transparent = True
     scene.render.image_settings.file_format = "PNG"
@@ -697,6 +699,15 @@ def world_fill(colour):
     return world
 
 
+def light_exposure(gain):
+
+    value = float(gain)
+    if value < 0.0:
+        raise ValueError("light exposure must be non-negative")
+    bpy.context.scene["crownLightExposure"] = value
+    return value
+
+
 def area_light(name, x, y, h, k, energy=200.0, colour=(1.0, 0.82, 0.55), size=6.0, lamp=None):
 
     data = bpy.data.lights.new(name, type="AREA")
@@ -936,6 +947,7 @@ def room_mesh_manifest(contract, k, mass_layers=("solidProps", "foregroundOcclud
     return {
         "room": contract["room"],
         "ambient": background,
+        "lightExposure": r(float(bpy.context.scene.get("crownLightExposure", 1.0))),
         "cameraContract": {"contentHash": contract.get("contentHash", "")},
         "space": {
             "note": "GLB vertices are Blender space: world (x, y, elevation) at (x, -y, elevation * heightScale)",

@@ -11,7 +11,7 @@ const root = resolve(import.meta.dirname, '..');
 const expandHome = (path) =>
   path.startsWith('~/') ? resolve(homedir(), path.slice(2)) : resolve(path);
 
-const DONOR = resolve(root, 'assets-cast/king/king.glb');
+const DONOR = resolve(root, '.crown-private/cast-source/donor/king.glb');
 
 const BODIES = {
   guard: {
@@ -25,6 +25,13 @@ const BODIES = {
         gripRadius: 0.09,
         axis: [-0.305, 0.053],
         axisRadius: 0.055,
+      },
+      {
+
+
+
+        bone: 'LeftHand',
+        islands: { xMin: 0.7185, yMax: 0.6623, zMin: 0.2307, zMax: 0.7873 },
       },
     ],
   },
@@ -57,6 +64,38 @@ const BODIES = {
         aim: [-1, 0, 0],
       },
     ],
+  },
+  glass_regent: {
+
+    body: '.crown-private/cast-source/Meshy_AI_Crystal_Warden_0810191809_texture.blend',
+    sole: -0.953,
+    scale: 1.0,
+    tpose: true,
+    props: [
+      {
+        bone: 'RightHand',
+        islands: { xMax: 0.15 },
+        offset: [0.179, 0.086, -0.078],
+      },
+      {
+        bone: 'Head',
+        islands: { xMin: 0.10, xMax: 0.30, zMin: 0.7 },
+      },
+      {
+        bone: 'Head',
+        islands: { xMin: 0.65, zMin: 0.7 },
+      },
+    ],
+  },
+  king: {
+
+
+    body: '.crown-private/cast-source/king-body.blend',
+    sole: -1.0,
+    scale: 1.0,
+    tpose: true,
+    weld: 1e-8,
+    props: [],
   },
   first_blade: {
     body: '~/Downloads/Meshy_AI_Ember_Harvester_0806224658_texture.blend',
@@ -108,6 +147,7 @@ const result = spawnSync(blender, [
   `--props=${JSON.stringify(spec.props ?? [])}`,
   `--weapons=${JSON.stringify(spec.weapons ?? [])}`,
   `--tpose=${spec.tpose ? 1 : 0}`,
+  `--weld=${spec.weld ?? 0}`,
 ], { encoding: 'utf8' });
 
 if (result.status !== 0) {
@@ -126,6 +166,10 @@ if (line === undefined) {
 const report = JSON.parse(line.slice('CAST_RIG '.length));
 
 console.log(`${body}: ${report.vertices} vertices over ${report.joints} joints, scale ${report.scale}`);
+if (report.weldedVertices > 0) {
+  console.log(`  welded ${report.weldedVertices} coincident seam vertices: `
+    + `${report.islandsBeforeWeld} -> ${report.islandsAfterWeld} islands`);
+}
 for (const [bone, count] of Object.entries(report.propVertices)) {
   console.log(`  ${count} vertices bound rigidly to ${bone}`);
 }

@@ -27,11 +27,18 @@ export interface Light {
 export type SurfaceKind = 'ashlar' | 'flagstone' | 'metal' | 'flame' | 'plain';
 
 export interface SurfaceDescription {
+  name?: string;
   kind: SurfaceKind;
   colour: RGB;
   joint?: RGB;
   block?: readonly [number, number];
   mortar?: number;
+  texture?: {
+    slot: number;
+    worldSize: readonly [number, number];
+    strength: number;
+    tint: RGB;
+  };
 }
 
 interface ManifestLight {
@@ -70,11 +77,20 @@ export interface RoomMeshManifest {
   masses: ManifestMass[];
   lights: ManifestLight[];
   ambient?: number[] | null;
+  lightExposure?: number | null;
 }
 
 export interface RoomMeshSource {
   glb: string;
   manifest: string;
+  liquid?: boolean;
+  textures?: readonly {
+    url: string;
+    materials: readonly string[];
+    worldSize: readonly [number, number];
+    strength: number;
+    tint?: RGB;
+  }[];
 }
 
 export interface LoadedRoomMesh {
@@ -88,6 +104,7 @@ export interface LoadedRoomMesh {
   lights: Light[];
   surfaces: SurfaceDescription[];
   ambient: RGB;
+  lightExposure: number;
   manifest: RoomMeshManifest;
 }
 
@@ -138,6 +155,7 @@ export const buildRoomMesh = (
       onNote(`material ${name} has kind "${described.kind}", which this renderer has no case for`);
     }
     return {
+      name,
       kind: kind ?? 'plain',
       colour: rgb(described.colour, [0.5, 0.5, 0.5]),
       joint: described.joint === undefined ? undefined : rgb(described.joint, [0, 0, 0]),
@@ -281,6 +299,11 @@ export const buildRoomMesh = (
     lights,
     surfaces,
     ambient: rgb(manifest.ambient ?? undefined, [0.03, 0.036, 0.058]),
+    lightExposure:
+      typeof manifest.lightExposure === 'number' && Number.isFinite(manifest.lightExposure) &&
+      manifest.lightExposure >= 0
+        ? manifest.lightExposure
+        : 1,
     manifest,
   };
 };
@@ -303,9 +326,25 @@ export const loadRoomMesh = async (
       onFailure(`baked on a different arena than the one running: ${drift} — re-run rooms:mesh`);
       return null;
     }
-    return buildRoomMesh(await glbResponse.arrayBuffer(), manifest, (note) => {
+    const room = buildRoomMesh(await glbResponse.arrayBuffer(), manifest, (note) => {
       onFailure(note);
     });
+    source.textures?.forEach((texture, slot) => {
+      for (const material of texture.materials) {
+        const surface = room.surfaces.find((candidate) => candidate.name === material);
+        if (surface === undefined) {
+          onFailure(`texture ${slot} names material "${material}", which the manifest does not describe`);
+          continue;
+        }
+        surface.texture = {
+          slot,
+          worldSize: texture.worldSize,
+          strength: texture.strength,
+          tint: texture.tint ?? [1, 1, 1],
+        };
+      }
+    });
+    return room;
   } catch (error) {
     onFailure(error instanceof Error ? error.message : String(error));
     return null;

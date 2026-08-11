@@ -4,7 +4,7 @@ import { STANDARD_ORDER, boot, ellipse, line, poly } from './shape';
 
 export const POLISHED_DUELIST: ModelDef = /* @__PURE__ */ (() => ({
   id: 'duelist',
-  heightPx: 56,
+  heightPx: 57,
   widthScale: 1.02,
   flatArticulation: { weapon: { pivot: [0.4, 0.5], rotationScale: 0.65, releaseScale: 0.35 } },
   viewWidthScale: { profile: 0.74 },

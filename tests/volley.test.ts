@@ -95,6 +95,60 @@ describe('the fuse', () => {
   });
 });
 
+describe('the rebuke, which is a picture and not a rule', () => {
+
+  it('starts the beat when he sends a shard back', () => {
+    const { w, c, boss } = regentWorld();
+    const volley = c.enemies.glass_regent.volley!;
+    const shard = serve(w, c, boss);
+    expect(boss.rebukeMs ?? 0).toBe(0);
+
+    shard.pos = { ...boss.pos };
+    shard.hostileTo = 'enemy';
+    stepProjectiles(w, c, TICK);
+
+    expect(boss.rebukeMs).toBe(volley.rebukeMs);
+  });
+
+  it('does not start on the king\'s own return, which is a parry and has its own state', () => {
+    const { w, c, boss } = regentWorld();
+    const shard = serve(w, c, boss);
+    parrying(w, perfectMs(c));
+    shard.pos = { ...w.players[0].pos };
+    stepProjectiles(w, c, TICK);
+
+    expect(shard.reflected).toBe(true);
+    expect(boss.rebukeMs ?? 0).toBe(0);
+  });
+
+  it('runs down on the dt it is given, so slow motion slows it', () => {
+    const { w, c, boss } = regentWorld();
+    const volley = c.enemies.glass_regent.volley!;
+    boss.rebukeMs = volley.rebukeMs;
+    stepEnemy(w, boss, c, TICK / 2);
+    expect(boss.rebukeMs).toBeCloseTo(volley.rebukeMs - TICK / 2, 6);
+  });
+
+  it('ends, and never goes negative', () => {
+    const { w, c, boss } = regentWorld();
+    boss.rebukeMs = 4;
+    stepEnemy(w, boss, c, TICK);
+    expect(boss.rebukeMs).toBe(0);
+  });
+
+  it('gates nothing: he answers the next shard mid-rebuke exactly as he would without one', () => {
+    const { w, c, boss } = regentWorld();
+    const volley = c.enemies.glass_regent.volley!;
+    const shard = serve(w, c, boss);
+    boss.rebukeMs = volley.rebukeMs;
+    const before = shard.shardIntegrity;
+    shard.pos = { ...boss.pos };
+    shard.hostileTo = 'enemy';
+    stepProjectiles(w, c, TICK);
+    expect(shard.shardIntegrity).toBe((before ?? 0) - 1);
+  });
+});
+
 describe('the shatter, and who it lands on', () => {
   it('breaks on the Regent when the king returns a spent shard, and staggers him for it', () => {
     const { w, c, boss } = regentWorld();

@@ -24,5 +24,5 @@ it('anchors player events on the king local to this screen', () => {
 
   feed.absorb([{ tick: 1, type: 'run_started', actor: 0 }]);
 
-  expect(play).toHaveBeenCalledWith('hit', 1);
+  expect(play).toHaveBeenCalledWith('hit', 1, { spanMs: undefined, intensity: undefined });
 });

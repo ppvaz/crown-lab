@@ -48,7 +48,14 @@ export interface DrawOpts {
     ctx: CanvasRenderingContext2D,
     cam: Camera,
     enemy: World['enemies'][number],
-  ) => void) | null;
+  ) => boolean) | null;
+  shotBody?: (
+    ctx: CanvasRenderingContext2D,
+    cam: Camera,
+    world: World,
+    shot: World['projectiles'][number],
+    pal: Palette,
+  ) => boolean;
   showHitboxes: boolean;
   aimDistance: number | null;
   stands?: readonly PowerStand[];
@@ -70,7 +77,7 @@ export interface DrawOpts {
 export interface KingDressing {
   pal: Palette;
   models: ModelBank;
-  body?: (ctx: CanvasRenderingContext2D, cam: Camera, king: World['players'][number]) => void;
+  body?: (ctx: CanvasRenderingContext2D, cam: Camera, king: World['players'][number]) => boolean;
 }
 
 export const drawScene = (

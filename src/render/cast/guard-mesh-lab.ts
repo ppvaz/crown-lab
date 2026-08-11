@@ -124,7 +124,7 @@ const GUARD_MESH: Mesh = merge(
 
 export const MESH_GUARD: ModelDef = /* @__PURE__ */ (() => ({
   id: 'mesh_guard',
-  heightPx: 43.5,
+  heightPx: 52,
   widthScale: 1,
   shapes: [],
   mesh: GUARD_MESH,

@@ -22,6 +22,18 @@ const glb = ((): ArrayBuffer => {
 const notes: string[] = [];
 const room = buildRoomMesh(glb, manifest, (note) => notes.push(note));
 
+const guardDir = resolve(import.meta.dirname, '../src/assets/rooms/kernel-guard/mesh');
+const guardManifest = JSON.parse(
+  readFileSync(resolve(guardDir, 'room-mesh.json'), 'utf8'),
+) as RoomMeshManifest;
+const guardFile = readFileSync(resolve(guardDir, 'kernel_guard.glb'));
+const guardNotes: string[] = [];
+const guardRoom = buildRoomMesh(
+  guardFile.buffer.slice(guardFile.byteOffset, guardFile.byteOffset + guardFile.byteLength) as ArrayBuffer,
+  guardManifest,
+  (note) => guardNotes.push(note),
+);
+
 const vertex = (i: number): [number, number, number] =>
   [room.pos[i * 3], room.pos[i * 3 + 1], room.pos[i * 3 + 2]];
 const normal = (i: number): [number, number, number] =>
@@ -30,6 +42,7 @@ const normal = (i: number): [number, number, number] =>
 describe('the baked room reads back into the runtime\'s own space', () => {
   it('loads without a note, which is the only way a surface can be silently wrong', () => {
     expect(notes).toEqual([]);
+    expect(room.lightExposure).toBe(manifest.lightExposure ?? 1);
   });
 
   it('stands on the arena the simulation is running', () => {
@@ -125,6 +138,69 @@ describe('the baked room reads back into the runtime\'s own space', () => {
     expect(slanted).toBeGreaterThan(50);
     expect(correct / slanted).toBeGreaterThan(0.99);
     expect(correct / slanted - naive / slanted).toBeGreaterThan(0.005);
+  });
+});
+
+describe('the promoted Guardroom bake satisfies the live reader', () => {
+  it('loads the generated props without a transformed node or unknown material', () => {
+    expect(guardNotes).toEqual([]);
+  });
+
+  it('keeps the gold court above the floor and facing the camera', () => {
+    const gold = guardRoom.surfaces.findIndex((surface) => surface.name === 'guard-gold');
+    expect(gold).toBeGreaterThanOrEqual(0);
+    let floorGold = 0;
+    for (let i = 0; i < guardRoom.srf.length; i++) {
+      if (guardRoom.srf[i] !== gold || guardRoom.pos[i * 3 + 2] > 0.1) continue;
+      floorGold++;
+      expect(guardRoom.nrm[i * 3 + 2]).toBeGreaterThan(0.9);
+    }
+    expect(floorGold).toBeGreaterThan(1000);
+  });
+});
+
+describe('the promoted Dog-leg Passage bake satisfies the live reader', () => {
+  const duelDir = resolve(import.meta.dirname, '../src/assets/rooms/kernel-duelist/mesh');
+  const duelManifest = JSON.parse(
+    readFileSync(resolve(duelDir, 'room-mesh.json'), 'utf8'),
+  ) as RoomMeshManifest;
+  const duelFile = readFileSync(resolve(duelDir, 'kernel_duelist.glb'));
+  const duelNotes: string[] = [];
+  const duelRoom = buildRoomMesh(
+    duelFile.buffer.slice(duelFile.byteOffset, duelFile.byteOffset + duelFile.byteLength) as ArrayBuffer,
+    duelManifest,
+    (note) => duelNotes.push(note),
+  );
+
+  it('loads without a transformed node or unknown material', () => {
+    expect(duelNotes).toEqual([]);
+  });
+
+  it('stands on the arena the simulation is running', () => {
+    const live = arenaVertices(createWorld(ENCOUNTERS.kernel_duelist, DEFAULT_COMBAT, 7).arena);
+    expect(duelManifest.arena.vertices).toHaveLength(live.length);
+    duelManifest.arena.vertices?.forEach((baked, i) => {
+      expect(baked.x).toBeCloseTo(live[i].x, 6);
+      expect(baked.y).toBeCloseTo(live[i].y, 6);
+    });
+  });
+
+  it('puts the wall top back at the contract\'s wallUnits', () => {
+    let top = -Infinity;
+    for (let i = 0; i < duelRoom.pos.length; i += 3) top = Math.max(top, duelRoom.pos[i + 2]);
+    expect(top).toBeCloseTo(duelManifest.projection.wallUnits + 0.2, 3);
+  });
+
+  it('keeps the gold diamond court above the floor and facing the camera', () => {
+    const gold = duelRoom.surfaces.findIndex((surface) => surface.name === 'duel-gold');
+    expect(gold).toBeGreaterThanOrEqual(0);
+    let floorGold = 0;
+    for (let i = 0; i < duelRoom.srf.length; i++) {
+      if (duelRoom.srf[i] !== gold || duelRoom.pos[i * 3 + 2] > 0.1) continue;
+      floorGold++;
+      expect(duelRoom.nrm[i * 3 + 2]).toBeGreaterThan(0.9);
+    }
+    expect(floorGold).toBeGreaterThan(50);
   });
 });
 

@@ -64,7 +64,7 @@ const PIKE_NOVICE_MESH: Mesh = merge(
 
 export const MESH_PIKE_NOVICE: ModelDef = /* @__PURE__ */ (() => ({
   id: 'mesh_pike_novice',
-  heightPx: 46,
+  heightPx: 53,
   widthScale: 1,
   shapes: [],
   mesh: PIKE_NOVICE_MESH,

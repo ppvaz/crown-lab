@@ -4,7 +4,7 @@ import { STANDARD_ORDER, boot, ellipse, line, poly } from './shape';
 
 export const POLISHED_GUARD: ModelDef = /* @__PURE__ */ (() => ({
   id: 'palace_guard',
-  heightPx: 54,
+  heightPx: 57,
   widthScale: 1.28,
   flatArticulation: {
     weapon: { pivot: [0.55, 0.51], rotationScale: 0.8, releaseScale: 1.8 },

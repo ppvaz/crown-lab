@@ -66,9 +66,15 @@ console.log(`crop     ${ann.crop.join(', ')}  (${width}x${height})`);
 console.log();
 
 const fits = {};
+const absent = {};
 for (const [name, side] of Object.entries(SIDES)) {
   const window = ann.runs[name];
   if (!window) throw new Error(`runs.${name} is missing from the annotation`);
+  if (typeof window.absent === 'string') {
+    absent[name] = window.absent;
+    console.log(`${name.padEnd(11)} absent — ${window.absent}`);
+    continue;
+  }
   const points = sampleRun(at, { ...window, side });
   const fit = fitRun(points);
   fits[name] = { ...fit, points };
@@ -79,28 +85,43 @@ for (const [name, side] of Object.entries(SIDES)) {
   );
 }
 
-const lines = {
-  frontLeft: fits.frontLeft.line,
-  frontRight: fits.frontRight.line,
-  backLeft: fits.backLeft.line,
-  backRight: fits.backRight.line,
-};
-const corners = cornersFromRuns(lines);
-console.log();
-for (const [name, [x, y]] of Object.entries(corners)) {
-  console.log(`${name.padEnd(6)} [${x.toFixed(2)}, ${y.toFixed(2)}]`);
-}
+const complete = Object.keys(absent).length === 0;
+const corners = complete
+  ? cornersFromRuns({
+      frontLeft: fits.frontLeft.line,
+      frontRight: fits.frontRight.line,
+      backLeft: fits.backLeft.line,
+      backRight: fits.backRight.line,
+    })
+  : null;
+if (corners) {
+  console.log();
+  for (const [name, [x, y]] of Object.entries(corners)) {
+    console.log(`${name.padEnd(6)} [${x.toFixed(2)}, ${y.toFixed(2)}]`);
+  }
 
-const par = parallelism(lines);
-console.log('\nopposite runs, which any parallel projection keeps parallel:');
-console.log(`  frontLeft vs backRight   ${(par.frontLeftVsBackRight * 100).toFixed(1)}% apart`);
-console.log(`  frontRight vs backLeft   ${(par.frontRightVsBackLeft * 100).toFixed(1)}% apart`);
-const skewed = Math.max(par.frontLeftVsBackRight, par.frontRightVsBackLeft);
-if (skewed > 0.02) {
+  const par = parallelism({
+    frontLeft: fits.frontLeft.line,
+    frontRight: fits.frontRight.line,
+    backLeft: fits.backLeft.line,
+    backRight: fits.backRight.line,
+  });
+  console.log('\nopposite runs, which any parallel projection keeps parallel:');
+  console.log(`  frontLeft vs backRight   ${(par.frontLeftVsBackRight * 100).toFixed(1)}% apart`);
+  console.log(`  frontRight vs backLeft   ${(par.frontRightVsBackLeft * 100).toFixed(1)}% apart`);
+  const skewed = Math.max(par.frontLeftVsBackRight, par.frontRightVsBackLeft);
+  if (skewed > 0.02) {
+    console.log(
+      '\n⚠ the panel is not drawn in a parallel projection, so no exact inversion of it exists.\n' +
+        '  `npm run rooms:arena` will report a residual of about this size for that reason alone,\n' +
+        '  and its two projection-independent readings are what the panel actually determines.',
+    );
+  }
+} else {
   console.log(
-    '\n⚠ the panel is not drawn in a parallel projection, so no exact inversion of it exists.\n' +
-      '  `npm run rooms:arena` will report a residual of about this size for that reason alone,\n' +
-      '  and its two projection-independent readings are what the panel actually determines.',
+    `\n✖ no corners: ${Object.keys(absent).join(', ')} cannot be fitted, so this panel cannot be\n` +
+      '  inverted and `npm run rooms:arena` has nothing to read for this room. The fitted slopes\n' +
+      '  above are the whole of what the panel determines geometrically.',
   );
 }
 
@@ -127,7 +148,7 @@ for (const { line } of Object.values(fits)) {
 for (const { points } of Object.values(fits)) {
   for (const [x, y] of points) plot(x, y, [0, 255, 0]);
 }
-for (const [x, y] of Object.values(corners)) {
+for (const [x, y] of Object.values(corners ?? {})) {
   for (let d = -6; d <= 6; d += 1) {
     plot(x + d, y, [0, 255, 255]);
     plot(x, y + d, [0, 255, 255]);
@@ -137,6 +158,7 @@ const overlay = `tools/blender/build/${room}-corners.png`;
 writeFileSync(resolve(root, overlay), pngEncode({ width, height, rgb }));
 console.log(`\noverlay  ${overlay}`);
 
+if (!corners) process.exit(0);
 const rounded = Object.fromEntries(
   Object.entries(corners).map(([k, [x, y]]) => [k, [Number(x.toFixed(2)), Number(y.toFixed(2))]]),
 );

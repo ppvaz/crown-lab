@@ -1,0 +1,528 @@
+{
+ "room": "kernel_duelist",
+ "ambient": [
+  0.08,
+  0.108,
+  0.18
+ ],
+ "lightExposure": 0.3,
+ "cameraContract": {
+  "contentHash": "c4ead836c208c374"
+ },
+ "space": {
+  "note": "GLB vertices are Blender space: world (x, y, elevation) at (x, -y, elevation * heightScale)",
+  "yMirror": true,
+  "heightScale": 0.816497
+ },
+ "projection": {
+  "isoX": 34.0,
+  "isoY": 17.0,
+  "elevationY": 34.0,
+  "wallUnits": 5.4
+ },
+ "arena": {
+  "halfExtents": {
+   "x": 8.221909118783408,
+   "y": 6.394818203498206
+  },
+  "span": 14.616727322281614,
+  "vertices": [
+   {
+    "x": 2.847156501530601,
+    "y": -6.394818203498206
+   },
+   {
+    "x": 8.221909118783408,
+    "y": 3.6606297876822014
+   },
+   {
+    "x": -2.847156501530601,
+    "y": 6.394818203498206
+   },
+   {
+    "x": -8.221909118783408,
+    "y": -3.6606297876822014
+   }
+  ]
+ },
+ "materials": {
+  "duel-banner-cloth": {
+   "kind": "plain",
+   "colour": [
+    0.035,
+    0.06,
+    0.13
+   ],
+   "roughness": 0.94
+  },
+  "duel-coping": {
+   "kind": "ashlar",
+   "colour": [
+    0.08,
+    0.094,
+    0.132
+   ],
+   "joint": [
+    0.018,
+    0.022,
+    0.038
+   ],
+   "block": [
+    1.45,
+    0.48
+   ],
+   "mortar": 0.024,
+   "roughness": 0.92
+  },
+  "duel-dark-metal": {
+   "kind": "metal",
+   "colour": [
+    0.035,
+    0.03,
+    0.03
+   ],
+   "roughness": 0.48
+  },
+  "duel-flame": {
+   "kind": "flame",
+   "colour": [
+    1.0,
+    0.58,
+    0.18
+   ],
+   "strength": 2.2
+  },
+  "duel-floor": {
+   "kind": "flagstone",
+   "colour": [
+    0.025,
+    0.03,
+    0.05
+   ],
+   "joint": [
+    0.012,
+    0.015,
+    0.028
+   ],
+   "block": [
+    1.45,
+    1.45
+   ],
+   "mortar": 0.016,
+   "roughness": 0.82
+  },
+  "duel-gold": {
+   "kind": "plain",
+   "colour": [
+    0.5,
+    0.34,
+    0.095
+   ],
+   "roughness": 0.76
+  },
+  "duel-slab": {
+   "kind": "ashlar",
+   "colour": [
+    0.016,
+    0.019,
+    0.032
+   ],
+   "joint": [
+    0.016,
+    0.019,
+    0.032
+   ],
+   "block": [
+    0.8,
+    0.55
+   ],
+   "mortar": 0.022,
+   "roughness": 0.95
+  },
+  "duel-stone": {
+   "kind": "ashlar",
+   "colour": [
+    0.045,
+    0.052,
+    0.082
+   ],
+   "joint": [
+    0.018,
+    0.022,
+    0.038
+   ],
+   "block": [
+    1.0,
+    0.38
+   ],
+   "mortar": 0.026,
+   "roughness": 0.92
+  },
+  "duel-window-frost": {
+   "kind": "flame",
+   "colour": [
+    0.2,
+    0.36,
+    0.58
+   ],
+   "strength": 0.32
+  }
+ },
+ "layers": {
+  "backgroundArchitecture": [
+   "wall-0-plinth",
+   "wall-0-body",
+   "wall-0-cornice",
+   "wall-0-window-pane-0",
+   "wall-0-window-pane-1",
+   "wall-0-window-frames",
+   "wall-0-sconce-0",
+   "wall-0-sconce-1",
+   "wall-1-plinth",
+   "wall-1-body",
+   "wall-1-cornice",
+   "wall-1-window-pane-0",
+   "wall-1-window-pane-1",
+   "wall-1-window-frames",
+   "wall-1-sconce-0",
+   "wall-1-sconce-1",
+   "pier-0",
+   "pier-0-cap",
+   "pier-1",
+   "pier-1-cap",
+   "pier-2",
+   "pier-2-cap",
+   "cracked-mirror",
+   "wall-standards"
+  ],
+  "playableFloor": [
+   "floor-slab",
+   "floor-plane",
+   "floor-diamond-court"
+  ],
+  "solidProps": [
+   "wall-rubble",
+   "rolled-carpet",
+   "blade-stand",
+   "brazier-left",
+   "brazier-right"
+  ],
+  "foregroundOccluders": [
+   "kerb-0",
+   "kerb-1"
+  ]
+ },
+ "masses": [
+  {
+   "name": "wall-rubble",
+   "layer": "solidProps",
+   "at": {
+    "x": -2.188869,
+    "y": -4.326426
+   },
+   "bounds": {
+    "min": {
+     "x": -6.669581,
+     "y": -5.495224
+    },
+    "max": {
+     "x": 2.291843,
+     "y": -3.157628
+    },
+    "top": 0.221
+   }
+  },
+  {
+   "name": "rolled-carpet",
+   "layer": "solidProps",
+   "at": {
+    "x": -6.978897,
+    "y": -3.032203
+   },
+   "bounds": {
+    "min": {
+     "x": -7.258897,
+     "y": -3.312203
+    },
+    "max": {
+     "x": -6.698897,
+     "y": -2.752203
+    },
+    "top": 0.75
+   }
+  },
+  {
+   "name": "blade-stand",
+   "layer": "solidProps",
+   "at": {
+    "x": 5.097584,
+    "y": 3.069513
+   },
+   "bounds": {
+    "min": {
+     "x": 4.472584,
+     "y": 2.894513
+    },
+    "max": {
+     "x": 5.722584,
+     "y": 3.244513
+    },
+    "top": 1.65
+   }
+  },
+  {
+   "name": "brazier-left",
+   "layer": "solidProps",
+   "at": {
+    "x": -2.50143,
+    "y": 5.618304
+   },
+   "bounds": {
+    "min": {
+     "x": -2.85143,
+     "y": 5.268304
+    },
+    "max": {
+     "x": -2.15143,
+     "y": 5.968305
+    },
+    "top": 1.45
+   }
+  },
+  {
+   "name": "brazier-right",
+   "layer": "solidProps",
+   "at": {
+    "x": 2.50143,
+    "y": -5.618304
+   },
+   "bounds": {
+    "min": {
+     "x": 2.15143,
+     "y": -5.968305
+    },
+    "max": {
+     "x": 2.85143,
+     "y": -5.268304
+    },
+    "top": 1.45
+   }
+  },
+  {
+   "name": "kerb-0",
+   "layer": "foregroundOccluders",
+   "at": {
+    "x": 5.534533,
+    "y": -1.367094
+   },
+   "bounds": {
+    "min": {
+     "x": 2.644315,
+     "y": -6.50324
+    },
+    "max": {
+     "x": 8.424751,
+     "y": 3.769051
+    },
+    "top": 0.2
+   }
+  },
+  {
+   "name": "kerb-1",
+   "layer": "foregroundOccluders",
+   "at": {
+    "x": 2.687376,
+    "y": 5.027724
+   },
+   "bounds": {
+    "min": {
+     "x": -2.902312,
+     "y": 3.437341
+    },
+    "max": {
+     "x": 8.277064,
+     "y": 6.618107
+    },
+    "top": 0.2
+   }
+  }
+ ],
+ "lights": [
+  {
+   "name": "wall-0-window-light-0",
+   "lamp": "wall-0-window-pane-0",
+   "at": {
+    "x": -5.37349,
+    "y": -3.540178
+   },
+   "elevation": 2.625,
+   "energy": 24.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.55
+  },
+  {
+   "name": "wall-0-window-light-1",
+   "lamp": "wall-0-window-pane-1",
+   "at": {
+    "x": -0.503101,
+    "y": -4.743221
+   },
+   "elevation": 2.625,
+   "energy": 24.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.55
+  },
+  {
+   "name": "wall-0-sconce-light-0",
+   "lamp": "wall-0-sconce-0",
+   "at": {
+    "x": -2.899546,
+    "y": -4.460288
+   },
+   "elevation": 2.8,
+   "energy": 105.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.25
+  },
+  {
+   "name": "wall-0-sconce-light-1",
+   "lamp": "wall-0-sconce-1",
+   "at": {
+    "x": 1.417389,
+    "y": -5.526621
+   },
+   "elevation": 2.8,
+   "energy": 105.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.25
+  },
+  {
+   "name": "wall-1-window-light-0",
+   "lamp": "wall-1-window-pane-0",
+   "at": {
+    "x": -3.43156,
+    "y": 3.604393
+   },
+   "elevation": 2.625,
+   "energy": 24.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.55
+  },
+  {
+   "name": "wall-1-window-light-1",
+   "lamp": "wall-1-window-pane-1",
+   "at": {
+    "x": -5.796452,
+    "y": -0.820004
+   },
+   "elevation": 2.625,
+   "energy": 24.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.55
+  },
+  {
+   "name": "wall-1-sconce-light-0",
+   "lamp": "wall-1-sconce-0",
+   "at": {
+    "x": -4.93233,
+    "y": 1.433059
+   },
+   "elevation": 2.8,
+   "energy": 105.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.25
+  },
+  {
+   "name": "wall-1-sconce-light-1",
+   "lamp": "wall-1-sconce-1",
+   "at": {
+    "x": -7.028483,
+    "y": -2.488565
+   },
+   "elevation": 2.8,
+   "energy": 105.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.25
+  },
+  {
+   "name": "cracked-mirror-light",
+   "lamp": "cracked-mirror",
+   "at": {
+    "x": -1.860165,
+    "y": -4.531617
+   },
+   "elevation": 2.135,
+   "energy": 8.4,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.1
+  },
+  {
+   "name": "brazier-left-light",
+   "lamp": "brazier-left",
+   "at": {
+    "x": -2.50143,
+    "y": 5.618305
+   },
+   "elevation": 1.4,
+   "energy": 110.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.3
+  },
+  {
+   "name": "brazier-right-light",
+   "lamp": "brazier-right",
+   "at": {
+    "x": 2.50143,
+    "y": -5.618305
+   },
+   "elevation": 1.4,
+   "energy": 110.0,
+   "colour": [
+    1.0,
+    0.82,
+    0.55
+   ],
+   "size": 1.3
+  }
+ ]
+}

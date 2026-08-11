@@ -230,20 +230,27 @@ describe('the room reads the fight as light', () => {
 
 describe('the live room can be built without one subsystem at a time', () => {
   const SURFACES: readonly SurfaceDescription[] = [
-    { kind: 'flagstone', colour: [0.31, 0.3, 0.29], joint: [0.2, 0.2, 0.2], block: [0.8, 0.8] },
-    { kind: 'ashlar', colour: [0.4, 0.38, 0.35], joint: [0.25, 0.24, 0.22], block: [1.4, 0.6] },
+    {
+      kind: 'flagstone', colour: [0.31, 0.3, 0.29], joint: [0.2, 0.2, 0.2], block: [0.8, 0.8],
+      texture: { slot: 0, worldSize: [4, 4], strength: 0.7, tint: [0.5, 0.6, 0.9] },
+    },
+    {
+      kind: 'ashlar', colour: [0.4, 0.38, 0.35], joint: [0.25, 0.24, 0.22], block: [1.4, 0.6],
+      texture: { slot: 1, worldSize: [5, 2], strength: 0.8, tint: [1, 1, 1] },
+    },
     { kind: 'flame', colour: [1, 0.8, 0.5] },
   ];
   const AMBIENT: readonly [number, number, number] = [0.04, 0.05, 0.08];
   const LIGHTS = 9;
   const sources = (ablate?: ReadonlySet<RoomAblationAxis>) =>
-    roomShaderSources(SURFACES, LIGHTS, AMBIENT, ablate);
+    roomShaderSources(SURFACES, LIGHTS, AMBIENT, ablate, { liquid: true });
 
   const MARKERS: Record<Exclude<RoomAblationAxis, 'msaa' | 'liquid'>, string> = {
     ripples: 'vec4 ring = uRipples[i];',
     reflection: 'vec3 mirror = reflect(-v, n);',
     lights: 'vec3 hv = normalize(l + v);',
     masonry: 'albedo = coursed(albedo, s, n, vPos);',
+    textures: 'albedo = mix(albedo, painted, TEXTURE_MIX[s]);',
   };
 
   it('generates today’s shader when nothing is ablated', () => {
@@ -276,6 +283,21 @@ describe('the live room can be built without one subsystem at a time', () => {
     expect(fragment).not.toContain(MARKERS.reflection);
     expect(fragment).toContain(MARKERS.lights);
     expect(fragment).toContain(MARKERS.masonry);
+  });
+
+  it('keeps the Cloister liquid opt-in instead of putting it in every WebGL room', () => {
+    const dry = roomShaderSources(SURFACES, LIGHTS, AMBIENT).fragment;
+    const cloister = roomShaderSources(
+      SURFACES,
+      LIGHTS,
+      AMBIENT,
+      new Set(),
+      { liquid: true },
+    ).fragment;
+    expect(dry).not.toContain('if (uLiquid > 0.0');
+    expect(dry).not.toContain(MARKERS.ripples);
+    expect(dry).not.toContain(MARKERS.reflection);
+    expect(cloister).toContain('if (uLiquid > 0.0');
   });
 
   it('scales the backing only through the named steps, and rests at full', () => {

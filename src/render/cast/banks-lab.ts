@@ -66,7 +66,7 @@ const createMeshBank = (): ModelBank => ({
     player: MESH_KING_BELL,
     guard: MESH_GUARD_CONCEPT,
     duelist: MESH_DUELIST,
-    archer: meshModel('mesh_archer', 1.4, meshArcher()),
+    archer: meshModel('mesh_archer', 1.7, meshArcher()),
     first_blade: meshModel('mesh_first_blade', 1.8, meshFirstBlade()),
     captain: pillar(56),
     captain_read: pillar(56),

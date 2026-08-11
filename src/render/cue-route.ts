@@ -14,7 +14,7 @@ export const labCueForEvent = (event: SimEvent): AudioCue | null => {
     case 'volley_served':
       return 'power';
     case 'volley_returned':
-      return 'guard';
+      return 'glass_strain';
     case 'volley_shattered':
       return 'power_hit';
     case 'volley_ward_pushed':

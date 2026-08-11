@@ -15,12 +15,18 @@ import {
   FORGED_SAMPLES_LAB,
   LAB_AUDIO_MANIFEST,
   LAB_MUSIC,
+  LAB_ROOM_MESHES,
 } from '../src/render/asset-registry-lab';
 
 describe('the registries', () => {
   it('point every declared asset at a file that exists', () => {
     for (const url of [...PUBLIC_AUDIO_MANIFEST, ...LAB_AUDIO_MANIFEST]) {
       expect(existsSync(fileURLToPath(url)), url).toBe(true);
+    }
+    for (const source of Object.values(LAB_ROOM_MESHES)) {
+      for (const url of [source.glb, source.manifest, ...(source.textures ?? []).map((t) => t.url)]) {
+        expect(existsSync(fileURLToPath(url)), url).toBe(true);
+      }
     }
   });
 
@@ -48,6 +54,20 @@ describe('the registries', () => {
   it('keys samples by filename, which no mangler rewrites', () => {
     for (const key of [...Object.keys(FORGED_SAMPLES), ...Object.keys(ARCANE_SAMPLES)]) {
       expect(key).toMatch(/\.ogg$/);
+    }
+  });
+
+  it('keeps external room texture grades explicit and finite', () => {
+    for (const [room, source] of Object.entries(LAB_ROOM_MESHES)) {
+      for (const texture of source.textures ?? []) {
+        expect(texture.strength, room).toBeGreaterThanOrEqual(0);
+        expect(texture.strength, room).toBeLessThanOrEqual(1);
+        expect(texture.worldSize.every((value) => Number.isFinite(value) && value > 0), room).toBe(true);
+        if (texture.tint !== undefined) {
+          expect(texture.tint, room).toHaveLength(3);
+          expect(texture.tint.every((value) => Number.isFinite(value) && value >= 0), room).toBe(true);
+        }
+      }
     }
   });
 });

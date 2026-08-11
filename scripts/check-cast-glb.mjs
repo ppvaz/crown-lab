@@ -217,10 +217,16 @@ if (file !== null) {
     console.error(`No ${dir}. Nothing is baked on this machine; run cast:rig and cast:mesh first.`);
     process.exit(1);
   }
+
+
+  const vault = resolve(root, '.crown-private/cast-source');
   for (const name of readdirSync(dir)) {
     if (only !== null && name !== only) continue;
-    const candidate = resolve(dir, name, `${name}.glb`);
-    if (existsSync(candidate)) targets.push(candidate);
+    const baked = resolve(dir, name, `${name}.glb`);
+    const recipe = resolve(vault, `${name}.glb`);
+    if (existsSync(baked)) targets.push(baked);
+    else if (existsSync(recipe)) targets.push(recipe);
+    else console.log(`! ${name}: baked as .cmb, and no .glb recipe on this machine — not checked`);
   }
 }
 
@@ -252,7 +258,12 @@ for (const target of targets) {
   if (result.problems.length > 0) failed += 1;
 }
 
+const fromVault = targets.filter((t) => t.includes('/.crown-private/cast-source/')).length;
 console.log(failed === 0
   ? `\n${targets.length} body(ies) match what render/glb-lab.ts and mesh-body-lab.ts accept.`
   : `\n${failed} of ${targets.length} would not load.`);
+if (fromVault > 0) {
+  console.log(`${fromVault} of them were checked as the vault .glb recipe, not the shipped .cmb — ` +
+    'this tool cannot parse .cmb yet.');
+}
 process.exit(failed === 0 ? 0 : 1);

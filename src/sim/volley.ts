@@ -144,6 +144,9 @@ export const stepVolleyWard = (world: World, enemy: Enemy, cfg: CombatConfig, dt
   if (enemy.wardPushCooldownMs !== undefined && enemy.wardPushCooldownMs > 0) {
     enemy.wardPushCooldownMs = Math.max(0, enemy.wardPushCooldownMs - dtMs);
   }
+  if (enemy.rebukeMs !== undefined && enemy.rebukeMs > 0) {
+    enemy.rebukeMs = Math.max(0, enemy.rebukeMs - dtMs);
+  }
   if (enemy.warded !== true) return;
   if ((enemy.wardPushCooldownMs ?? 0) > 0) return;
 

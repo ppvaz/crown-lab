@@ -1,6 +1,7 @@
 
 import type { CombatConfig, Player, SimEvent, World } from '../sim/types';
 import type { Audio } from '../render/audio';
+import { cueIntensity, cueSpanMs } from '../render/soundbank';
 import type { AudioCue } from '../render/soundbank';
 import type { Camera } from '../render/iso';
 import { worldToScreen } from '../render/iso';
@@ -29,7 +30,12 @@ export class HostEventFeed {
         audio.duckMusicForStagger(this.host.combat().player.guard.guardBreakStaggerMs);
       }
       const cue = this.host.cueForEvent(event);
-      if (cue !== null) audio.play(cue, this.panFor(event));
+      if (cue !== null) {
+        audio.play(cue, this.panFor(event), {
+          spanMs: cueSpanMs(event),
+          intensity: cueIntensity(event),
+        });
+      }
       this.host.observe?.(event);
     }
   }
