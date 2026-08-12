@@ -10,6 +10,7 @@ import { modeIdFor, modeProfile } from '../lab/modes';
 import type { ModeProfile } from '../lab/modes';
 import type { CaptureShot } from './capture';
 import { clearSelections, indexOfId, loadSelections, saveSelections } from './prefs';
+import { rendererId, restoreRenderer } from './lab-gl';
 import { setWeather } from '../render/room-weather-lab';
 import { AIM_MODES } from './input';
 import type { AimMode } from './input';
@@ -93,6 +94,7 @@ export class LabDials {
       modelBank: this.modelBankId(),
       seed: this.seed,
       aimMode: this.aim.get(),
+      rendererId: rendererId(),
     };
   }
 
@@ -105,6 +107,7 @@ export class LabDials {
 
   restore(): boolean {
     const stored = loadSelections();
+    restoreRenderer();
     if (stored === null) return false;
     this.combatIndex = indexOfId(this.combatIds, stored.combatId, this.combatIndex);
     this.slowMoIndex = indexOfId(this.slowMoIds, stored.slowMoId, this.slowMoIndex);

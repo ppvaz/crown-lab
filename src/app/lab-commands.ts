@@ -7,6 +7,7 @@ import { MODEL_BANKS } from '../render/cast/banks-lab';
 import { MODE_PROFILE_IDS } from '../lab/modes';
 import { WEATHER_IDS, currentWeatherId, setWeather } from '../render/room-weather-lab';
 import { AIM_MODES } from './input';
+import { glRendererEnabled, rendererLabel, resetRenderer, setRenderer } from './lab-gl';
 import { retryRoom } from './route-run';
 import {
   browseCastClip,
@@ -71,6 +72,7 @@ export const createLabCommands = (
     'LabCape',
     'KeyN',
     'F9',
+    'F8',
   ]);
 
   const runLabCommand = (code: string, shiftKey = false): void => {
@@ -323,8 +325,18 @@ export const createLabCommands = (
         break;
       }
 
+
+
+      case 'F8': {
+        const next = glRendererEnabled() ? 'canvas2d' : 'three';
+        setRenderer(next);
+        lab.notice = `renderer: ${rendererLabel(next)}`;
+        break;
+      }
+
       case 'KeyX':
         flow.resetSelections();
+        resetRenderer();
         break;
       default:
         break;

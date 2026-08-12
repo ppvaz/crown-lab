@@ -72,6 +72,7 @@ import { controlNamesFor } from '../game/controls';
 import { copyFor, labCopyFor, localeFrom } from '../game/copy';
 import { captureShotFromSearch, prepareCaptureWorld } from './capture';
 import { FIRST_CROWN } from '../game/route';
+import { applyRendererFromSearch, glRendererEnabled, rendererLabel } from './lab-gl';
 
 const canvas = document.getElementById('view') as HTMLCanvasElement;
 const panel = document.getElementById('panel') as HTMLDivElement;
@@ -265,7 +266,11 @@ panel.addEventListener('click', (event) => {
 
 if (captureShot === null && dials.restore()) {
   lab.notice = `restored ${dials.combatId()} / ${dials.encounterId()} / seed ${dials.seed} — X to reset`;
+  if (glRendererEnabled()) {
+    lab.notice = `${lab.notice} — renderer: ${rendererLabel()}`;
+  }
 }
+if (typeof location !== 'undefined') applyRendererFromSearch(location.search);
 dials.applyCapture(captureShot);
 
 {

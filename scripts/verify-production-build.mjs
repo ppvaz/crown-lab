@@ -420,6 +420,26 @@ if (profile === 'game') {
       failures.push(`unpublished silhouette ${name} is in the public bundle`);
     }
   }
+
+
+
+
+
+  const PUBLIC_RENDERER = /** @type {'2d' | '3d'} */ ('2d');
+  const THREE_MARKERS = ['__THREE_DEVTOOLS__', 'THREE.WebGLRenderer'];
+  const present = THREE_MARKERS.filter((marker) => bundled.includes(marker));
+  if (PUBLIC_RENDERER === '2d' && present.length > 0) {
+    failures.push(
+      `three.js is in the public bundle (${present.join(', ')}) while the declared public ` +
+        'renderer is 2d — flip PUBLIC_RENDERER or find out what pulled it in',
+    );
+  }
+  if (PUBLIC_RENDERER === '3d' && present.length < THREE_MARKERS.length) {
+    failures.push(
+      'the declared public renderer is 3d and three.js is not in the bundle — ADR-051 clause 1: ' +
+        'the library going missing is the failure this direction of the check exists for',
+    );
+  }
 }
 
 const PUBLIC_JS_BUDGET = 480_000;

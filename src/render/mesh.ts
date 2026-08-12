@@ -267,7 +267,7 @@ export interface MeshDrawOpts {
   texture?: MeshTexture;
 }
 
-const LIGHT: Vec3 = [-0.35, -0.5, 0.79];
+export const LIGHT: Vec3 = [-0.35, -0.5, 0.79];
 
 const rotX = (p: Vec3, a: number): Vec3 => {
   if (a === 0) return p;
@@ -289,7 +289,7 @@ const rotY = (p: Vec3, a: number): Vec3 => {
   return [p[0] * c + p[2] * s, p[1], -p[0] * s + p[2] * c];
 };
 
-const shadeHex = (hex: string, amount: number): string => {
+export const shadeHex = (hex: string, amount: number): string => {
   const v = parseInt(hex.slice(1), 16);
   const ch = (shift: number): number => {
     const c = (v >> shift) & 255;
@@ -322,18 +322,16 @@ const CAPE_SWING = 0.08;
 const CAPE_LEAN_GAIN = 0.35;
 const CAPE_MAX_SWING = 0.16;
 
-export const drawMesh = (
-  ctx: CanvasRenderingContext2D,
-  cam: Camera,
+export const posedVertex = (
   mesh: Mesh,
   opts: MeshDrawOpts,
-): void => {
+): ((raw: Vec3, part: Face['part']) => Vec3) => {
   const { radius, height } = opts;
 
   const { legSwing, bob, roll } = walkTerms(opts.gait);
   const topZ = meshTopZ(mesh);
 
-  const toWorld = (raw: Vec3, part: Face['part']): Vec3 => {
+  return (raw: Vec3, part: Face['part']): Vec3 => {
     let p = raw;
     const hand = opts.weaponPivot ?? HAND;
     const shoulder = opts.shieldPivot ?? SHOULDER;
@@ -395,6 +393,15 @@ export const drawMesh = (
     p = rotZ(p, opts.facing - Math.PI / 2);
     return [p[0] + opts.at.x, p[1] + opts.at.y, p[2]];
   };
+};
+
+export const drawMesh = (
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  mesh: Mesh,
+  opts: MeshDrawOpts,
+): void => {
+  const toWorld = posedVertex(mesh, opts);
 
   const project = (p: Vec3): { x: number; y: number } => {
     const ground = worldToScreen(cam, { x: p[0], y: p[1] });

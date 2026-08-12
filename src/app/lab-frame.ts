@@ -13,6 +13,9 @@ import { retryHintFor } from '../game/controls';
 import { labArchetypeColor } from '../render/palette-lab';
 import { LAB_ROOMS } from '../render/rooms/index-lab';
 import { drawScene } from '../render/draw';
+import { glRoomFor, rendererId } from './lab-gl';
+import { withBodySink } from '../render/gl/sink';
+import type { SunkBody } from '../render/gl/sink';
 import { drawPickupPrompt } from '../render/draw-projectiles';
 import { conceptArenaGround, conceptArenaScene } from '../render/concept-arenas-lab';
 import { drawHud } from '../render/hud';
@@ -265,64 +268,73 @@ export const createLabFrame = (
     if (showcase.draw(ctx, cam, lab.models, lab.pal, lab.pres, frame.content, dtRealMs)) return;
 
     const meshDressing = meshDressingEnabled();
+    const collected: SunkBody[] = [];
+    const glRoom = glRoomFor(() => lab.world, lab.pal, collected);
     const room =
-      (meshDressing
-        ? webglRoomFor(lab.world.encounter.defId, lab.world.arena, () => lab.world) ??
-          roomPainterFor(lab.world.encounter.defId, () => lab.world)
-        : null);
+      glRoom !== null
+        ?
+          { painter: glRoom, occluders: [] }
+        : meshDressing
+          ? webglRoomFor(lab.world.encounter.defId, lab.world.arena, () => lab.world) ??
+            roomPainterFor(lab.world.encounter.defId, () => lab.world)
+          : null;
     const conceptScene = conceptArenaScene(ctx, lab.world, cam, lab.pal);
-    drawScene(ctx, lab.world, cam, {
-      ...(room === null
-        ? {}
-        : {
-            roomLayers: room.painter,
-            roomOccluders: room.occluders.map((occluder) => ({
-              at: occluder.at,
-              draw: () => occluder.draw(ctx, cam),
-            })),
-          }),
-      localPlayer: lab.localPlayer,
-      cfg: lab.combat,
-      pal: lab.pal,
-      pres: lab.pres,
-      apotheosis: lab.apotheosis,
-      archetypeColor: labArchetypeColor,
-      rooms: LAB_ROOMS,
-      models: lab.models,
-      kingDressing: kit.kingDressings(),
-      enemyBody: (archetype) => enemyMeshBody(archetype)?.draw ?? null,
-      shotBody: shotMeshBody,
-      showHitboxes: lab.flags.showHitboxes,
-      aimDistance: lab.aimDistance,
-      mazePortalDirection: lab.mazePortalDirection,
-      groundFx: () => {
-        conceptArenaGround(ctx, lab.world, cam, lab.pal);
-        fx.drawGround(ctx, cam, lab.world);
-      },
-      ...conceptScene,
-      ...(lab.run === null && isGeneratedEncounter(dials.encounterId())
-        ? {
-            floorPads: chainFloorPads(
+    const paintScene = (): void => {
+      drawScene(ctx, lab.world, cam, {
+        ...(room === null
+          ? {}
+          : {
+              roomLayers: room.painter,
+              roomOccluders: room.occluders.map((occluder) => ({
+                at: occluder.at,
+                draw: () => occluder.draw(ctx, cam),
+              })),
+            }),
+        localPlayer: lab.localPlayer,
+        cfg: lab.combat,
+        pal: lab.pal,
+        pres: lab.pres,
+        apotheosis: lab.apotheosis,
+        archetypeColor: labArchetypeColor,
+        rooms: LAB_ROOMS,
+        models: lab.models,
+        kingDressing: kit.kingDressings(),
+        enemyBody: (archetype) => enemyMeshBody(archetype)?.draw ?? null,
+        shotBody: shotMeshBody,
+        showHitboxes: lab.flags.showHitboxes,
+        aimDistance: lab.aimDistance,
+        mazePortalDirection: lab.mazePortalDirection,
+        groundFx: () => {
+          conceptArenaGround(ctx, lab.world, cam, lab.pal);
+          fx.drawGround(ctx, cam, lab.world);
+        },
+        ...conceptScene,
+        ...(lab.run === null && isGeneratedEncounter(dials.encounterId())
+          ? {
+              floorPads: chainFloorPads(
+                ctx,
+                lab.world,
+                cam,
+                lab.pal,
+                frame,
+                lab.world.rng.seed,
+                copy.controls[kit.controlDevice()].interact,
+              ),
+            }
+          : {}),
+        ...(lab.run === null
+          ? {}
+          : roomSceneOpts(lab.run, lab.world, lab.combat, {
               ctx,
-              lab.world,
               cam,
-              lab.pal,
+              pal: lab.pal,
               frame,
-              lab.world.rng.seed,
-              copy.controls[kit.controlDevice()].interact,
-            ),
-          }
-        : {}),
-      ...(lab.run === null
-        ? {}
-        : roomSceneOpts(lab.run, lab.world, lab.combat, {
-            ctx,
-            cam,
-            pal: lab.pal,
-            frame,
-            simTimeMs: lab.world.tick * TICK_MS,
-          })),
-    });
+              simTimeMs: lab.world.tick * TICK_MS,
+            })),
+      });
+    };
+    if (glRoom === null) paintScene();
+    else withBodySink((body) => collected.push(body), paintScene);
     if (lab.run === null) {
       drawPickupPrompt(
         ctx,
@@ -648,6 +660,7 @@ export const createLabFrame = (
       document.documentElement.dataset.captureTick = String(lab.world.tick);
       document.documentElement.dataset.captureEncounter = dials.encounterId();
       const drawn = castMeshDrawn();
+      document.documentElement.dataset.captureRenderer = rendererId();
       document.documentElement.dataset.captureCastMeshes = String(drawn.meshes);
       document.documentElement.dataset.captureCastTriangles = String(drawn.triangles);
       document.documentElement.dataset.captureCastActors = String(castMeshActors(lab.world));

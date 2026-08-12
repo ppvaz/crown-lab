@@ -7,6 +7,7 @@ import type { Camera } from './iso';
 import { groundEllipse, worldToScreen } from './iso';
 import type { Face, Mesh, MeshTexture, Vec3 } from './mesh';
 import { ISO_Z, drawMesh, walkTerms } from './mesh';
+import { bodySink } from './gl/sink';
 
 export type ModelRole = 'player' | EnemyArchetype;
 
@@ -308,9 +309,8 @@ export const drawModel = (
       {
         slot: 'body',
         draw: () => {
-          ctx.save();
-          ctx.translate(0, -lift);
-          drawMesh(ctx, cam, def.mesh!, {
+
+          const meshOpts = {
             at: opts.at,
             facing: opts.facing,
             radius: opts.radius / 0.45,
@@ -329,9 +329,17 @@ export const drawModel = (
             waistPivot: FOLD_AT_WAIST.has(opts.state) ? def.meshPivots?.waist : undefined,
             hiddenParts: opts.hiddenParts,
             powerArm: opts.powerArm,
-            resolveFill: (spec) => resolveColor(spec, opts) ?? opts.tint,
+            resolveFill: (spec: string) => resolveColor(spec, opts) ?? opts.tint,
             texture: bank.texture?.() ?? undefined,
-          });
+          };
+          const sink = bodySink();
+          if (sink !== null) {
+            sink({ mesh: def.mesh!, opts: meshOpts, liftPx: lift });
+            return;
+          }
+          ctx.save();
+          ctx.translate(0, -lift);
+          drawMesh(ctx, cam, def.mesh!, meshOpts);
           ctx.restore();
         },
       },

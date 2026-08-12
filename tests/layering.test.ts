@@ -163,6 +163,49 @@ describe('the layering arrow', () => {
   });
 });
 
+const RUNTIME_PACKAGES: readonly { specifier: string; under: string; why: string }[] = [
+  { specifier: 'three', under: 'src/render/gl/', why: 'ADR-051 clause 6, ADR-015 clause 4' },
+];
+
+export const packageViolations = (
+  files: readonly { path: string; imports: readonly { spec: string; erased: boolean }[] }[],
+): string[] => {
+  const violations: string[] = [];
+  for (const file of files) {
+    for (const { spec, erased } of file.imports) {
+      if (erased || spec.startsWith('.')) continue;
+      const allowed = RUNTIME_PACKAGES.find(
+        (entry) => spec === entry.specifier || spec.startsWith(`${entry.specifier}/`),
+      );
+      if (allowed === undefined) {
+        violations.push(`${file.path} -> ${spec} (no package allow-list entry)`);
+      } else if (!file.path.startsWith(allowed.under)) {
+        violations.push(`${file.path} -> ${spec} (allowed only under ${allowed.under})`);
+      }
+    }
+  }
+  return violations;
+};
+
+describe('the package allow-list', () => {
+  it('is respected by every runtime import in src/', () => {
+    expect(
+      packageViolations(FILES.map((f) => ({ path: f.path, imports: importsOf(f.text) }))),
+    ).toEqual([]);
+  });
+
+  it.each([
+    ['a package with no entry', 'src/render/gl/scene.ts', "import x from 'lodash';", 1],
+    ['an allowed package outside its directory', 'src/render/draw.ts', "import x from 'three';", 1],
+    ['an allowed package under its directory', 'src/render/gl/camera.ts', "import x from 'three';", 0],
+    ['a deep import of an allowed package', 'src/render/gl/loader.ts', "import x from 'three/examples/jsm/loaders/GLTFLoader.js';", 0],
+    ['a type-only import of a package', 'src/render/draw.ts', "import type { X } from 'three';", 0],
+    ['a relative import', 'src/render/draw.ts', "import { x } from './iso';", 0],
+  ])('catches %s', (_name, path, source, expected) => {
+    expect(packageViolations([{ path, imports: importsOf(source) }])).toHaveLength(expected);
+  });
+});
+
 describe('sim purity', () => {
   const SIM = FILES.filter((f) => f.layer === 'sim');
 

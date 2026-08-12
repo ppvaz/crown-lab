@@ -28,6 +28,7 @@ const apotheosis = listArg('apotheosis', [])[0] ?? '';
 const cast = flag('cast') ? 'mesh' : valueArg('cast', '');
 const captureCamera = flag('push') ? 'action' : '';
 const ablations = listArg('roomAblate', ['']);
+const renderers = listArg('renderer', ['']);
 
 
 const summarize = (samples) => {
@@ -99,13 +100,14 @@ try {
 
     for (const shot of shots) {
       for (const rate of rates) {
+      for (const renderer of renderers) {
       for (const ablation of ablations) {
         const ablated = ablation === '' || ablation === 'none' ? [] : ablation.split('+');
         const label = `${viewportName}/${shot}${rates.length > 1 || rate !== 1 ? ` cpu/${rate}x` : ''}${
           apotheosis === '' ? '' : ` apo/${apotheosis}`
         }${cast === '' ? '' : ` cast/${cast}`}${captureCamera === '' ? '' : ' push'}${
           ablations.length > 1 || ablated.length > 0 ? ` ablate/${ablation === '' ? 'none' : ablation}` : ''
-        }`;
+        }${renderers.length > 1 || renderer !== '' ? ` gl/${renderer === '' ? 'canvas2d' : renderer}` : ''}`;
         try {
           await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
           await page.goto(
@@ -113,7 +115,9 @@ try {
               apotheosis === '' ? '' : `&apotheosis=${encodeURIComponent(apotheosis)}`
             }${cast === '' ? '' : `&cast=${encodeURIComponent(cast)}`}${
               captureCamera === '' ? '' : `&captureCamera=${encodeURIComponent(captureCamera)}`
-            }${ablated.length === 0 ? '' : `&roomAblate=${encodeURIComponent(ablated.join(','))}`}`,
+            }${ablated.length === 0 ? '' : `&roomAblate=${encodeURIComponent(ablated.join(','))}`}${
+              renderer === '' ? '' : `&renderer=${encodeURIComponent(renderer)}`
+            }`,
           );
           await page.waitForSelector(
             `html[data-capture-ready="true"][data-capture-shot="${shot}"]`,
@@ -128,6 +132,19 @@ try {
               console.error(
                 `✖ ${label}: ablation echo ${echo === null ? 'absent' : `"${echo}"`} — ` +
                   'this reading would have been the ordinary room',
+              );
+              continue;
+            }
+          }
+          if (renderer !== '') {
+            const echo = await page.evaluate(
+              () => document.documentElement.dataset.captureRenderer ?? null,
+            );
+            if (echo !== renderer) {
+              failures.push(`${label}: asked for renderer ${renderer} and got ${echo ?? 'none'}`);
+              console.error(
+                `✖ ${label}: renderer echo ${echo === null ? 'absent' : `"${echo}"`} — ` +
+                  'this reading would have been the other backend',
               );
               continue;
             }
@@ -208,6 +225,7 @@ try {
           failures.push(label);
           console.error(`✖ ${label}: ${error.message.split('\n')[0]}`);
         }
+      }
       }
       }
     }

@@ -10,6 +10,7 @@ export interface StoredSelections {
   modelBank?: string;
   seed?: number;
   aimMode?: string;
+  rendererId?: string;
 }
 
 const str = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
@@ -44,6 +45,7 @@ export const loadSelections = (): StoredSelections | null => {
     modelBank: str(p.modelBank),
     seed: seedOf(p.seed),
     aimMode: str(p.aimMode),
+    rendererId: str(p.rendererId),
   };
 
   return Object.values(out).some((v) => v !== undefined) ? out : null;
