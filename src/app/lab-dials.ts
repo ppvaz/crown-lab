@@ -1,6 +1,8 @@
 
 import { COMBAT_PRESETS, DEFAULT_SLOWMO_ID, SLOWMO_PRESETS } from '../lab/config';
-import { DEFAULT_ENCOUNTER_ID } from '../lab/encounters';
+import { LAB_DEFAULT_ENCOUNTER_ID as DEFAULT_ENCOUNTER_ID } from '../lab/encounters';
+
+const randomSeed = (): number => Math.floor(Math.random() * 0x7fffffff) + 1;
 import { DEFAULT_PRESENTATION_ID, PRESENTATION_PRESETS } from '../lab/presentation';
 import { ORCHESTRATION_POLICIES } from '../lab/orchestrator';
 import { DEFAULT_MATERIAL, MATERIAL_PACKS } from '../render/materials-lab';
@@ -28,7 +30,7 @@ export class LabDials {
   presentationIndex: number;
   packIndex: number;
   modelBankIndex: number;
-  seed = 1;
+  seed = randomSeed();
 
   private lastSaved = '';
 
@@ -80,7 +82,7 @@ export class LabDials {
     this.presentationIndex = this.presentationIds.indexOf(DEFAULT_PRESENTATION_ID);
     this.packIndex = this.packIds.indexOf(DEFAULT_MATERIAL.id);
     this.modelBankIndex = this.modelBankIds.indexOf(DEFAULT_MODEL_BANK);
-    this.seed = 1;
+    this.seed = randomSeed();
     this.aim.set('mouse');
   }
 
@@ -119,7 +121,8 @@ export class LabDials {
     );
     this.packIndex = indexOfId(this.packIds, stored.materialPack, this.packIndex);
     this.modelBankIndex = indexOfId(this.modelBankIds, stored.modelBank, this.modelBankIndex);
-    if (stored.seed !== undefined) this.seed = stored.seed;
+
+
     const aim = AIM_MODES.find((m) => m === stored.aimMode);
     if (aim !== undefined) this.aim.set(aim);
     return true;

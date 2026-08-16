@@ -130,16 +130,17 @@ const stepSummons = (world: World, cfg: CombatConfig): void => {
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
-const stepHazard = (world: World, cfg: CombatConfig, def: EncounterDef): void => {
-  const hazard = def.hazard;
+const stepHazard = (world: World, cfg: CombatConfig): void => {
+
+
+  const owner = world.enemies.find(
+    (enemy) => enemy.state.kind !== 'dead' && cfg.enemies[enemy.archetype]?.hazard !== undefined,
+  );
+  if (owner === undefined) return;
+  const hazard = cfg.enemies[owner.archetype].hazard;
   if (hazard === undefined) return;
 
-  const phaseTwo = world.enemies.some(
-    (enemy) =>
-      cfg.enemies[enemy.archetype].boss !== undefined &&
-      enemy.state.kind !== 'dead' &&
-      (enemy.phase ?? 1) >= 2,
-  );
+  const phaseTwo = (owner.phase ?? 1) >= 2;
   const target = phaseTwo ? (hazard.phaseTwoCount ?? hazard.count) : hazard.count;
   if (target <= 0) return;
 
@@ -253,6 +254,7 @@ export const createWorld = (def: EncounterDef, cfg: CombatConfig, seed: number):
       active: false,
       remainingMs: 0,
       charge: 0,
+      seenAttacks: [],
       scales: { world: 1, player: 1 },
       lastTrigger: null,
       pending: null,
@@ -361,7 +363,7 @@ export const stepEncounter = (
   }
 
   stepSummons(world, cfg);
-  stepHazard(world, cfg, def);
+  stepHazard(world, cfg);
 
   const first = world.players[0];
   if (first.hp <= 0 || first.state.kind === 'dead') {

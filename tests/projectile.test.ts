@@ -9,6 +9,28 @@ const TICK = 1000 / 120;
 const arrowAt = (w: World, c: CombatConfig, from = { x: 3, y: 0 }, dir = { x: -1, y: 0 }) =>
   spawnProjectile(w, c, from, dir, 10, 12, 1);
 
+const threatAt = (
+  w: World,
+  at: { x: number; y: number },
+  id: number,
+  kind: 'telegraph' | 'attack' | 'approach',
+  elapsedMs: number,
+): void => {
+  w.enemies.push({
+    id,
+    archetype: 'guard',
+    pos: { ...at },
+    vel: { x: 0, y: 0 },
+    facing: Math.PI,
+    hp: 90,
+    maxHp: 90,
+    poise: 100,
+    maxPoise: 100,
+    state: { kind, enteredTick: w.tick, elapsedMs, attackIndex: 0, telegraphJitterMs: 0, struck: [] },
+    attackCooldownMs: 0,
+  } as unknown as World['enemies'][number]);
+};
+
 const parrying = (w: World, elapsedMs: number): void => {
   w.players[0].state = {
     kind: 'parry',
@@ -137,6 +159,68 @@ describe('reflection', () => {
     const w = bareWorld();
     const c = cfg();
     w.players[0].facing = Math.PI / 2;
+    parrying(w, c.player.parry.onsetMs + 10);
+    const shot = arrowAt(w, c, { x: 0.3, y: 0 });
+    const speedBefore = Math.hypot(shot.vel.x, shot.vel.y);
+
+    stepProjectiles(w, c, TICK);
+
+    expect(shot.vel.x).toBeCloseTo(0, 6);
+    expect(shot.vel.y).toBeCloseTo(speedBefore * c.player.parry.reflect.speedScale, 6);
+  });
+
+  it('aims it at whoever is furthest into a commit, over the king\'s facing', () => {
+    const w = bareWorld();
+    const c = cfg();
+    w.players[0].facing = Math.PI / 2;
+    threatAt(w, { x: 4, y: 0 }, 1, 'telegraph', 50);
+    threatAt(w, { x: -4, y: 0 }, 2, 'telegraph', 200);
+    parrying(w, c.player.parry.onsetMs + 10);
+    const shot = arrowAt(w, c, { x: 0.3, y: 0 });
+    const speedBefore = Math.hypot(shot.vel.x, shot.vel.y);
+
+    stepProjectiles(w, c, TICK);
+
+    expect(shot.vel.x).toBeCloseTo(-speedBefore * c.player.parry.reflect.speedScale, 6);
+    expect(shot.vel.y).toBeCloseTo(0, 6);
+  });
+
+  it('stops treating the parried archer as the threat, since the parry ends its commit', () => {
+    const w = bareWorld();
+    const c = cfg();
+    w.players[0].facing = Math.PI / 2;
+    threatAt(w, { x: 4, y: 0 }, 1, 'telegraph', 200);
+    parrying(w, c.player.parry.onsetMs + 10);
+    const shot = arrowAt(w, c, { x: 0.3, y: 0 });
+
+    stepProjectiles(w, c, TICK);
+
+
+    expect(w.enemies[0].state.kind).toBe('recovery');
+    expect(shot.vel.x).toBeCloseTo(0, 6);
+    expect(shot.vel.y).toBeGreaterThan(0);
+  });
+
+  it('prefers the deepest commit, not the nearest body', () => {
+    const w = bareWorld();
+    const c = cfg();
+    w.players[0].facing = 0;
+    threatAt(w, { x: 0, y: 2 }, 1, 'telegraph', 20);
+    threatAt(w, { x: -5, y: 0 }, 2, 'attack', 400);
+    parrying(w, c.player.parry.onsetMs + 10);
+    const shot = arrowAt(w, c, { x: 0.3, y: 0 });
+
+    stepProjectiles(w, c, TICK);
+
+    expect(shot.vel.x).toBeLessThan(0);
+    expect(shot.vel.y).toBeCloseTo(0, 6);
+  });
+
+  it('falls back to the facing when nobody is committing', () => {
+    const w = bareWorld();
+    const c = cfg();
+    w.players[0].facing = Math.PI / 2;
+    threatAt(w, { x: 4, y: 0 }, 1, 'approach', 0);
     parrying(w, c.player.parry.onsetMs + 10);
     const shot = arrowAt(w, c, { x: 0.3, y: 0 });
     const speedBefore = Math.hypot(shot.vel.x, shot.vel.y);

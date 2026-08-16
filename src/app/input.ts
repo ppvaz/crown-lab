@@ -28,7 +28,7 @@ export type AimMode =
   | 'auto_threat'
   | 'auto_nearest';
 
-export const AIM_MODES: AimMode[] = ['mouse', 'movement', 'auto_threat', 'auto_nearest'];
+export const AIM_MODES: AimMode[] = ['auto_nearest'];
 
 export type AutoAimStrategy = 'threat' | 'nearest';
 

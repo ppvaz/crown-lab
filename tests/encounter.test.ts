@@ -209,16 +209,18 @@ describe('the verdict', () => {
 });
 
 describe('a room hazard', () => {
-  const bookish = (over: Partial<NonNullable<EncounterDef['hazard']>> = {}) =>
+  const bookish = (_over: Partial<NonNullable<CombatConfig['enemies']['guard']['hazard']>> = {}) =>
     def({
-      hazard: { kind: 'books' as const, count: 3, speed: 4, damage: 8, ...over },
       waves: [{ id: 'occupant', atMs: 0, spawns: [{ archetype: 'guard', at: { x: 10, y: 8 } }] }],
       timeLimitMs: null,
     });
 
-  const harmless = (): CombatConfig => {
+  const harmless = (
+    over: Partial<NonNullable<CombatConfig['enemies']['guard']['hazard']>> = {},
+  ): CombatConfig => {
     const c = durable();
     for (const attack of c.enemies.guard.attacks) attack.damage = 0;
+    c.enemies.guard.hazard = { kind: 'books' as const, count: 3, speed: 4, damage: 8, ...over };
     return c;
   };
 
@@ -255,8 +257,8 @@ describe('a room hazard', () => {
   });
 
   it('scatters headings without drawing a single random number', () => {
-    const c = harmless();
-    const d = bookish({ count: 8 });
+    const c = harmless({ count: 8 });
+    const d = bookish();
     const before = createWorld(d, c, 1);
     const rngBefore = before.rng.value;
     const dropBefore = before.dropRng.value;
@@ -272,9 +274,9 @@ describe('a room hazard', () => {
   });
 
   it('hurts the king, under its own attack id', () => {
-    const c = harmless();
+    const c = harmless({ count: 1, speed: 6 });
     c.player.maxHp = 100;
-    const d = bookish({ count: 1, speed: 6 });
+    const d = bookish();
     const w = createWorld(d, c, 1);
 
     run(w, 1, intent(), { combat: c, encounter: d });
@@ -297,35 +299,18 @@ describe('a room hazard', () => {
     expect(w.players[0].hp).toBeLessThan(100);
   });
 
-  it('gets busier once a boss reaches phase two, and only then', () => {
-    const c = harmless();
-    const d = bookish({ count: 2, phaseTwoCount: 5 });
+  it('gets busier once the body that throws it reaches phase two, and only then', () => {
+    const c = harmless({ count: 2, phaseTwoCount: 5 });
+    const d = bookish();
     const w = createWorld(d, c, 1);
 
     run(w, 1, intent(), { combat: c, encounter: d });
     expect(books(w)).toBe(2);
 
-    w.enemies.push({
-      id: 99,
-      archetype: 'captain',
-      pos: { x: 0, y: -4 },
-      vel: { x: 0, y: 0 },
-      facing: 0,
-      hp: 100,
-      maxHp: 100,
-      poise: 100,
-      maxPoise: 100,
-      phase: 2,
-      state: {
-        kind: 'idle',
-        enteredTick: w.tick,
-        elapsedMs: 0,
-        attackIndex: 0,
-        telegraphJitterMs: 0,
-        struck: [],
-      },
-      attackCooldownMs: 9999,
-    });
+
+    const thrower = w.enemies.find((enemy) => enemy.archetype === 'guard');
+    expect(thrower).toBeDefined();
+    thrower!.phase = 2;
 
     run(w, 1, intent(), { combat: c, encounter: d });
     expect(books(w)).toBe(5);

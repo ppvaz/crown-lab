@@ -132,9 +132,27 @@ export const warmCastMeshes = (): void => {
 
 export const setCastMeshEnabled = (next: boolean): void => {
   enabled = next;
+  roomDressing = next;
 };
 
 export const meshDressingEnabled = (): boolean => enabled;
+
+
+
+let roomDressing = true;
+
+export const roomDressingEnabled = (): boolean => roomDressing;
+
+export const setRoomDressingEnabled = (next: boolean): void => {
+  roomDressing = next;
+};
+
+export const roomDressingFromSearch = (search: string): boolean => {
+  const params = new URLSearchParams(search);
+  if (!params.has('rooms')) return true;
+  const value = params.get('rooms')?.trim().toLowerCase() ?? '';
+  return !(value === 'off' || value === '0' || value === 'false' || value === 'primitives');
+};
 
 let capeSway: CapeSway = 'off';
 
@@ -158,7 +176,7 @@ export const setCastCapeSway = (next: CapeSway): CapeSway => {
 
 export const castMeshFromSearch = (search: string): boolean => {
   const params = new URLSearchParams(search);
-  if (!params.has('cast')) return true;
+  if (!params.has('cast')) return false;
   const value = params.get('cast')?.trim().toLowerCase() ?? '';
   return value === '' || value === 'mesh' || value === '1' || value === 'on' || value === 'true';
 };

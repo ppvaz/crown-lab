@@ -151,6 +151,8 @@ const apotheosis = apotheosisFromSearch(
 if (apotheosis.interfaceChrome) document.body.classList.add('apotheosis');
 const documentRoot = (document as unknown as { documentElement?: HTMLElement }).documentElement;
 if (documentRoot !== undefined) documentRoot.dataset.apotheosis = apotheosis.tier;
+
+if (documentRoot !== undefined) documentRoot.dataset.renderer = 'canvas2d';
 const fx = new FxLayer();
 const audio = new Audio();
 const cam = makeCamera(canvas.clientWidth, canvas.clientHeight);

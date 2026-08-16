@@ -1,8 +1,8 @@
 
 import type { World } from '../sim/types';
-import type { Camera } from '../render/iso';
 import type { RoomLayerPainter } from '../render/room-package-lab';
-import { GlBackend } from '../render/gl/backend';
+import type { GlBackend } from '../render/gl/backend';
+import { createGlBackend, glRoomLayer } from '../render/gl/room-layer';
 import type { SunkBody } from '../render/gl/sink';
 import type { Palette } from '../render/palette';
 import { loadSelections, saveSelections } from './prefs';
@@ -46,18 +46,9 @@ export const glRoomFor = (
   collected: SunkBody[],
 ): RoomLayerPainter | null => {
   if (!glRendererEnabled()) return null;
-  backend ??= new GlBackend();
-  const active = backend;
-  return {
-    drawBehind: (ctx: CanvasRenderingContext2D, cam: Camera): void => {
-      collected.length = 0;
-      active.renderRoom(ctx, liveWorld(), cam, { floor: pal.floor, wall: pal.wall, gate: pal.wall });
-    },
-    drawInFront: (ctx: CanvasRenderingContext2D, cam: Camera): void => {
-      active.renderBodies(ctx, cam, collected);
-    },
-    drawsPerFrame: 2,
-  };
+  backend ??= createGlBackend();
+  if (backend === null) return null;
+  return glRoomLayer(backend, liveWorld, pal, collected);
 };
 
 export const rendererFromSearch = (search: string): RendererId => {

@@ -23,7 +23,13 @@ export class HostEventFeed {
     const { audio } = this.host;
     for (const event of events) {
       if (event.type === 'boss_intro_roar_started') audio.setMusicGate(true);
-      if (event.type === 'enemy_died' && this.isBossArchetype(event.data?.archetype)) {
+
+
+      if (
+        event.type === 'enemy_died' &&
+        this.isBossArchetype(event.data?.archetype) &&
+        this.host.world().outcome !== 'running'
+      ) {
         audio.retireMusic();
       }
       if (event.type === 'guard_broken') {

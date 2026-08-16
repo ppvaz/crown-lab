@@ -72,6 +72,7 @@ const THEME_BY_ENCOUNTER: Readonly<Partial<Record<string, GenericArenaTheme>>> =
   concept_kit_gallery: 'concept_kit_gallery',
   concept_clutter_gallery: 'concept_clutter_gallery',
   concept_lantern_cloister: 'concept_fallen_crown',
+  eternal_siege: 'concept_fallen_crown',
   concept_lantern_cloister_baked: 'concept_fallen_crown',
   concept_lantern_cloister_live: 'concept_fallen_crown',
   concept_oath_gallery: 'concept_fallen_crown',
@@ -335,6 +336,7 @@ const AMBIENCE: Record<string, Partial<Ambience>> = {
     wallDisplay: 'none',
   },
   concept_lantern_cloister: LANTERN_CLOISTER_AMBIENCE,
+  eternal_siege: LANTERN_CLOISTER_AMBIENCE,
   concept_lantern_cloister_baked: LANTERN_CLOISTER_AMBIENCE,
   concept_lantern_cloister_live: LANTERN_CLOISTER_AMBIENCE,
   concept_oath_gallery: {

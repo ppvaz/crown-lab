@@ -3,7 +3,7 @@ import { NEUTRAL_INTENT, TICK_MS } from '../sim/types';
 import { hashWorld, stepWorld } from '../sim/world';
 import { fingerprintWorld } from '../lab/engine-probe';
 import { SLOWMO_PRESETS } from '../lab/config';
-import { encounterForSeed, encounterHasBoss, isGeneratedEncounter } from '../lab/encounters';
+import { encounterForSeed, encounterOpensWithBoss, isGeneratedEncounter } from '../lab/encounters';
 import { CHECKPOINT_INTERVAL } from '../lab/telemetry';
 import { applyMasteryTaper, taperPolicyFor } from '../lab/taper';
 import { chainDoorUnderKing, chainDoors, chainSeed } from '../lab/generated-chain';
@@ -13,6 +13,9 @@ import { retryHintFor } from '../game/controls';
 import { labArchetypeColor } from '../render/palette-lab';
 import { LAB_ROOMS } from '../render/rooms/index-lab';
 import { drawScene } from '../render/draw';
+import { bossMusicBedForArchetype, bossMusicBedForEncounter } from '../render/music-route';
+import type { MusicBed } from '../render/soundbank';
+import { ETERNAL_SIEGE_ID } from '../lab/eternal-siege';
 import { glRoomFor, rendererId } from './lab-gl';
 import { withBodySink } from '../render/gl/sink';
 import type { SunkBody } from '../render/gl/sink';
@@ -53,7 +56,7 @@ import {
   castMeshDrawn,
   castMeshPending,
   castMeshStatus,
-  meshDressingEnabled,
+  roomDressingEnabled,
   enemyMeshBody,
   shotMeshBody,
 } from './lab-cast-mesh';
@@ -98,7 +101,7 @@ export const createLabFrame = (
     if (lab.flags.paused && !lab.stepOnce) return;
 
     if (
-      encounterHasBoss(kit.encounterDef(), lab.combat) &&
+      encounterOpensWithBoss(kit.encounterDef(), lab.combat) &&
       lab.world.tick === 0 &&
       !audio.musicReady
     ) {
@@ -267,7 +270,7 @@ export const createLabFrame = (
 
     if (showcase.draw(ctx, cam, lab.models, lab.pal, lab.pres, frame.content, dtRealMs)) return;
 
-    const meshDressing = meshDressingEnabled();
+    const meshDressing = roomDressingEnabled();
     const collected: SunkBody[] = [];
     const glRoom = glRoomFor(() => lab.world, lab.pal, collected);
     const room =
@@ -478,8 +481,8 @@ export const createLabFrame = (
       `  turntable    ${showcase.role() ?? 'off'} / ${showcase.state().id} (8 role / 9 state)`,
       `  maze portal  steps ${lab.mazePortalDirection} (U toggle)`,
       `  room render  ${
-        !meshDressingEnabled()
-          ? 'drawn — primitives (mesh dressing off)'
+        !roomDressingEnabled()
+          ? 'drawn — primitives (room dressing off)'
           : webglRoomFor(lab.world.encounter.defId, lab.world.arena, () => lab.world) !== null
           ? 'live — webgl, lit by the fight'
           : webglRoomsPending.has(lab.world.encounter.defId)
@@ -564,7 +567,7 @@ export const createLabFrame = (
             devicePixelRatio: window.devicePixelRatio || 1,
             viewport: { width: canvas.clientWidth, height: canvas.clientHeight },
             liveRoom:
-              meshDressingEnabled() &&
+              roomDressingEnabled() &&
               webglRoomFor(lab.world.encounter.defId, lab.world.arena, () => lab.world) !== null,
           }),
         });
@@ -599,6 +602,8 @@ export const createLabFrame = (
     root.dataset.runEncounter = dials.encounterId();
   };
 
+  let siegeBedInForce: MusicBed | null = null;
+
   const frame = (nowMs: number): void => {
     framesDrawn += 1;
     const bootPreload = startPreload();
@@ -608,6 +613,28 @@ export const createLabFrame = (
     lab.frameReading = frameMeter.sample(dtRealMs);
     if (sweep !== null && webglRoomsPending.size === 0 && sweep.tick(dtRealMs)) {
       lab.notice = sweep.status();
+    }
+
+
+
+    if (dials.encounterId() === ETERNAL_SIEGE_ID) {
+      const boss = lab.world.enemies.find(
+        (enemy) =>
+          enemy.state.kind !== 'dead' && lab.combat.enemies[enemy.archetype].boss !== undefined,
+      );
+      const wanted =
+        (boss === undefined ? null : bossMusicBedForArchetype(boss.archetype)) ??
+        bossMusicBedForEncounter(ETERNAL_SIEGE_ID);
+
+      const same =
+        siegeBedInForce !== null &&
+        wanted !== null &&
+        wanted.url === siegeBedInForce.url &&
+        wanted.gain === siegeBedInForce.gain;
+      if (wanted !== null && !same) {
+        siegeBedInForce = wanted;
+        audio.setMusicBed(wanted);
+      }
     }
 
     input.update(dtRealMs);

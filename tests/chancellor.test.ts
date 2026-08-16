@@ -29,7 +29,7 @@ describe('the two arms are the same fight', () => {
 
   it('differs from the control on exactly the licensed fields and no others', () => {
     const strip = (def: typeof control) => {
-      const { waves, hazard: _hazard, notes: _notes, description: _description, id: _id, ...rest } =
+      const { waves, notes: _notes, description: _description, id: _id, ...rest } =
         def as typeof control & { notes?: unknown };
       return {
         ...rest,
@@ -41,16 +41,30 @@ describe('the two arms are the same fight', () => {
     };
 
     expect(strip(treatment)).toEqual(strip(control));
-    expect(control.hazard).toBeUndefined();
-    expect(treatment.hazard?.kind).toBe('books');
-    expect(treatment.hazard?.count).toBeGreaterThan(0);
-    expect(treatment.hazard?.phaseTwoCount ?? 0).toBeGreaterThan(treatment.hazard?.count ?? 0);
-    expect(treatment.hazard?.damage).toBeGreaterThan(0);
+  });
+
+  it('carries the books on the Chancellor and leaves the control bare', () => {
+    expect((control as { hazard?: unknown }).hazard).toBeUndefined();
+    expect((treatment as { hazard?: unknown }).hazard).toBeUndefined();
+
+    const books = DEFAULT_COMBAT.enemies.chancellor.hazard;
+    expect(books?.kind).toBe('books');
+    expect(books?.count).toBeGreaterThan(0);
+    expect(books?.phaseTwoCount ?? 0).toBeGreaterThan(books?.count ?? 0);
+    expect(books?.damage).toBeGreaterThan(0);
+
+
+    expect(DEFAULT_COMBAT.enemies.rain_boss.hazard).toBeUndefined();
   });
 
   it('gives both bosses identical statistics, attacks and phase behaviour', () => {
-    const { archetype: _a, boss: bossA, ...neutral } = DEFAULT_COMBAT.enemies.rain_boss;
-    const { archetype: _b, boss: bossB, ...authored } = DEFAULT_COMBAT.enemies.chancellor;
+    const { archetype: _a, boss: bossA, hazard: _ha, ...neutral } = DEFAULT_COMBAT.enemies.rain_boss;
+    const {
+      archetype: _b,
+      boss: bossB,
+      hazard: _hb,
+      ...authored
+    } = DEFAULT_COMBAT.enemies.chancellor;
     expect(authored).toEqual(neutral);
 
     expect(bossA).toBeDefined();

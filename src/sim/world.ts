@@ -148,7 +148,7 @@ export const stepWorld = (
   world.events.length = 0;
   world.tick += 1;
 
-  stepSlowMo(world, slowMo, intents, TICK_MS);
+  stepSlowMo(world, slowMo, combat, intents, TICK_MS);
 
   const paired = world.players.length > 1;
   if (!paired && world.hitstopMs > 0) {
@@ -225,7 +225,7 @@ export const stepPublicWorld = (
   world.events.length = 0;
   world.tick += 1;
 
-  stepSlowMo(world, slowMo, intents, TICK_MS);
+  stepSlowMo(world, slowMo, combat, intents, TICK_MS);
   const paired = world.players.length > 1;
   if (!paired && world.hitstopMs > 0) {
     world.hitstopMs = Math.max(0, world.hitstopMs - TICK_MS);

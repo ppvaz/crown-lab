@@ -1,5 +1,6 @@
 
 import { arenaContains } from '../src/sim/arena';
+import { ETERNAL_SIEGE_ID } from '../src/lab/eternal-siege';
 import { parseEncounterContent } from '../src/lab/content';
 import {
   ENCOUNTERS,
@@ -23,6 +24,10 @@ describe('the seed dial rerolls a generated room', () => {
       expect(Object.keys(rooms)).toEqual(Object.keys(ENCOUNTERS));
       for (const [id, def] of Object.entries(ENCOUNTERS)) {
         if (isGeneratedEncounter(id)) continue;
+        if (id === ETERNAL_SIEGE_ID) {
+          expect(rooms[id].arena, `${id} arena at seed ${seed}`).toBe(def.arena);
+          continue;
+        }
         expect(rooms[id], `${id} at seed ${seed}`).toBe(def);
       }
     }

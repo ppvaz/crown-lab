@@ -394,6 +394,7 @@ export interface EnemyAttackDef {
 
 export interface EnemyConfig {
   archetype: EnemyArchetype;
+  hazard?: EncounterHazard;
   boss?: {
     name: string;
     entranceFallMs: Ms;
@@ -575,6 +576,7 @@ export type SlowMoTrigger =
   | 'lethal_heavy'
   | 'last_enemy'
   | 'multi_threat'
+  | 'first_contact'
   | 'manual';
 
 export interface SlowMoConfig {
@@ -598,6 +600,7 @@ export interface SlowMoState {
   charge: number;
   scales: TimeScales;
   lastTrigger: SlowMoTrigger | null;
+  seenAttacks: string[];
   pending: SlowMoTrigger | null;
   pendingOwner: EntityId | null;
   ownerId: EntityId | null;
@@ -632,7 +635,6 @@ export interface EncounterDef {
   arena: Arena;
   playerStart: Vec2;
   waves: WaveDef[];
-  hazard?: EncounterHazard;
   timeLimitMs: Ms | null;
 }
 

@@ -18,6 +18,8 @@ import {
   configureCastMesh,
   setCastCapeSway,
   setCastMeshEnabled,
+  setRoomDressingEnabled,
+  roomDressingFromSearch,
 } from './lab-cast-mesh';
 import { createLabFlow } from './lab-flow';
 import { createLabCommands } from './lab-commands';
@@ -218,6 +220,7 @@ configureCastMesh({
   saturation: () => lab.pres.visual.saturation,
 });
 setCastMeshEnabled(meshDownloadAllowed() && castMeshFromSearch(location.search));
+setRoomDressingEnabled(roomDressingFromSearch(location.search));
 setCastCapeSway(castCapeFromSearch(location.search));
 const kit = createLabKit(lab, harness, { updatePanel: () => frameCtl.updatePanel() });
 const flow = createLabFlow(lab, kit, harness, { resize: () => frameCtl.resize() });
@@ -280,7 +283,8 @@ dials.applyCapture(captureShot);
 
 
 
-if (captureShot === null || captureShot.id === 'herald-room' || captureShot.route !== undefined) {
+
+if (captureShot !== null && (captureShot.id === 'herald-room' || captureShot.route !== undefined)) {
   flow.enterRoute();
   const captureRun = lab.run as RouteRun | null;
   if (captureShot?.route !== undefined && captureRun !== null) {

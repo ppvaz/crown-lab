@@ -5,6 +5,7 @@ import type {
   Ms,
   Player,
   SlowMoConfig,
+  CombatConfig,
   SlowMoTrigger,
   TimeScales,
   World,
@@ -19,6 +20,7 @@ const TRIGGER_RANK: Record<SlowMoTrigger, number> = {
   lethal_heavy: 45,
   perfect_parry: 40,
   multi_threat: 30,
+  first_contact: 25,
   near_miss: 20,
 };
 
@@ -71,6 +73,7 @@ const effectiveScale = (configured: number, intensity: number): number =>
 export const stepSlowMo = (
   world: World,
   cfg: SlowMoConfig,
+  combat: CombatConfig,
   intents: readonly Intent[],
   dtMs: Ms,
 ): void => {
@@ -122,7 +125,7 @@ export const stepSlowMo = (
   } else {
     const owner = ownerFor(world, cfg, pendingOwner, intents);
     if (canFire(cfg, owner)) {
-      const trigger = chooseTrigger(world, cfg, pending, owner, intentOf(owner));
+      const trigger = chooseTrigger(world, cfg, combat, pending, owner, intentOf(owner));
       if (trigger !== null) activate(world, cfg, trigger, owner);
     }
   }
@@ -171,6 +174,7 @@ const canFire = (cfg: SlowMoConfig, owner: Player): boolean => {
 const chooseTrigger = (
   world: World,
   cfg: SlowMoConfig,
+  combat: CombatConfig,
   pending: SlowMoTrigger | null,
   owner: Player,
   intent: Intent,
@@ -187,6 +191,18 @@ const chooseTrigger = (
 
   if (cfg.triggers.includes('multi_threat') && threatCount(world) >= 2) {
     return 'multi_threat';
+  }
+
+
+
+  if (cfg.triggers.includes('first_contact')) {
+    for (const enemy of world.enemies) {
+      if (enemy.state.kind !== 'telegraph') continue;
+      const id = combat.enemies[enemy.archetype]?.attacks[enemy.state.attackIndex]?.id;
+      if (id === undefined || sm.seenAttacks.includes(id)) continue;
+      sm.seenAttacks.push(id);
+      return 'first_contact';
+    }
   }
 
   if (pending === null) return null;

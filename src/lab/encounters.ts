@@ -1,6 +1,7 @@
 
 import type { CombatConfig, EncounterDef } from '../sim/types';
 import { GENERATED_ID_PREFIX, hashEncounterContent, parseEncounterContent } from './content';
+import { ETERNAL_SIEGE_ID, eternalSiegeFrom } from './eternal-siege';
 import { ENCOUNTER_DOCUMENT } from './rooms/index';
 
 const content = parseEncounterContent(ENCOUNTER_DOCUMENT);
@@ -13,7 +14,16 @@ const contentEncounter = (id: string): EncounterDef => {
   return encounter;
 };
 
-export const ENCOUNTERS: Record<string, EncounterDef> = content.encounters;
+export const ETERNAL_SIEGE: EncounterDef = eternalSiegeFrom(
+  content.encounters.concept_lantern_cloister,
+);
+
+export const ENCOUNTERS: Record<string, EncounterDef> = {
+  ...content.encounters,
+  [ETERNAL_SIEGE_ID]: ETERNAL_SIEGE,
+};
+
+export const LAB_DEFAULT_ENCOUNTER_ID = ETERNAL_SIEGE_ID;
 
 export const DEFAULT_ENCOUNTER: EncounterDef = content.defaultEncounter;
 
@@ -28,11 +38,14 @@ export const isGeneratedEncounter = (id: string): boolean => id.startsWith(GENER
 let rerolled: { seed: number; encounters: Record<string, EncounterDef> } | null = null;
 
 export const encountersForSeed = (seed: number): Record<string, EncounterDef> => {
-  if (GENERATED_ENCOUNTER_IDS.length === 0) return ENCOUNTERS;
   if (rerolled !== null && rerolled.seed === seed) return rerolled.encounters;
-  const fresh = parseEncounterContent(ENCOUNTER_DOCUMENT, { generatedSeed: seed });
   const encounters = { ...ENCOUNTERS };
-  for (const id of GENERATED_ENCOUNTER_IDS) encounters[id] = fresh.encounters[id];
+
+  encounters[ETERNAL_SIEGE_ID] = eternalSiegeFrom(content.encounters.concept_lantern_cloister, seed);
+  if (GENERATED_ENCOUNTER_IDS.length > 0) {
+    const fresh = parseEncounterContent(ENCOUNTER_DOCUMENT, { generatedSeed: seed });
+    for (const id of GENERATED_ENCOUNTER_IDS) encounters[id] = fresh.encounters[id];
+  }
   rerolled = { seed, encounters };
   return encounters;
 };
@@ -43,7 +56,11 @@ export const encounterForSeed = (id: string, seed: number): EncounterDef =>
 export const SIEGE_10: EncounterDef = contentEncounter('siege_10');
 export const SIEGE_10_PACED: EncounterDef = contentEncounter('siege_10_paced');
 
+const waveHasBoss = (wave: EncounterDef['waves'][number], combat: CombatConfig): boolean =>
+  wave.spawns.some((spawn) => combat.enemies[spawn.archetype].boss !== undefined);
+
 export const encounterHasBoss = (encounter: EncounterDef, combat: CombatConfig): boolean =>
-  encounter.waves.some((wave) =>
-    wave.spawns.some((spawn) => combat.enemies[spawn.archetype].boss !== undefined),
-  );
+  encounter.waves.some((wave) => waveHasBoss(wave, combat));
+
+export const encounterOpensWithBoss = (encounter: EncounterDef, combat: CombatConfig): boolean =>
+  encounter.waves.length > 0 && waveHasBoss(encounter.waves[0], combat);

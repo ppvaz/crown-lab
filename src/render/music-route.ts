@@ -63,12 +63,16 @@ const BOSS_MUSIC_BEDS: Readonly<Record<string, MusicBed>> = {
   first_blade: FIRST_BLADE_MUSIC_BED,
   siege_10: BLADE_OF_HEIR_ALT_MUSIC_BED,
   siege_10_paced: BLADE_OF_HEIR_ALT_MUSIC_BED,
+  eternal_siege: BLADE_OF_HEIR_ALT_MUSIC_BED,
   chancellor: BLADE_OF_HEIR_MUSIC_BED,
   queen: QUEEN_MUSIC_BED,
 };
 
 export const bossMusicBedForEncounter = (encounterId: string): MusicBed | null =>
   BOSS_MUSIC_BEDS[encounterId] ?? null;
+
+export const bossMusicBedForArchetype = (archetype: string): MusicBed | null =>
+  BOSS_MUSIC_BEDS[archetype] ?? null;
 
 export const COURTLY_TAKES: readonly MusicBed[] = [
   MUSIC_BED,

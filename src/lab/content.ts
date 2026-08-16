@@ -369,28 +369,6 @@ const parseWaveBudget = (
   }
 };
 
-const parseHazard = (value: unknown, path: string): NonNullable<EncounterDef['hazard']> => {
-  if (!isRecord(value)) fail(path, 'must be a hazard object');
-  const record = value as Record<string, unknown>;
-  const kind = stringField(record, 'kind', path);
-  if (kind !== 'books') fail(`${path}.kind`, `unknown hazard kind '${kind}'`);
-  const positive = (field: string): number => {
-    if (!isFinite_(record[field])) fail(`${path}.${field}`, 'must be a number');
-    const n = record[field] as number;
-    if (n < 0) fail(`${path}.${field}`, 'must not be negative');
-    return n;
-  };
-  const hazard: NonNullable<EncounterDef['hazard']> = {
-    kind: 'books',
-    count: positive('count'),
-    speed: positive('speed'),
-    damage: positive('damage'),
-  };
-  if (record.phaseTwoCount !== undefined) hazard.phaseTwoCount = positive('phaseTwoCount');
-  if (hazard.speed <= 0) fail(`${path}.speed`, 'must be greater than zero');
-  return hazard;
-};
-
 const parseEncounter = (
   value: unknown,
   path: string,
@@ -447,8 +425,9 @@ const parseEncounter = (
     if (record.exploration !== true) fail(`${path}.exploration`, 'is either true or absent');
     encounter.exploration = true;
   }
+
   if (record.hazard !== undefined) {
-    encounter.hazard = parseHazard(record.hazard, `${path}.hazard`);
+    fail(`${path}.hazard`, 'moved onto EnemyConfig — declare it on the body, not the room');
   }
   return encounter;
 };

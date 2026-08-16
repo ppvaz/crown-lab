@@ -687,7 +687,20 @@ const SLOWMO_NONE: SlowMoConfig = {
   chargePerActivation: 3,
 };
 
-export const DEFAULT_SLOWMO: SlowMoConfig = SLOWMO_NONE;
+const SLOWMO_SHIPPED: SlowMoConfig = {
+  ...SLOWMO_NONE,
+  mode: 'static',
+  triggers: ['parry_streak', 'lethal_heavy', 'last_enemy', 'first_contact'],
+  ...SCALES,
+  streakThreshold: 3,
+  durationMs: 900,
+  blendMs: 90,
+  cooldownMs: 5200,
+  maxPerEncounter: 3,
+  endOnDecisiveAction: true,
+};
+
+export const DEFAULT_SLOWMO: SlowMoConfig = SLOWMO_SHIPPED;
 
 export const SLOWMO_PRESETS: Record<string, SlowMoConfig> = {
   none: SLOWMO_NONE,
@@ -703,6 +716,8 @@ export const SLOWMO_PRESETS: Record<string, SlowMoConfig> = {
     maxPerEncounter: 6,
     endOnDecisiveAction: true,
   },
+
+  shipped: SLOWMO_SHIPPED,
 
   assist: {
     ...SLOWMO_NONE,
@@ -768,4 +783,4 @@ export const SLOWMO_PRESETS: Record<string, SlowMoConfig> = {
   },
 };
 
-export const DEFAULT_SLOWMO_ID = 'none';
+export const DEFAULT_SLOWMO_ID = 'shipped';

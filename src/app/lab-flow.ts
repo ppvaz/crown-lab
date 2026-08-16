@@ -15,7 +15,7 @@ import {
   ENCOUNTERS,
   ENCOUNTER_CONTENT_HASH,
   encounterForSeed,
-  encounterHasBoss,
+  encounterOpensWithBoss,
 } from '../lab/encounters';
 import { MODE_PROFILE_IDS, modeProfile } from '../lab/modes';
 import { orchestrationPolicyFor } from '../lab/orchestrator';
@@ -79,10 +79,9 @@ export const createLabFlow = (
         : presentationOrchestrator.update(policy, liveMastery.estimate).presentation;
     const key = `${next.id}|${lab.run === null ? 'lab' : 'route'}`;
     if (key === lab.appliedPresentationKey) return;
-    lab.pres =
-      lab.run === null
-        ? next
-        : { ...next, visual: { ...next.visual, facingMarks: false } };
+
+
+    lab.pres = { ...next, visual: { ...next.visual, facingMarks: false } };
     lab.appliedPresentationKey = key;
     lab.pal = transformPalette({ ...LAB_FULL_PALETTE }, lab.pres.visual, lab.pres.preserveThreatColors);
     fx.configure(lab.pres, lab.pal, lab.apotheosis, labArchetypeColor);
@@ -113,7 +112,7 @@ export const createLabFlow = (
     cam.arena = lab.world.arena;
     tutorialCoach.reset(def, lab.combat.power, SLOWMO_PRESETS[dials.slowMoId()].mode);
     audio.setMusicBed(labMusicBedForEncounter(dials.encounterId()));
-    audio.setMusicGate(!encounterHasBoss(def, lab.combat));
+    audio.setMusicGate(!encounterOpensWithBoss(def, lab.combat));
     audio.resetMusicMuffle();
     liveMastery.reset();
     presentationOrchestrator.reset();

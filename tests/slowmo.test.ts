@@ -39,7 +39,7 @@ const enemyIn = (world: World, kind: Enemy['state']['kind'], id: number): Enemy 
 };
 
 const tick = (world: World, config: SlowMoConfig, over = {}): void => {
-  stepSlowMo(world, config, [intent(over)], TICK_MS);
+  stepSlowMo(world, config, cfg(), [intent(over)], TICK_MS);
 };
 
 describe('the control condition', () => {
@@ -332,5 +332,73 @@ describe('the budget and the cooldown belong to the player', () => {
 
     expect(w.slowMo.scales.world).toBeLessThan(1);
     expect(w.players[0].slowMoUsedThisEncounter).toBe(0);
+  });
+});
+
+describe('first contact — the teaching trigger', () => {
+  const teaching = (): SlowMoConfig => ({
+    ...preset('shipped'),
+    triggers: ['first_contact'],
+  });
+
+  it('fires on the first telegraph of an attack and not on the second', () => {
+    const w = bareWorld();
+    const c = teaching();
+    enemyIn(w, 'telegraph', 1);
+
+    tick(w, c);
+    expect(w.slowMo.active).toBe(true);
+    expect(w.slowMo.lastTrigger).toBe('first_contact');
+    const taught = cfg().enemies.guard.attacks[0].id;
+    expect(w.slowMo.seenAttacks).toEqual([taught]);
+
+    w.slowMo.active = false;
+    w.slowMo.remainingMs = 0;
+    w.slowMo.lastTrigger = null;
+    w.players[0].slowMoCooldownMs = 0;
+    tick(w, c);
+
+    expect(w.slowMo.active).toBe(false);
+  });
+
+  it('teaches per attack, not per body', () => {
+    const w = bareWorld();
+    const c = teaching();
+    const e = enemyIn(w, 'telegraph', 1);
+    tick(w, c);
+    expect(w.slowMo.seenAttacks).toHaveLength(1);
+
+    w.slowMo.active = false;
+    w.slowMo.remainingMs = 0;
+    w.players[0].slowMoCooldownMs = 0;
+    e.state = { ...e.state, kind: 'telegraph', attackIndex: 1, elapsedMs: 0 };
+    tick(w, c);
+
+    const second = cfg().enemies.guard.attacks[1]?.id;
+    if (second !== undefined && second !== cfg().enemies.guard.attacks[0].id) {
+      expect(w.slowMo.active).toBe(true);
+      expect(w.slowMo.seenAttacks).toHaveLength(2);
+    }
+  });
+
+  it('marks nothing while the trigger is off', () => {
+    const w = bareWorld();
+    enemyIn(w, 'telegraph', 1);
+    tick(w, preset('none'));
+
+    expect(w.slowMo.seenAttacks).toEqual([]);
+    expect(w.slowMo.active).toBe(false);
+  });
+
+  it('does not spend the lesson on a tick the cooldown refuses', () => {
+    const w = bareWorld();
+    const c = teaching();
+    enemyIn(w, 'telegraph', 1);
+    w.players[0].slowMoCooldownMs = 5000;
+
+    tick(w, c);
+
+    expect(w.slowMo.active).toBe(false);
+    expect(w.slowMo.seenAttacks).toEqual([]);
   });
 });

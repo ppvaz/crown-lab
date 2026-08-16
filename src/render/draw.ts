@@ -19,7 +19,7 @@ import { drawHerald } from './herald';
 import { drawCinematicGrounding, drawCinematicPost } from './apotheosis/render';
 import type { ApotheosisConfig } from './apotheosis/config';
 import { sceneTimeMs } from './draw-primitives';
-import { drawArena, visiblePropsFor } from './draw-arena';
+import { drawArena, drawShockwaveShelterClipped, visiblePropsFor } from './draw-arena';
 import { drawEnemy, drawEnemyOverhead } from './draw-enemy';
 import { drawCompanion, drawCompanionOverhead, drawPartnerHealth, drawPlayer, dressingFor } from './draw-actors';
 import { drawChannelCone, drawPowerPreview } from './draw-powers';
@@ -90,8 +90,12 @@ export const drawScene = (
   drawSky(ctx, cam, ambience);
   drawParallax(ctx, cam, ambience);
   if (__CROWN_LAB__) drawEncounterBackground(ctx, world, cam, opts.pal);
-  if (__CROWN_LAB__ && opts.roomLayers) opts.roomLayers.drawBehind(ctx, cam);
-  else drawArena(ctx, world, cam, opts);
+  if (__CROWN_LAB__ && opts.roomLayers) {
+    opts.roomLayers.drawBehind(ctx, cam);
+
+
+    drawShockwaveShelterClipped(ctx, world, cam, opts);
+  } else drawArena(ctx, world, cam, opts);
   opts.groundFx?.();
 
   const actors: Array<{ depth: number; draw: () => void; ground?: () => void }> = [];

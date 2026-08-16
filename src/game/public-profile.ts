@@ -494,6 +494,7 @@ export const PUBLIC_COMBAT = {
     },
     chancellor: {
       archetype: 'chancellor',
+      hazard: { kind: 'books', count: 5, phaseTwoCount: 7, speed: 3.6, damage: 8 },
       boss: {
         name: 'THE CHANCELLOR',
         entranceFallMs: 720,
@@ -2448,13 +2449,6 @@ export const PUBLIC_ENCOUNTERS: Readonly<Record<string, EncounterDef>> = {
       },
     ],
     timeLimitMs: 120000,
-    hazard: {
-      kind: 'books',
-      count: 5,
-      speed: 3.6,
-      damage: 8,
-      phaseTwoCount: 7,
-    },
   },
 
 
@@ -2556,7 +2550,7 @@ export type PublicEncounterId = string;
 export const PUBLIC_SLOWMO_STATIC: SlowMoConfig = {
   ...PUBLIC_SLOWMO,
   mode: 'static',
-  triggers: ['parry_streak', 'lethal_heavy', 'last_enemy'],
+  triggers: ['parry_streak', 'lethal_heavy', 'last_enemy', 'first_contact'],
   worldScale: 0.2,
   playerScale: 0.5,
   streakThreshold: 3,

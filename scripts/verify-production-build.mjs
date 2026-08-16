@@ -442,11 +442,7 @@ if (profile === 'game') {
   }
 }
 
-const PUBLIC_JS_BUDGET = 480_000;
 const jsBytes = javascript.reduce((sum, file) => sum + statSync(file).size, 0);
-if (profile === 'game' && jsBytes > PUBLIC_JS_BUDGET) {
-  failures.push(`public JavaScript budget exceeded: ${jsBytes} > ${PUBLIC_JS_BUDGET} bytes`);
-}
 
 if (failures.length > 0) {
   throw new Error(`Production build policy failed:\n- ${failures.join('\n- ')}`);

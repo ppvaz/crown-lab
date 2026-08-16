@@ -21,13 +21,6 @@
       ]
     }
   ],
-  "hazard": {
-    "kind": "books",
-    "count": 5,
-    "phaseTwoCount": 7,
-    "speed": 3.6,
-    "damage": 8
-  },
   "timeLimitMs": 120000,
   "notes": [
     "The **treatment arm**: `projectile_rain_boss` with a character in it.",

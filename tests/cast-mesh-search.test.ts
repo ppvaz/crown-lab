@@ -3,9 +3,15 @@ import { castMeshFromSearch } from '../src/app/lab-cast-mesh';
 import { CAST_MESHES } from '../src/render/cast-meshes-lab';
 
 describe('asking for the skinned cast from the address bar', () => {
-  it('defaults to the mesh arm', () => {
-    expect(castMeshFromSearch('')).toBe(true);
-    expect(castMeshFromSearch('?capture=arena-training')).toBe(true);
+  it('defaults to the primitive arm', () => {
+    expect(castMeshFromSearch('')).toBe(false);
+    expect(castMeshFromSearch('?capture=arena-training')).toBe(false);
+  });
+
+  it('still reaches the mesh arm by asking for it', () => {
+    expect(castMeshFromSearch('?cast=mesh')).toBe(true);
+    expect(castMeshFromSearch('?cast')).toBe(true);
+    expect(castMeshFromSearch('?cast=on')).toBe(true);
   });
 
   it('accepts an explicit primitive arm and refuses unknown arms', () => {

@@ -402,17 +402,35 @@ const hitsEnemy = (world: World, cfg: CombatConfig, shot: Projectile) => {
   return null;
 };
 
+const biggestThreat = (world: World): Enemy | null => {
+  let worst: Enemy | null = null;
+  for (const e of world.enemies) {
+    if (e.state.kind !== 'telegraph' && e.state.kind !== 'attack') continue;
+    if (enemyIsInvulnerable(e)) continue;
+    if (worst === null || e.state.elapsedMs >= worst.state.elapsedMs) worst = e;
+  }
+  return worst;
+};
+
+const reflectionBearing = (world: World, p: Player): number => {
+  const threat = biggestThreat(world);
+  if (threat === null) return p.facing;
+  const d = sub(threat.pos, p.pos);
+  return dist(threat.pos, p.pos) < 0.05 ? p.facing : angleOf(d);
+};
+
 const reflect = (world: World, p: Player, cfg: CombatConfig, shot: Projectile): void => {
   const back = cfg.player.parry.reflect;
   const speed = len(shot.vel) * back.speedScale;
+  const bearing = reflectionBearing(world, p);
   shot.hostileTo = 'enemy';
   shot.reflected = true;
   shot.turncoat = false;
   shot.damage *= back.damageScale;
-  shot.vel = scale(fromAngle(p.facing), speed);
+  shot.vel = scale(fromAngle(bearing), speed);
   shot.lifeMs = cfg.projectileLifeMs;
   shot.maxLifeMs = cfg.projectileLifeMs;
-  shot.pos = add(p.pos, scale(norm(sub(shot.pos, p.pos)), cfg.player.radius + cfg.projectileRadius + 0.01));
+  shot.pos = add(p.pos, scale(fromAngle(bearing), cfg.player.radius + cfg.projectileRadius + 0.01));
 
   emit(world, 'projectile_reflected', {
     actor: p.id,

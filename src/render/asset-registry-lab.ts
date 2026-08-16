@@ -126,6 +126,8 @@ export const KERNEL_DUELIST_MESH = {
 
 export const LAB_ROOM_MESHES: Readonly<Record<string, RoomMeshSource>> = {
   concept_lantern_cloister_live: LANTERN_CLOISTER_MESH,
+
+  eternal_siege: LANTERN_CLOISTER_MESH,
   kernel_guard: KERNEL_GUARD_MESH,
   kernel_duelist: KERNEL_DUELIST_MESH,
 };

@@ -8,6 +8,8 @@ import {
   DEFAULT_COMBAT,
   PARRY_PRESETS,
   SLOWMO_PRESETS,
+  DEFAULT_SLOWMO,
+  DEFAULT_SLOWMO_ID,
 } from '../src/lab/config';
 import { ENCOUNTERS, DEFAULT_ENCOUNTER_ID } from '../src/lab/encounters';
 import {
@@ -16,6 +18,7 @@ import {
   PUBLIC_ENCOUNTER_IDS,
   PUBLIC_ENCOUNTERS,
   PUBLIC_SLOWMO,
+  PUBLIC_SLOWMO_STATIC,
 } from '../src/game/public-profile';
 import { arenaContains, arenaGeometryIsValid } from '../src/sim/arena';
 import { bareWorld, intent, run } from './support/world';
@@ -159,6 +162,10 @@ describe('public distribution allow-list', () => {
     }
     expect(PUBLIC_COMBAT.drops).toEqual(DEFAULT_COMBAT.drops);
     expect(PUBLIC_SLOWMO).toEqual(SLOWMO_PRESETS.none);
+
+    expect(PUBLIC_SLOWMO_STATIC).toEqual(SLOWMO_PRESETS.shipped);
+    expect(DEFAULT_SLOWMO).toEqual(SLOWMO_PRESETS.shipped);
+    expect(DEFAULT_SLOWMO_ID).toBe('shipped');
 
     expect(PUBLIC_ENCOUNTER_IDS).toEqual(['siege_10', 'first_blade']);
     for (const id of PUBLIC_ENCOUNTER_IDS) {

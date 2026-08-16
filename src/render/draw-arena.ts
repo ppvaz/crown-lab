@@ -163,6 +163,24 @@ const drawArenaGates = (
 };
 
 
+export const drawShockwaveShelterClipped = (
+  ctx: CanvasRenderingContext2D,
+  world: World,
+  cam: Camera,
+  opts: DrawOpts,
+): void => {
+  const corners = arenaVertices(world.arena).map((p) => worldToScreen(cam, p));
+  if (corners.length < 3) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < corners.length; i++) ctx.lineTo(corners[i].x, corners[i].y);
+  ctx.closePath();
+  ctx.clip();
+  drawShockwaveShelter(ctx, world, cam, opts);
+  ctx.restore();
+};
+
 const drawShockwaveShelter = (
   ctx: CanvasRenderingContext2D,
   world: World,
