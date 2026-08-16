@@ -275,7 +275,7 @@ const incomingThreats = (world: World, cfg: CombatConfig, skill: PilotSkill): Th
       fromPos: enemy.pos,
       parryable: def.parryable,
       jitterMs: def.telegraphJitterMs,
-      reach,
+      reach: def.range + cfg.player.radius + effectiveLungeDistance(def, cfg.enemies[enemy.archetype]),
     });
   }
 
@@ -335,6 +335,16 @@ const crowdPressure = (world: World, cfg: CombatConfig, reach: number): Vec2 | n
   return norm(scale(sum, -1));
 };
 
+const effectiveLungeDistance = (def: EnemyAttackDef, ecfg: { acceleration: number }): number => {
+  if (def.lungeDistance <= 0 || def.activeMs <= 0) return 0;
+  const tSec = def.activeMs / 1000;
+  const vTop = def.lungeDistance / tSec;
+  const tRamp = vTop / ecfg.acceleration;
+  return tSec <= tRamp
+    ? 0.5 * ecfg.acceleration * tSec * tSec
+    : 0.5 * ecfg.acceleration * tRamp * tRamp + vTop * (tSec - tRamp);
+};
+
 const stepEvades = (impactMs: Ms, cfg: CombatConfig): boolean =>
   impactMs <= cfg.player.step.iframeMs * 0.5 + 40;
 
@@ -363,6 +373,7 @@ const unparryableStandoff = (
     worst = Math.max(worst, def.range + def.lungeDistance + cfg.player.radius);
   }
   if (worst === 0) return 0;
+
 
 
 
