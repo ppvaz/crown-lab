@@ -30,6 +30,7 @@ import {
   volleyServeWithheld,
   wardedStationVel,
 } from './volley';
+import { overlapWithheld } from './overlap';
 import { cos, sin } from './trig';
 import { emit } from './events';
 
@@ -206,7 +207,8 @@ const closeOnTarget = (beat: Beat): void => {
     desiredApproachVel(world, enemy, ecfg, toMovementTarget, movementRange, targetDead),
     dtMs,
   );
-  if (navigation.direct) considerAttack(world, enemy, ecfg, cfg, targetPos, range, targetDead);
+  if (navigation.direct)
+    considerAttack(world, enemy, ecfg, cfg, targetPos, range, targetDead, dtMs);
 };
 
 const repositionForSequence = (beat: Beat): void => {
@@ -642,6 +644,7 @@ const considerAttack = (
   targetPos: Vec2,
   range: number,
   targetDead: boolean,
+  dtMs: Ms,
 ): void => {
   if (targetDead) return;
   if (enemy.attackCooldownMs > 0) return;
@@ -649,6 +652,7 @@ const considerAttack = (
   if (ecfg.attacks.length === 0) return;
   if (!attackSlotFree(world, cfg, enemy)) return;
   if (volleyServeWithheld(world, enemy, ecfg)) return;
+  if (overlapWithheld(world, cfg, enemy, dtMs)) return;
   if (
     ecfg.attacks.every((attack) => attack.kind === 'projectile') &&
     !lineOfSight(world, enemy.pos, targetPos, cfg.projectileRadius)

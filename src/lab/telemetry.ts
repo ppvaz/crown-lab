@@ -27,6 +27,8 @@ export interface RunMeta {
   priorExposure: string;
 
   contentHash?: number;
+
+  encounterHash?: number;
 }
 
 export interface OperatorMeta {
@@ -279,6 +281,9 @@ export const parseRunRecord = (text: string): ParsedRun => {
   if (meta.replayable === false) return { ok: false, reason: 'the run used debug cheats' };
   if (meta.contentHash !== undefined && !isNumber(meta.contentHash)) {
     return { ok: false, reason: 'the record has a malformed content hash' };
+  }
+  if (meta.encounterHash !== undefined && !isNumber(meta.encounterHash)) {
+    return { ok: false, reason: 'the record has a malformed encounter hash' };
   }
 
   const intents = parsed.intents;

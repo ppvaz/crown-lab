@@ -29,11 +29,51 @@ const seeds = listArg('seeds', ['1']).flatMap((entry) => {
 });
 const combatId = listArg('combat', ['Default'])[0];
 const modeId = listArg('mode', [''])[0];
+
+const maxMs = Number(listArg('max-ms', [''])[0] || '') || undefined;
+if (maxMs !== undefined && !Number.isFinite(maxMs)) {
+  console.error('--max-ms: expected a number of milliseconds');
+  process.exit(1);
+}
 const outDir = resolve(root, listArg('out', ['runs'])[0]);
 const write = !flag('no-write');
 
-const { runPilotEncounter, MODE_PROFILES, GENERATED_ENCOUNTER_IDS, encounterForSeed } =
-  await loadSim('src/lab/pilot-run.ts', 'pilot-run');
+const {
+  runPilotEncounter,
+  MODE_PROFILES,
+  GENERATED_ENCOUNTER_IDS,
+  encounterForSeed,
+  invalidateEncounterCache,
+  ETERNAL_SIEGE_ID,
+  ETERNAL_SIEGE_SPEC,
+} = await loadSim('src/lab/pilot-run.ts', 'pilot-run');
+
+
+
+
+
+const fromArg = listArg('siege-from', [])[0];
+if (fromArg !== undefined) {
+  const wave = Number(fromArg);
+  if (!Number.isFinite(wave) || wave < 1) {
+    console.error(`--siege-from: expected a wave number, got ${fromArg}`);
+    process.exit(1);
+  }
+  ETERNAL_SIEGE_SPEC.startWave = wave;
+  invalidateEncounterCache();
+}
+
+const paceArg = listArg('siege-pace', [])[0];
+if (paceArg !== undefined) {
+  const parts = paceArg.split(':').map(Number);
+  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n) || n < 0)) {
+    console.error(`--siege-pace: expected wave:boss:threat in ms, got ${paceArg}`);
+    process.exit(1);
+  }
+  [ETERNAL_SIEGE_SPEC.waveBreathMs, ETERNAL_SIEGE_SPEC.bossBreathMs, ETERNAL_SIEGE_SPEC.msPerThreat] =
+    parts;
+  invalidateEncounterCache();
+}
 
 const sweepingGenerated = flag('generated');
 if (sweepingGenerated && GENERATED_ENCOUNTER_IDS.length === 0) {
@@ -69,7 +109,8 @@ console.log(
 );
 console.log(
   `\n${pad('encounter', 20)} ${pad('pilot', 7)} ${pad('seed', 5)} ${pad('outcome', 8)} ` +
-    `${pad('time', 7)} ${pad('parry', 10)} ${pad('sd', 6)} ${pad('dmg', 5)} ${pad('kills', 6)} replay`,
+    `${pad('time', 7)} ${pad('parry', 10)} ${pad('sd', 6)} ${pad('dmg', 5)} ${pad('kills', 7)} ` +
+    `${pad('waves', 7)} replay`,
 );
 
 let failures = 0;
@@ -87,6 +128,7 @@ for (const encounterId of resolvedEncounters) {
         combatId: resolvedCombat,
         slowMoId: resolvedSlowMo,
         startedAt,
+        maxMs,
       });
       const m = result.metrics;
       const parry =
@@ -98,13 +140,29 @@ for (const encounterId of resolvedEncounters) {
       if (m.outcome === 'running') stalemates += 1;
 
       const def = encounterForSeed(encounterId, seed);
-      const spawned = def.waves.reduce((total, wave) => total + wave.spawns.length, 0);
-      sweep.push({ encounterId, skillId, seed, outcome: m.outcome, spawned, killed: m.enemiesKilled, ms: m.durationMs });
+
+
+      const clocked = def.waves.some((wave) => wave.atMs !== null);
+      const delivered = clocked
+        ? def.waves.filter((wave) => (wave.atMs ?? 0) <= m.durationMs)
+        : def.waves;
+      const spawned = delivered.reduce((total, wave) => total + wave.spawns.length, 0);
+      const reached = clocked ? `${delivered.length}/${def.waves.length}` : '--';
+      sweep.push({
+        encounterId,
+        skillId,
+        seed,
+        outcome: m.outcome,
+        spawned,
+        killed: m.enemiesKilled,
+        ms: m.durationMs,
+        wavesReached: clocked ? delivered.length : null,
+      });
 
       console.log(
         `${pad(encounterId, 20)} ${pad(skillId, 7)} ${pad(seed, 5)} ${pad(m.outcome, 8)} ` +
           `${pad(`${(m.durationMs / 1000).toFixed(1)}s`, 7)} ${parry} ${pad(num(m.offsetSd), 6)} ` +
-          `${pad(num(m.damageTaken), 5)} ${pad(`${m.enemiesKilled}/${spawned}`, 6)} ` +
+          `${pad(num(m.damageTaken), 5)} ${pad(`${m.enemiesKilled}/${spawned}`, 7)} ${pad(reached, 7)} ` +
           `${result.replayOk ? 'ok' : `DIVERGED at tick ${result.divergedAtTick}`}`,
       );
 

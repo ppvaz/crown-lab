@@ -377,6 +377,29 @@ const withParry = (id: string, description: string, parry: ParryDef): CombatConf
   return cfg;
 };
 
+const withOverlaps = (id: string, description: string, atLeadTelegraph: number): CombatConfig => {
+  const cfg = clone(DEFAULT_COMBAT);
+  cfg.id = id;
+  cfg.description = description;
+  cfg.overlaps = [
+    {
+      id: 'arrow_into_guard',
+      lead: 'guard',
+      follow: 'archer',
+      atLeadTelegraph,
+      maxHoldMs: 2000,
+    },
+    {
+      id: 'sweep_into_guard',
+      lead: 'guard',
+      follow: 'duelist',
+      atLeadTelegraph,
+      maxHoldMs: 2000,
+    },
+  ];
+  return cfg;
+};
+
 const withHeavy = (
   id: string,
   description: string,
@@ -609,6 +632,17 @@ const createCombatPresets = (): Record<string, CombatConfig> => ({
     3.2,
     16,
     1.4,
+  ),
+
+  Overlap_Concurrent: withOverlaps(
+    'Overlap_Concurrent',
+    'The arrow and the sweep announce with the guard. Do two telegraphs at once read as one phrase, or as noise?',
+    0.0,
+  ),
+  Overlap_Sequential: withOverlaps(
+    'Overlap_Sequential',
+    'The arrow and the sweep announce as the guard commits. Does answering in sequence produce expressive complexity — Phase 7?',
+    0.9,
   ),
 
   Kit_Sword_Shield: KIT_SWORD_SHIELD,

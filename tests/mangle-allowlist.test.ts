@@ -36,6 +36,7 @@ describe('derived mangle allow-list', () => {
   it('never renames a key of a serialized format', () => {
     for (const name of [
       'contentHash',
+      'encounterHash',
       'pathLength',
       'checkpoints',
       'replayable',

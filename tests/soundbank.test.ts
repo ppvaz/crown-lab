@@ -61,6 +61,8 @@ const DELIBERATELY_SILENT: Readonly<Record<string, string>> = {
   companion_downed: 'same',
   enemy_phase_changed: 'the phase roar is the audible half and it plays',
   enemy_sequence_step: 'each step emits its own telegraph',
+  overlap_released:
+    'a body being let off its leash is not a thing that happened in the room — the telegraph it then commits to is, and that plays',
   enemy_status_applied: 'status audio is unbuilt; the powers are experiments',
   enemy_status_ended: 'same',
   enemy_status_tick: 'same, and a per-tick cue would be a drone',

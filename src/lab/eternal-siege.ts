@@ -73,6 +73,10 @@ export interface EternalSiegeSpec {
   seed: number;
   openingBudget: number;
   budgetPerWave: number;
+  waveBreathMs: number;
+  bossBreathMs: number;
+  msPerThreat: number;
+  startWave: number;
   minSpawnDistance: number;
   maxSpawnDistance: number;
 }
@@ -81,6 +85,10 @@ export const ETERNAL_SIEGE_SPEC: EternalSiegeSpec = {
   seed: 0x51e6e,
   openingBudget: 2,
   budgetPerWave: 0.5,
+  waveBreathMs: WAVE_BREATH_MS,
+  bossBreathMs: BOSS_BREATH_MS,
+  msPerThreat: MS_PER_THREAT,
+  startWave: 1,
   minSpawnDistance: 4.5,
   maxSpawnDistance: 7.5,
 };
@@ -148,7 +156,7 @@ export const planEternalSiege = (
   const gates = usable.length > 0 ? usable : ring;
   let at = 0;
 
-  return Array.from({ length: WAVE_COUNT }, (_, index) => {
+  const all = Array.from({ length: WAVE_COUNT }, (_, index) => {
     const spawns: WaveDef['spawns'] = [];
     const bossWave = (index + 1) % BOSS_EVERY === 0;
     const beat = index % BOSS_EVERY;
@@ -203,9 +211,14 @@ export const planEternalSiege = (
     const wave = { id: `w${index + 1}`, atMs: at, spawns };
     const weight = spawns.reduce((sum, spawn) => sum + THREAT_COST[spawn.archetype], 0);
     const nextIsBoss = (index + 2) % BOSS_EVERY === 0;
-    at += (nextIsBoss ? BOSS_BREATH_MS : WAVE_BREATH_MS) + weight * MS_PER_THREAT;
+    at += (nextIsBoss ? spec.bossBreathMs : spec.waveBreathMs) + weight * spec.msPerThreat;
     return wave;
   });
+
+  const from = Math.max(1, Math.min(WAVE_COUNT, Math.floor(spec.startWave))) - 1;
+  if (from === 0) return all;
+  const offset = all[from].atMs ?? 0;
+  return all.slice(from).map((wave) => ({ ...wave, atMs: (wave.atMs ?? 0) - offset }));
 };
 
 export const eternalSiegeFrom = (room: EncounterDef, seed?: number): EncounterDef => ({

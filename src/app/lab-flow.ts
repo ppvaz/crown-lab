@@ -17,6 +17,7 @@ import {
   encounterForSeed,
   encounterOpensWithBoss,
 } from '../lab/encounters';
+import { hashEncounterDef } from '../lab/content';
 import { MODE_PROFILE_IDS, modeProfile } from '../lab/modes';
 import { orchestrationPolicyFor } from '../lab/orchestrator';
 import { deriveMetrics } from '../lab/metrics';
@@ -135,6 +136,7 @@ export const createLabFlow = (
       ...operator,
       replayable: kit.unreplayableReason() === null,
       contentHash: ENCOUNTER_CONTENT_HASH,
+      encounterHash: hashEncounterDef(def),
     });
     recorder.record(lab.world.events, 0);
 

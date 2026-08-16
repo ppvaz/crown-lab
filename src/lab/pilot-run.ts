@@ -4,8 +4,10 @@ import { TICK_MS } from '../sim/types';
 import { createWorld } from '../sim/encounter';
 import { hashWorld, stepWorld } from '../sim/world';
 import { COMBAT_PRESETS, DEFAULT_SLOWMO_ID, SLOWMO_PRESETS } from './config';
+import { hashEncounterDef } from './content';
 import { ENCOUNTER_CONTENT_HASH, encounterForSeed } from './encounters';
-export { GENERATED_ENCOUNTER_IDS, encounterForSeed } from './encounters';
+export { GENERATED_ENCOUNTER_IDS, encounterForSeed, invalidateEncounterCache } from './encounters';
+export { ETERNAL_SIEGE_ID, ETERNAL_SIEGE_SPEC } from './eternal-siege';
 import type { RunMetrics } from './metrics';
 import { deriveMetrics } from './metrics';
 import { DEFAULT_PILOT_SKILL_ID, PILOT_SKILLS, Pilot } from './pilot';
@@ -74,6 +76,7 @@ export const runPilotEncounter = (opts: PilotRunOptions): PilotRunResult => {
     conditionId: UNRECORDED,
     priorExposure: UNRECORDED,
     contentHash: ENCOUNTER_CONTENT_HASH,
+    encounterHash: hashEncounterDef(encounter),
   });
 
   const maxTicks = Math.ceil((opts.maxMs ?? DEFAULT_MAX_MS) / TICK_MS);

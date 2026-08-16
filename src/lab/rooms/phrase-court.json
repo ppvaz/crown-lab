@@ -1,0 +1,85 @@
+{
+  "id": "phrase_court",
+  "description": "The orthogonal pair, always both alive: a guard to lead and an archer to answer.",
+  "arena": "training_octagon",
+  "playerStart": {
+    "x": 0,
+    "y": 0
+  },
+  "waves": [
+    {
+      "id": "w1",
+      "atMs": 0,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -3.5,
+            "y": -1.0
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 6.5,
+            "y": 2.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "w2",
+      "atMs": null,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": 3.5,
+            "y": -1.0
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": -6.5,
+            "y": 2.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "w3",
+      "atMs": null,
+      "spawns": [
+        {
+          "archetype": "guard",
+          "at": {
+            "x": -3.0,
+            "y": 2.5
+          }
+        },
+        {
+          "archetype": "duelist",
+          "at": {
+            "x": 3.0,
+            "y": 2.5
+          }
+        },
+        {
+          "archetype": "archer",
+          "at": {
+            "x": 7.0,
+            "y": -3.0
+          }
+        }
+      ]
+    }
+  ],
+  "timeLimitMs": 120000,
+  "notes": [
+    "Phase 7's room, and the distinction it exists to hold is composition versus choreography. `overlap_court` next door already overlaps *by density* \u2014 a wave lands while the last is still alive \u2014 and that is what `maxSimultaneousAttackers` is tested against. It is not an authored phrase: measured on 2026-08-16, three releases in a thirty-three second run and two of them timeouts, because its duelist waves have no guard alive to answer and a follower with no lead is just a body on a delay.",
+    "So every wave here pairs a lead with a follower and keeps both standing. The guard leads in all three because it is the one body with zero telegraph jitter, so the release moment is the authored number and not the authored number plus a die.",
+    "Wave 3 is the trio the lab spec's Phase 7 line actually asks for \u2014 guard, duelist and archer, the three orthogonal questions \u2014 and it is last because two bodies phrasing against each other is the thing being read, and three is where it either survives contact or stops being legible.",
+    "No absolute time. A phrase that has to be answered is worth more than a schedule that is being kept, and the pacing question belongs to the eternal siege, not here. The arena is the plain training octagon on purpose: `overlap_court` sits in `corner_keep`, which is a three-room keep whose gates lock until a named wave is cleared, so a roster meant to be co-present would be dealt into rooms it cannot leave. That was tried first and the pilot timed out at 1 kill of 7."
+  ]
+}

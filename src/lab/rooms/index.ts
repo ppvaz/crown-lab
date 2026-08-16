@@ -54,6 +54,7 @@ import CONCEPT_LANTERN_CLOISTER_LIVE from './concept-lantern-cloister-live.json'
 import GENERATED_CHAMBERS from './generated-chambers.json';
 import QUEEN from './queen.json';
 import GLASS_REGENT from './glass-regent.json';
+import PHRASE_COURT from './phrase-court.json';
 
 const ORDER = [
   WAYFARER_COURT,
@@ -109,6 +110,7 @@ const ORDER = [
   QUEEN,
   GLASS_REGENT,
   MESH_GUARD,
+  PHRASE_COURT,
 ];
 
 export const ENCOUNTER_DOCUMENT = {

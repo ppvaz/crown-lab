@@ -37,6 +37,10 @@ export const isGeneratedEncounter = (id: string): boolean => id.startsWith(GENER
 
 let rerolled: { seed: number; encounters: Record<string, EncounterDef> } | null = null;
 
+export const invalidateEncounterCache = (): void => {
+  rerolled = null;
+};
+
 export const encountersForSeed = (seed: number): Record<string, EncounterDef> => {
   if (rerolled !== null && rerolled.seed === seed) return rerolled.encounters;
   const encounters = { ...ENCOUNTERS };

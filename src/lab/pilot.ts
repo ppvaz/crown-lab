@@ -11,9 +11,10 @@ import type {
   Vec2,
   World,
 } from '../sim/types';
-import { NEUTRAL_INTENT, enemyIsInvulnerable } from '../sim/types';
+import { NEUTRAL_INTENT, TICK_MS, enemyIsInvulnerable } from '../sim/types';
 import { add, angleDelta, angleOf, dist, dot, len, norm, scale, sub } from '../sim/vec';
 import { makeRng, nextRange } from '../sim/rng';
+import { arenaContains, arenaVertices } from '../sim/arena';
 
 export interface PilotSkill {
   id: string;
@@ -76,6 +77,7 @@ interface Threat {
   fromPos: Vec2;
   parryable: boolean;
   jitterMs: Ms;
+  lane?: Vec2;
 }
 
 interface Threats {
@@ -144,6 +146,88 @@ const projectileImpactMs = (world: World, cfg: CombatConfig, shot: Projectile): 
   return (Math.max(0, gap) / speed) * 1000;
 };
 
+const traversingImpactMs = (
+  world: World,
+  cfg: CombatConfig,
+  enemy: Enemy,
+  def: EnemyAttackDef,
+): Ms | null => {
+  if (def.traversesArena !== true) return null;
+  const p = world.players[0];
+  const toPlayer = sub(p.pos, enemy.pos);
+  const speed = len(enemy.vel);
+
+
+
+  if (enemy.state.kind === 'telegraph') {
+
+
+    const glideSpeed = cfg.enemies[enemy.archetype].sequence?.phaseTwo?.glideSpeed ?? 0;
+    const flightMs = glideSpeed > 0 ? (len(toPlayer) / glideSpeed) * 1000 : 0;
+    return Math.max(0, def.telegraphMs - enemy.state.elapsedMs) + flightMs;
+  }
+  if (speed <= 0.01 || dot(toPlayer, enemy.vel) <= 0) return null;
+  const gap = len(toPlayer) - def.range - cfg.player.radius - cfg.enemies[enemy.archetype].radius;
+  return (Math.max(0, gap) / speed) * 1000;
+};
+
+const rainEscape = (world: World, cfg: CombatConfig, reactionMs: Ms): Vec2 | null => {
+  const p = world.players[0];
+  const threatening = world.projectiles.filter(
+    (shot) =>
+      shot.kind === 'falling' &&
+      shot.hostileTo === 'player' &&
+      shot.impactRadius !== undefined &&
+      shot.lifeMs > reactionMs &&
+      shot.lifeMs <= 1400,
+  );
+  if (threatening.length === 0) return null;
+
+  const caught = (at: Vec2, margin: number): number => {
+    let inside = 0;
+    for (const shot of threatening) {
+      const r = (shot.impactRadius ?? 0) + cfg.player.radius + margin;
+      if (dist(at, shot.pos) < r) inside += 1;
+    }
+    return inside;
+  };
+  if (caught(p.pos, 0) === 0) return null;
+
+  const soonest = threatening.reduce((min, s) => Math.min(min, s.lifeMs), Number.POSITIVE_INFINITY);
+  const travel = (cfg.player.moveSpeed * Math.max(0, soonest - reactionMs)) / 1000;
+  if (travel <= 0.05) return null;
+
+  let best: Vec2 | null = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+  let bestClearance = -Number.POSITIVE_INFINITY;
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    const to = { x: p.pos.x + Math.cos(a) * travel, y: p.pos.y + Math.sin(a) * travel };
+    if (!arenaContains(world.arena, to, cfg.player.radius)) continue;
+    const score = caught(to, 0.15);
+    let clearance = Number.POSITIVE_INFINITY;
+    for (const shot of threatening) {
+      clearance = Math.min(clearance, dist(to, shot.pos) - (shot.impactRadius ?? 0));
+    }
+    if (score < bestScore || (score === bestScore && clearance > bestClearance)) {
+      best = to;
+      bestScore = score;
+      bestClearance = clearance;
+    }
+  }
+  if (best === null) return null;
+  const away = sub(best, p.pos);
+  return len(away) > 0.001 ? norm(away) : null;
+};
+
+const arenaMiddle = (world: World): Vec2 => {
+  const vertices = arenaVertices(world.arena);
+  if (vertices.length === 0) return { x: 0, y: 0 };
+  let sum = { x: 0, y: 0 };
+  for (const v of vertices) sum = add(sum, v);
+  return scale(sum, 1 / vertices.length);
+};
+
 const incomingThreats = (world: World, cfg: CombatConfig, skill: PilotSkill): Threats | null => {
   let best: Threat | null = null;
   let runnerUp: Threat | null = null;
@@ -163,6 +247,20 @@ const incomingThreats = (world: World, cfg: CombatConfig, skill: PilotSkill): Th
     if (!swinging && enemy.state.elapsedMs < skill.reactionMs) continue;
     const def = attackOf(cfg, enemy);
     if (def === undefined || def.kind === 'projectile') continue;
+
+    const traversing = traversingImpactMs(world, cfg, enemy, def);
+    if (traversing !== null) {
+      if (traversing <= 900) {
+        take({
+          impactMs: traversing,
+          fromPos: enemy.pos,
+          parryable: def.parryable,
+          jitterMs: def.telegraphJitterMs,
+          lane: norm(enemy.vel),
+        });
+      }
+      continue;
+    }
 
     const impactMs = swinging ? 0 : Math.max(0, def.telegraphMs - enemy.state.elapsedMs);
     const closing = (cfg.enemies[enemy.archetype].moveSpeed * impactMs) / 1000;
@@ -185,6 +283,30 @@ const incomingThreats = (world: World, cfg: CombatConfig, skill: PilotSkill): Th
 
   return best === null ? null : { soonest: best, second: runnerUp };
 };
+
+const rainPressure = (world: World, cfg: CombatConfig): Vec2 | null => {
+  const p = world.players[0];
+  const MARGIN = 0.6;
+  let sum = { x: 0, y: 0 };
+  for (const shot of world.projectiles) {
+    if (shot.kind !== 'falling' || shot.hostileTo !== 'player') continue;
+    const radius = shot.impactRadius;
+    if (radius === undefined || shot.lifeMs <= 0) continue;
+    const away = sub(p.pos, shot.pos);
+    const gap = len(away);
+    const danger = radius + cfg.player.radius + MARGIN;
+    if (gap >= danger) continue;
+    const depth = (1 - gap / danger) ** 2;
+    const dir = gap > 0.001 ? norm(away) : { x: 1, y: 0 };
+    sum = add(sum, scale(dir, depth));
+  }
+  return len(sum) > 0.001 ? norm(sum) : null;
+};
+
+
+
+
+
 
 const crowdPressure = (world: World, cfg: CombatConfig, reach: number): Vec2 | null => {
   const bearings: number[] = [];
@@ -249,6 +371,7 @@ export class Pilot {
   private pressScatterMs = 0;
   private scatterForTick = -1;
   private orbitSign = 1;
+  private lastTraverseTick = -1;
 
   constructor(skill: PilotSkill = PILOT_SKILLS[DEFAULT_PILOT_SKILL_ID], seed = 1) {
     this.skill = skill;
@@ -257,6 +380,11 @@ export class Pilot {
 
   intent(world: World, cfg: CombatConfig): Intent {
     const p = world.players[0];
+    for (const enemy of world.enemies) {
+      if (!alive(enemy)) continue;
+      if (enemy.state.kind !== 'telegraph' && enemy.state.kind !== 'attack') continue;
+      if (attackOf(cfg, enemy)?.traversesArena === true) this.lastTraverseTick = world.tick;
+    }
     const pc = cfg.player;
     if (p.state.kind === 'dead') return { ...NEUTRAL_INTENT, move: { x: 0, y: 0 } };
 
@@ -282,6 +410,14 @@ export class Pilot {
       return out;
     }
 
+
+    const imminent = threat !== null && threat.impactMs <= 250;
+    const escape = imminent ? null : rainEscape(world, cfg, this.skill.reactionMs);
+    if (escape !== null && accepts) {
+      out.move = escape;
+      return out;
+    }
+
     let steering: 'free' | 'held' = 'free';
     if (threats !== null && accepts) {
       const answer = this.answerThreat(out, world, cfg, threats);
@@ -299,12 +435,32 @@ export class Pilot {
 
     const orbit = scale(perpendicular(dir), this.orbitSign * 0.45);
     const crowd = crowdPressure(world, cfg, reach);
+    const flyByNow =
+      this.lastTraverseTick >= 0 && (world.tick - this.lastTraverseTick) * TICK_MS < 1400;
+    const holdMiddle = flyByNow && target.state.kind !== 'stagger';
+    if (holdMiddle) {
+      const middle = arenaMiddle(world);
+      const toMiddle = sub(middle, p.pos);
+      if (len(toMiddle) > 1.2) {
+        out.move = norm(toMiddle);
+        return out;
+      }
+    }
+
     if (steering === 'held') {
     } else if (crowd !== null) {
       out.move = crowd;
     } else if (gap > standoff + 0.15) out.move = norm({ x: dir.x + orbit.x, y: dir.y + orbit.y });
     else if (gap < standoff - 0.35) out.move = scale(dir, -1);
     else out.move = orbit;
+
+
+
+    const rain = rainPressure(world, cfg);
+    if (rain !== null) {
+      const bent = add(out.move, scale(rain, 1.6));
+      out.move = len(bent) > 0.001 ? norm(bent) : rain;
+    }
 
     if (accepts) this.considerAttack(out, world, cfg, target, gap, threats);
     return out;
@@ -373,6 +529,9 @@ export class Pilot {
     return len(bisector) > 0.001 ? norm(scale(bisector, -1)) : norm(scale(toFirst, -1));
   }
 
+
+
+
   private considerAttack(
     out: Intent,
     world: World,
@@ -389,24 +548,46 @@ export class Pilot {
     const openTarget = target.state.kind === 'recovery' || target.state.kind === 'stagger';
     const riposte = p.riposteWindowMs > 0;
 
+
+
+
+
+
+
+
+    const aimedAt = (attack: AttackDef): boolean => {
+      const bearing = angleOf(sub(target.pos, p.pos));
+      return Math.abs(angleDelta(p.facing, bearing)) <= ((attack.arcDeg / 2) * (Math.PI / 180)) * 0.66;
+    };
+
+
+
+
+    const flyBy = this.lastTraverseTick >= 0 && (world.tick - this.lastTraverseTick) * TICK_MS < 1400;
+    if (flyBy && target.state.kind !== 'stagger') return;
+
     if (
       (riposte || openTarget) &&
+      aimedAt(pc.attacks.heavy) &&
       gap <= heavyReach &&
       p.stamina >= pc.attacks.heavy.staminaCost + this.skill.staminaReserve &&
       this.windowIsClear(threats, commitmentOf(pc.attacks.heavy))
     ) {
       out.heavyPressed = true;
+      out.move = { x: 0, y: 0 };
       this.orbitSign = -this.orbitSign;
       return;
     }
 
     if (
       gap <= lightReach &&
+      aimedAt(pc.attacks.light) &&
       p.stamina >= pc.attacks.light.staminaCost + this.skill.staminaReserve &&
       target.state.kind !== 'telegraph' &&
       this.windowIsClear(threats, commitmentOf(pc.attacks.light))
     ) {
       out.lightPressed = true;
+      out.move = { x: 0, y: 0 };
       this.orbitSign = -this.orbitSign;
     }
   }

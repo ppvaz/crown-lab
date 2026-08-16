@@ -183,6 +183,7 @@ export interface Enemy {
   summoned?: EntityId[];
   summonedAtPhrase?: number;
   frozenMs?: Ms;
+  overlapHeldMs?: Ms;
   burningMs?: Ms;
   burnTickMs?: Ms;
   burnTickIntervalMs?: Ms;
@@ -547,6 +548,14 @@ export interface DropConfig {
   bossesDrop: boolean;
 }
 
+export interface OverlapDef {
+  id: string;
+  lead: EnemyArchetype;
+  follow: EnemyArchetype;
+  atLeadTelegraph: number;
+  maxHoldMs: Ms;
+}
+
 export interface CombatConfig {
   id: string;
   description: string;
@@ -558,6 +567,7 @@ export interface CombatConfig {
   power: PowerKind;
   powers: Record<Exclude<PowerKind, 'none'>, PowerDef>;
   maxSimultaneousAttackers: number;
+  overlaps?: OverlapDef[];
   projectileRadius: number;
   projectileLifeMs: Ms;
 }
@@ -673,6 +683,7 @@ export type SimEventType =
   | 'stamina_empty'
   | 'enemy_telegraph'
   | 'enemy_feint'
+  | 'overlap_released'
   | 'enemy_attack'
   | 'boss_intro_landed'
   | 'boss_intro_roar_started'

@@ -432,16 +432,18 @@ const parseEncounter = (
   return encounter;
 };
 
-export const hashEncounterContent = (content: EncounterContent): number => {
-  const { version: _version, ...behavioral } = content;
-  const canonical = JSON.stringify(behavioral, (key, value) =>
-    value !== null && typeof value === 'object' && !Array.isArray(value)
+export const hashEncounterContent = (content: EncounterContent): number =>
+  fnv1aCanonical((({ version: _version, ...behavioral }) => behavioral)(content));
+
+const fnv1aCanonical = (value: unknown): number => {
+  const canonical = JSON.stringify(value, (key, v) =>
+    v !== null && typeof v === 'object' && !Array.isArray(v)
       ? Object.fromEntries(
-          Object.keys(value as Record<string, unknown>)
+          Object.keys(v as Record<string, unknown>)
             .sort()
-            .map((k) => [k, (value as Record<string, unknown>)[k]]),
+            .map((k) => [k, (v as Record<string, unknown>)[k]]),
         )
-      : value,
+      : v,
   );
   let hash = 0x811c9dc5;
   for (let i = 0; i < canonical.length; i++) {
@@ -450,6 +452,9 @@ export const hashEncounterContent = (content: EncounterContent): number => {
   }
   return hash >>> 0;
 };
+
+export const hashEncounterDef = (def: EncounterDef): number =>
+  fnv1aCanonical((({ description: _description, ...behavioral }) => behavioral)(def));
 
 const migrateV1ToV2 = (document: Record<string, unknown>): Record<string, unknown> =>
   document.version === 1 ? { ...document, version: 2 } : document;
