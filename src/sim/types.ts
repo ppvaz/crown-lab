@@ -334,6 +334,11 @@ export interface StepDef {
   recoveryMs: Ms;
 }
 
+export interface RecoveryCancelDef {
+  afterFraction: number;
+  staminaCost: number;
+}
+
 export interface PlayerConfig {
   maxHp: number;
   maxStamina: number;
@@ -350,6 +355,7 @@ export interface PlayerConfig {
   parry: ParryDef;
   guard: GuardDef;
   step: StepDef;
+  recoveryCancel?: RecoveryCancelDef;
 }
 
 export const playerAttackDef = (state: PlayerState, pc: PlayerConfig): AttackDef | null => {
@@ -680,6 +686,7 @@ export type SimEventType =
   | 'parry_success'
   | 'parry_failed'
   | 'step_started'
+  | 'recovery_cancelled'
   | 'stamina_empty'
   | 'enemy_telegraph'
   | 'enemy_feint'

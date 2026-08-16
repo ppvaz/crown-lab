@@ -1,6 +1,11 @@
 
 import type { CombatConfig, EncounterDef } from '../sim/types';
-import { GENERATED_ID_PREFIX, hashEncounterContent, parseEncounterContent } from './content';
+import {
+  GENERATED_ID_PREFIX,
+  hashEncounterContent,
+  hashEncounterDef,
+  parseEncounterContent,
+} from './content';
 import { ETERNAL_SIEGE_ID, eternalSiegeFrom } from './eternal-siege';
 import { ENCOUNTER_DOCUMENT } from './rooms/index';
 
@@ -56,6 +61,22 @@ export const encountersForSeed = (seed: number): Record<string, EncounterDef> =>
 
 export const encounterForSeed = (id: string, seed: number): EncounterDef =>
   encountersForSeed(seed)[id];
+
+export const replayRefusal = (
+  meta: { encounterId: string; seed: number; contentHash?: number; encounterHash?: number },
+  contentHash: number = ENCOUNTER_CONTENT_HASH,
+): string | null => {
+  if (meta.contentHash !== undefined && meta.contentHash !== contentHash) {
+    return 'recording was played on different content';
+  }
+  if (meta.encounterHash !== undefined) {
+    const room = encounterForSeed(meta.encounterId, meta.seed);
+    if (room !== undefined && hashEncounterDef(room) !== meta.encounterHash) {
+      return 'recording was played on a differently generated room';
+    }
+  }
+  return null;
+};
 
 export const SIEGE_10: EncounterDef = contentEncounter('siege_10');
 export const SIEGE_10_PACED: EncounterDef = contentEncounter('siege_10_paced');

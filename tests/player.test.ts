@@ -1,6 +1,7 @@
 
 import type { World } from '../src/sim/types';
 import { TICK_MS } from '../src/sim/types';
+import { COMBAT_PRESETS } from '../src/lab/config';
 import { bareWorld, cfg, countOf, firstOf, intent, run, ticksFor } from './support/world';
 
 const c = cfg();
@@ -359,5 +360,91 @@ describe('telemetry hygiene', () => {
       .filter((e) => e.type === 'player_state_change')
       .map((e) => e.data?.to);
     expect(kinds).toEqual(['windup', 'active', 'recovery', 'idle']);
+  });
+});
+
+describe('buying out of an attack tail', () => {
+  const open = structuredClone(COMBAT_PRESETS.Commit_Open);
+  const late = structuredClone(COMBAT_PRESETS.Commit_Late);
+
+  const intoTail = (combat: typeof open) => {
+    const w = bareWorld(combat);
+    run(w, 1, intent({ lightPressed: true }), { combat });
+    run(w, ticksFor(LIGHT.windupMs) + ticksFor(LIGHT.activeMs), intent(), { combat });
+    expect(w.players[0].state.kind).toBe('recovery');
+    expect(w.players[0].state.attack).toBe('light');
+    return w;
+  };
+
+  it('the control arm is untouched — no preset, no purchase, no event', () => {
+    const w = intoTail(cfg());
+    const events = run(w, 4, intent({ stepPressed: true }));
+    expect(w.players[0].state.kind).toBe('recovery');
+    expect(countOf(events, 'recovery_cancelled')).toBe(0);
+  });
+
+  it('a step buys the tail under Commit_Open, and says how much of it was left', () => {
+    const w = intoTail(open);
+    const before = w.players[0].stamina;
+    const events = run(w, 1, intent({ stepPressed: true }), { combat: open });
+
+    expect(w.players[0].state.kind).toBe('step');
+    const bought = firstOf(events, 'recovery_cancelled');
+    expect(bought?.data?.attack).toBe('light');
+    expect(bought?.data?.remainingMs).toBeGreaterThan(0);
+    expect(Number(bought?.data?.intoMs) + Number(bought?.data?.remainingMs)).toBe(
+      LIGHT.recoveryMs,
+    );
+    expect(before - w.players[0].stamina).toBe(
+      STEP.staminaCost + open.player.recoveryCancel!.staminaCost,
+    );
+    expect(bought?.data?.staminaCost).toBe(
+      STEP.staminaCost + open.player.recoveryCancel!.staminaCost,
+    );
+  });
+
+  it('refuses the purchase until afterFraction of the tail is spent — the swing is still sold', () => {
+    const w = intoTail(late);
+    const gate = LIGHT.recoveryMs * late.player.recoveryCancel!.afterFraction;
+
+    const early = run(w, ticksFor(gate) - 2, intent({ stepPressed: true }), { combat: late });
+    expect(w.players[0].state.kind).toBe('recovery');
+    expect(countOf(early, 'recovery_cancelled')).toBe(0);
+
+    const later = run(w, 4, intent({ stepPressed: true }), { combat: late });
+    expect(w.players[0].state.kind).toBe('step');
+    expect(countOf(later, 'recovery_cancelled')).toBe(1);
+  });
+
+  it('opens no other door — an attack and a guard are still refused mid-tail', () => {
+    const w = intoTail(open);
+    const events = run(
+      w,
+      4,
+      intent({ lightPressed: true, heavyPressed: true, guardPressed: true, guardHeld: true }),
+      { combat: open },
+    );
+    expect(w.players[0].state.kind).toBe('recovery');
+    expect(countOf(events, 'recovery_cancelled')).toBe(0);
+  });
+
+  it('will not sell a tail the king cannot pay for, and sells none of it', () => {
+    const w = intoTail(open);
+    w.players[0].stamina = STEP.staminaCost;
+    const events = run(w, 4, intent({ stepPressed: true }), { combat: open });
+    expect(w.players[0].state.kind).toBe('recovery');
+    expect(w.players[0].stamina).toBe(STEP.staminaCost);
+    expect(countOf(events, 'recovery_cancelled')).toBe(0);
+  });
+
+  it('leaves the step\u2019s own tail unsellable — it is nobody\u2019s payment', () => {
+    const w = bareWorld(open);
+    run(w, 1, intent({ stepPressed: true }), { combat: open });
+    run(w, ticksFor(STEP.durationMs), intent(), { combat: open });
+    expect(w.players[0].state.kind).toBe('recovery');
+    expect(w.players[0].state.attack).toBe(null);
+
+    const events = run(w, 3, intent({ stepPressed: true }), { combat: open });
+    expect(countOf(events, 'recovery_cancelled')).toBe(0);
   });
 });

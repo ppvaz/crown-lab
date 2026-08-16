@@ -42,6 +42,7 @@
     "pilot": "node scripts/pilot-runs.mjs",
     "score:runs": "node scripts/score-runs.mjs",
     "watch:run": "node scripts/watch-run.mjs",
+    "spectate": "node scripts/spectate-run.mjs",
     "measure:room-zoom": "node scripts/measure-room-zoom.mjs",
     "probe:phone": "node scripts/serve-phone-probe.mjs",
     "rooms:camera": "node scripts/emit-room-camera.mjs",

@@ -622,6 +622,8 @@ export const createLabFrame = (
     root.dataset.runTicks = String(lab.replay.intents.length);
     root.dataset.runPaused = String(lab.flags.paused);
     root.dataset.runEncounter = dials.encounterId();
+
+    root.dataset.runPresentation = dials.presentationId();
   };
 
   let siegeBedInForce: MusicBed | null = null;

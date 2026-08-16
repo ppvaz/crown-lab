@@ -13,6 +13,8 @@ const metrics = (over: Partial<RunMetrics> = {}): RunMetrics => ({
   offsetSd: 60,
   damageTaken: 30,
   hitsTaken: 3,
+  woundsInOwnRecovery: 0,
+  recoveryCancels: 0,
   guardBlocks: 4,
   guardBreaks: 0,
   attacksStarted: 20,

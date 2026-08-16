@@ -16,8 +16,10 @@ export interface RunMetrics {
 
   damageTaken: number;
   hitsTaken: number;
+  woundsInOwnRecovery: number;
   guardBlocks: number;
   guardBreaks: number;
+  recoveryCancels: number;
 
   attacksStarted: number;
   attacksWhiffed: number;
@@ -88,6 +90,8 @@ export const deriveMetrics = (events: readonly SimEvent[], meta: MetricsMeta): R
   let powerHits = 0;
   let maxParryStreak = 0;
   let slowMoActivations = 0;
+  let woundsInOwnRecovery = 0;
+  let recoveryCancels = 0;
 
   let openTelegraphTick: Tick | null = null;
   let openErrorTick: Tick | null = null;
@@ -110,6 +114,7 @@ export const deriveMetrics = (events: readonly SimEvent[], meta: MetricsMeta): R
 
       case 'hit_received':
         hitsTaken += 1;
+        if (ev.data?.playerState === 'recovery') woundsInOwnRecovery += 1;
         damageTaken += num(ev.data?.damage);
         longestCleanMs = Math.max(longestCleanMs, ticksToMs(ev.tick - lastHitTick));
         lastHitTick = ev.tick;
@@ -158,6 +163,10 @@ export const deriveMetrics = (events: readonly SimEvent[], meta: MetricsMeta): R
         slowMoActivations += 1;
         break;
 
+      case 'recovery_cancelled':
+        recoveryCancels += 1;
+        break;
+
       default:
         break;
     }
@@ -186,8 +195,10 @@ export const deriveMetrics = (events: readonly SimEvent[], meta: MetricsMeta): R
     offsetSd: sd(offsets),
     damageTaken,
     hitsTaken,
+    woundsInOwnRecovery,
     guardBlocks,
     guardBreaks,
+    recoveryCancels,
     attacksStarted,
     attacksWhiffed,
     whiffRate: attacksStarted === 0 ? null : attacksWhiffed / attacksStarted,

@@ -409,6 +409,11 @@ export const PRESENTATION_PRESETS: Record<string, PresentationConfig> =
 
 export const DEFAULT_PRESENTATION_ID = 'Full';
 
+export const presentationIdFromSearch = (search: string): string | null => {
+  const raw = new URLSearchParams(search).get('presentation')?.trim();
+  return raw === undefined || raw === '' ? null : raw;
+};
+
 
 export { THREAT_KEYS, contrast, saturate, transformPalette } from '../render/palette';
 

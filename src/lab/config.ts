@@ -400,6 +400,21 @@ const withOverlaps = (id: string, description: string, atLeadTelegraph: number):
   return cfg;
 };
 
+const withRecoveryCancel = (
+  id: string,
+  description: string,
+  afterFraction: number,
+): CombatConfig => {
+  const cfg = clone(DEFAULT_COMBAT);
+  cfg.id = id;
+  cfg.description = description;
+  cfg.player.recoveryCancel = {
+    afterFraction,
+    staminaCost: 18,
+  };
+  return cfg;
+};
+
 const withHeavy = (
   id: string,
   description: string,
@@ -643,6 +658,17 @@ const createCombatPresets = (): Record<string, CombatConfig> => ({
     'Overlap_Sequential',
     'The arrow and the sweep announce as the guard commits. Does answering in sequence produce expressive complexity — Phase 7?',
     0.9,
+  ),
+
+  Commit_Open: withRecoveryCancel(
+    'Commit_Open',
+    'The whole tail is for sale: a step buys out of a swing from the moment it lands. Does a purchasable commitment still read as a commitment?',
+    0.0,
+  ),
+  Commit_Late: withRecoveryCancel(
+    'Commit_Late',
+    'Only the last third is for sale: the swing is sold, and what can be bought is the walk home. Is the punish window still the punish window?',
+    0.67,
   ),
 
   Kit_Sword_Shield: KIT_SWORD_SHIELD,

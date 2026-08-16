@@ -109,8 +109,8 @@ console.log(
 );
 console.log(
   `\n${pad('encounter', 20)} ${pad('pilot', 7)} ${pad('seed', 5)} ${pad('outcome', 8)} ` +
-    `${pad('time', 7)} ${pad('parry', 10)} ${pad('sd', 6)} ${pad('dmg', 5)} ${pad('kills', 7)} ` +
-    `${pad('waves', 7)} replay`,
+    `${pad('time', 7)} ${pad('parry', 10)} ${pad('sd', 6)} ${pad('dmg', 5)} ${pad('tail', 6)} ` +
+    `${pad('kills', 7)} ${pad('waves', 7)} replay`,
 );
 
 let failures = 0;
@@ -162,7 +162,8 @@ for (const encounterId of resolvedEncounters) {
       console.log(
         `${pad(encounterId, 20)} ${pad(skillId, 7)} ${pad(seed, 5)} ${pad(m.outcome, 8)} ` +
           `${pad(`${(m.durationMs / 1000).toFixed(1)}s`, 7)} ${parry} ${pad(num(m.offsetSd), 6)} ` +
-          `${pad(num(m.damageTaken), 5)} ${pad(`${m.enemiesKilled}/${spawned}`, 7)} ${pad(reached, 7)} ` +
+          `${pad(num(m.damageTaken), 5)} ${pad(`${m.woundsInOwnRecovery}/${m.hitsTaken}`, 6)} ` +
+          `${pad(`${m.enemiesKilled}/${spawned}`, 7)} ${pad(reached, 7)} ` +
           `${result.replayOk ? 'ok' : `DIVERGED at tick ${result.divergedAtTick}`}`,
       );
 

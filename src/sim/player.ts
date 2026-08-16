@@ -207,9 +207,59 @@ const beginGuard = (world: World, p: Player): void => {
   transition(world, p, p.parryLockoutMs > 0 ? 'guard' : 'parry');
 };
 
+export const stepPriceNow = (p: Player, cfg: CombatConfig): number | null => {
+  const pc = cfg.player;
+  if (CANCELLABLE.has(p.state.kind)) return pc.step.staminaCost;
+
+  const cancel = pc.recoveryCancel;
+  if (cancel === undefined) return null;
+  const st = p.state;
+  if (st.kind !== 'recovery' || st.attack === null) return null;
+  const def = playerAttackDef(st, pc);
+  if (def === null) return null;
+  if (st.elapsedMs < def.recoveryMs * cancel.afterFraction) return null;
+  return pc.step.staminaCost + cancel.staminaCost;
+};
+
+const tryCancelRecovery = (
+  world: World,
+  p: Player,
+  intent: Intent,
+  cfg: CombatConfig,
+): void => {
+  const pc = cfg.player;
+  if (pc.recoveryCancel === undefined) return;
+  if (!intent.stepPressed) return;
+
+  const st = p.state;
+  if (st.kind !== 'recovery') return;
+  const total = stepPriceNow(p, cfg);
+  if (total === null) return;
+
+  if (p.stamina < total) return;
+
+  const tailMs = playerAttackDef(st, pc)!.recoveryMs;
+
+  emit(world, 'recovery_cancelled', {
+    actor: p.id,
+    data: {
+      attack: st.attack ?? 'none',
+      intoMs: Math.round(st.elapsedMs),
+      remainingMs: Math.round(Math.max(0, tailMs - st.elapsedMs)),
+      staminaCost: total,
+    },
+  });
+  spend(world, p, cfg, pc.recoveryCancel.staminaCost);
+  if (pc.chain !== undefined && !pc.chain.persistThroughStep) resetChain(world, p, 'step');
+  beginStep(world, p, intent, cfg);
+};
+
 const applyIntent = (world: World, p: Player, intent: Intent, cfg: CombatConfig): void => {
   const pc = cfg.player;
-  if (!CANCELLABLE.has(p.state.kind)) return;
+  if (!CANCELLABLE.has(p.state.kind)) {
+    tryCancelRecovery(world, p, intent, cfg);
+    return;
+  }
 
   if (intent.stepPressed && p.stamina >= pc.step.staminaCost) {
     if (pc.chain !== undefined && !pc.chain.persistThroughStep) resetChain(world, p, 'step');

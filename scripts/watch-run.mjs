@@ -113,6 +113,10 @@ console.log(
 );
 console.log(`whiff        ${ratio(metrics.attacksWhiffed, metrics.attacksStarted)}`);
 console.log(`damage       ${metrics.damageTaken} over ${metrics.hitsTaken} hit(s); guard broke ${metrics.guardBreaks}x`);
+console.log(
+  `own tail     ${ratio(metrics.woundsInOwnRecovery, metrics.hitsTaken)} of wounds` +
+    `; bought out ${metrics.recoveryCancels}x`,
+);
 console.log(`answer       ${number(metrics.answerLatencyMean)}ms mean (n=${metrics.answerLatencies.length})`);
 console.log(`recovery     ${number(metrics.recoveryLatencyMean)}ms mean (n=${metrics.recoveryLatencies.length})`);
 console.log(`kills        ${metrics.enemiesKilled}, powers used ${metrics.powersUsed}`);

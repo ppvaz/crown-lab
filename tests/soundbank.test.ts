@@ -54,6 +54,8 @@ const DELIBERATELY_SILENT: Readonly<Record<string, string>> = {
   chain_reset: 'the absence of a next swing is not audible; the swing that follows speaks',
   parry_failed: 'the hit that followed is the answer, and it plays',
   stamina_empty: 'a resource floor is a HUD fact, not an audible one',
+  recovery_cancelled:
+    'the purchase IS a step, and beginStep emits step_started on the same tick — a second cue would be the same act sounding twice',
   enemy_attack:
     'the telegraph announced it and the landing plays as hit_received — except rain_focus, whose strike must sound whether or not it connects',
   arena_gate_opened: 'presentation and telemetry read it; no cue is authored',

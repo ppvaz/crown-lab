@@ -36,6 +36,13 @@ _shot.mjs
 runs/*
 !runs/.gitkeep
 
+# `npm run spectate`: Phase 9's sheets — the same lab frames shot under several presentation
+# conditions, plus a manifest naming the run and its rung (ADR-063). Out for `watch/`'s reasons
+# exactly: private-lab frames, and metrics belonging to a run a script played. Written as its own
+# line rather than folded into a glob with `watch/` because a future third tool should have to
+# write one too, and think about it while doing so.
+spectate/
+
 # Blender render output. The contracts beside it are inputs and are committed; renders are
 # generated evidence, like captures and runs.
 tools/blender/build/

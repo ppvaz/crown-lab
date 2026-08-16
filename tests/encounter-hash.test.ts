@@ -5,6 +5,7 @@ import {
   ENCOUNTER_CONTENT_HASH,
   encounterForSeed,
   invalidateEncounterCache,
+  replayRefusal,
 } from '../src/lab/encounters';
 import { ENCOUNTER_DOCUMENT } from '../src/lab/rooms/index';
 
@@ -69,5 +70,52 @@ describe('the encounter hash names the room a run stood in', () => {
 
   it('is written for an authored room too, where it is redundant on purpose', () => {
     expect(Number.isInteger(hashEncounterDef(encounterForSeed('kernel_guard', 1)))).toBe(true);
+  });
+});
+
+describe('a replay is refused when the room it stood in has moved', () => {
+  afterEach(() => {
+    ETERNAL_SIEGE_SPEC.msPerThreat = 4000;
+    invalidateEncounterCache();
+  });
+
+  const metaFor = (encounterId: string, seed: number) => {
+    invalidateEncounterCache();
+    return {
+      encounterId,
+      seed,
+      contentHash: ENCOUNTER_CONTENT_HASH,
+      encounterHash: hashEncounterDef(encounterForSeed(encounterId, seed)),
+    };
+  };
+
+  it('lets a run replay against the room it was actually played on', () => {
+    expect(replayRefusal(metaFor(ETERNAL_SIEGE_ID, 1))).toBe(null);
+    expect(replayRefusal(metaFor('kernel_guard', 1))).toBe(null);
+  });
+
+  it('refuses a siege recorded before a generator change — the case contentHash passes', () => {
+    const meta = metaFor(ETERNAL_SIEGE_ID, 1);
+
+    ETERNAL_SIEGE_SPEC.msPerThreat = 2600;
+    invalidateEncounterCache();
+
+    expect(replayRefusal({ ...meta, encounterHash: undefined })).toBe(null);
+    expect(replayRefusal(meta)).toBe('recording was played on a differently generated room');
+  });
+
+  it('still refuses on the document, which asks a different question', () => {
+    const meta = metaFor('kernel_guard', 1);
+    expect(replayRefusal({ ...meta, contentHash: meta.contentHash + 1 })).toBe(
+      'recording was played on different content',
+    );
+  });
+
+  it('replays a record that predates either field on faith, which is the old behaviour named', () => {
+    expect(replayRefusal({ encounterId: ETERNAL_SIEGE_ID, seed: 1 })).toBe(null);
+  });
+
+  it('says nothing about an unknown id, which the caller already refuses more clearly', () => {
+    expect(replayRefusal({ encounterId: 'no_such_room', seed: 1, encounterHash: 1234 })).toBe(null);
   });
 });

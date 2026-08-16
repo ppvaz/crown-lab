@@ -16,6 +16,7 @@ import {
   ENCOUNTER_CONTENT_HASH,
   encounterForSeed,
   encounterOpensWithBoss,
+  replayRefusal,
 } from '../lab/encounters';
 import { hashEncounterDef } from '../lab/content';
 import { MODE_PROFILE_IDS, modeProfile } from '../lab/modes';
@@ -231,8 +232,10 @@ export const createLabFlow = (
       lab.replayStatus = 'recording references an unknown preset';
       return;
     }
-    if (meta.contentHash !== undefined && meta.contentHash !== ENCOUNTER_CONTENT_HASH) {
-      lab.replayStatus = 'recording was played on different content';
+
+    const refusal = replayRefusal(meta);
+    if (refusal !== null) {
+      lab.replayStatus = refusal;
       return;
     }
 

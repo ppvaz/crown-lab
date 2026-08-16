@@ -60,6 +60,8 @@ describe('the one-axis rule', () => {
     ['Heavy_Committed', 'player.attacks.heavy.'],
     ['Kit_Sword_Shield', 'player.step.'],
     ['Broadsword', 'player.chain'],
+    ['Commit_Open', 'player.recoveryCancel'],
+    ['Commit_Late', 'player.recoveryCancel'],
   ])('%s moves only %s*', (preset, group) => {
     const changed = axisOf(preset);
     expect(changed.length).toBeGreaterThan(0);
@@ -92,6 +94,26 @@ describe('the one-axis rule', () => {
 
     expect(COMBAT_PRESETS.Movement_Agile.player.moveSpeed).toBeGreaterThan(d.moveSpeed);
     expect(COMBAT_PRESETS.Movement_Deliberate.player.moveSpeed).toBeLessThan(d.moveSpeed);
+  });
+
+  it('brackets the commitment axis on afterFraction alone', () => {
+    const open = COMBAT_PRESETS.Commit_Open.player.recoveryCancel;
+    const late = COMBAT_PRESETS.Commit_Late.player.recoveryCancel;
+    expect(DEFAULT_COMBAT.player.recoveryCancel).toBeUndefined();
+    expect(open).toBeDefined();
+    expect(late).toBeDefined();
+    expect(open!.afterFraction).toBeLessThan(late!.afterFraction);
+    expect(open!.staminaCost).toBe(late!.staminaCost);
+  });
+
+  it('never sells a tail at the price of a plain step', () => {
+    for (const [id, preset] of Object.entries(COMBAT_PRESETS)) {
+      const cancel = preset.player.recoveryCancel;
+      if (cancel === undefined) continue;
+      expect(cancel.staminaCost, id).toBeGreaterThan(0);
+      expect(cancel.afterFraction, id).toBeGreaterThanOrEqual(0);
+      expect(cancel.afterFraction, id).toBeLessThanOrEqual(1);
+    }
   });
 });
 

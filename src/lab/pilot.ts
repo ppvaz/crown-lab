@@ -14,6 +14,7 @@ import type {
 import { NEUTRAL_INTENT, TICK_MS, enemyIsInvulnerable } from '../sim/types';
 import { add, angleDelta, angleOf, dist, dot, len, norm, scale, sub } from '../sim/vec';
 import { makeRng, nextRange } from '../sim/rng';
+import { stepPriceNow } from '../sim/player';
 import { arenaContains, arenaVertices } from '../sim/arena';
 
 export interface PilotSkill {
@@ -403,6 +404,11 @@ export class Pilot {
       p.state.kind === 'guard' ||
       p.state.kind === 'parry';
 
+
+
+    const stepPrice = stepPriceNow(p, cfg);
+    const mayStep = stepPrice !== null && p.stamina >= stepPrice;
+
     const shelter = telegraphedShelter(world, cfg, this.skill.reactionMs);
     if (shelter !== null && accepts) {
       const toward = sub(shelter, p.pos);
@@ -420,9 +426,16 @@ export class Pilot {
 
     let steering: 'free' | 'held' = 'free';
     if (threats !== null && accepts) {
-      const answer = this.answerThreat(out, world, cfg, threats);
+      const answer = this.answerThreat(out, world, cfg, threats, stepPrice, false);
       if (answer === 'answered') return out;
       if (answer === 'retreat') steering = 'held';
+    } else if (threats !== null && mayStep) {
+
+
+
+      const scratch: Intent = { ...out };
+      this.answerThreat(scratch, world, cfg, threats, stepPrice, true);
+      out.stepPressed = scratch.stepPressed;
     }
 
     if (target === null) return out;
@@ -471,7 +484,10 @@ export class Pilot {
     world: World,
     cfg: CombatConfig,
     threats: Threats,
+    stepPrice: number | null,
+    tailOnly: boolean,
   ): 'answered' | 'retreat' | 'none' {
+    const affordable = stepPrice !== null && world.players[0].stamina >= stepPrice;
     const p = world.players[0];
     const pc = cfg.player;
     const threat = threats.soonest;
@@ -481,7 +497,7 @@ export class Pilot {
       out.move = away;
       if (
         threat.impactMs <= pc.step.iframeMs * 0.5 + 40 &&
-        p.stamina >= pc.step.staminaCost &&
+        affordable &&
         p.state.kind !== 'parry'
       ) {
         out.stepPressed = true;
@@ -491,6 +507,10 @@ export class Pilot {
       return 'answered';
     }
 
+
+
+    if (tailOnly) return 'none';
+
     if (this.scatterForTick !== world.tick) {
       this.pressScatterMs = nextRange(this.rng, -this.skill.timingSpreadMs, this.skill.timingSpreadMs);
       this.scatterForTick = world.tick;
@@ -499,7 +519,7 @@ export class Pilot {
     if (!threat.parryable) {
       const stepLead = pc.step.iframeMs * 0.5;
       out.move = norm(scale(sub(threat.fromPos, p.pos), -1));
-      if (threat.impactMs > stepLead + 40 || p.stamina < pc.step.staminaCost) return 'retreat';
+      if (threat.impactMs > stepLead + 40 || !affordable) return 'retreat';
       out.stepPressed = true;
       return 'answered';
     }

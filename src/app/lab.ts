@@ -38,6 +38,7 @@ import {
   operatorMetaFromSearch,
 } from '../lab/telemetry';
 import { modeIdFromSearch } from '../lab/modes';
+import { presentationIdFromSearch } from '../lab/presentation';
 import { Session } from '../lab/session';
 import { LiveMastery } from '../lab/live';
 import { PresentationOrchestrator } from '../lab/orchestrator';
@@ -279,6 +280,24 @@ dials.applyCapture(captureShot);
 {
   const requestedMode = captureShot === null ? modeIdFromSearch(location.search) : null;
   if (requestedMode !== null) flow.applyMode(requestedMode);
+}
+
+
+
+
+{
+  const requestedPresentation =
+    captureShot === null ? presentationIdFromSearch(location.search) : null;
+  if (requestedPresentation !== null) {
+    const index = dials.presentationIds.indexOf(requestedPresentation);
+    if (index < 0) {
+      lab.notice = `unknown presentation: ${requestedPresentation} (have: ${dials.presentationIds.join(', ')})`;
+    } else {
+      dials.presentationIndex = index;
+      flow.applyPresentation();
+      lab.notice = `presentation: ${requestedPresentation} — from the link, not persisted`;
+    }
+  }
 }
 
 
