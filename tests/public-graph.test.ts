@@ -141,6 +141,7 @@ describe('the public module graph', () => {
     'src/render/cast/legacy-king.ts',
     'src/render/travel.ts',
     'src/render/ui-elements.ts',
+    'src/lab/fluidity.ts',
   ].sort();
 
   it('accounts for every module under src/, as graph, apparatus, or neither', () => {

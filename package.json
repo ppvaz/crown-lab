@@ -40,6 +40,7 @@
     "capture:models": "node scripts/capture-model-states.mjs",
     "compare:apotheosis": "node scripts/compare-apotheosis.mjs",
     "pilot": "node scripts/pilot-runs.mjs",
+    "score:runs": "node scripts/score-runs.mjs",
     "watch:run": "node scripts/watch-run.mjs",
     "measure:room-zoom": "node scripts/measure-room-zoom.mjs",
     "probe:phone": "node scripts/serve-phone-probe.mjs",
