@@ -103,7 +103,11 @@ export const drawScene = (
     if (!isNearViewport(cam, pad.at)) continue;
     actors.push({ depth: depthOf(pad.at), draw: pad.draw });
   }
-  const propsAllowed = __CROWN_LAB__ || isPublicRoom(world.encounter.defId);
+
+
+  const composited = __CROWN_LAB__ && opts.roomLayers !== undefined;
+  const propsAllowed =
+    !composited && (__CROWN_LAB__ || isPublicRoom(world.encounter.defId));
   for (const prop of propsAllowed ? visiblePropsFor(world, opts.rooms) : []) {
     if (!isNearViewport(cam, prop.at)) continue;
     actors.push({

@@ -223,6 +223,17 @@ export const UI_ELEMENTS = [
     what: 'RIPOSTE — a live affordance, shorter-lived than a glance',
   },
   {
+    id: 'hud.wave.announce',
+    migrated: true,
+    region: 'affordance',
+    owner: 'render/hud.ts',
+    layer: 'viewport',
+    kind: 'text',
+    profiles: ['game', 'lab'],
+    reading: true,
+    what: 'the wave that just landed, announced in the centre of the field of view',
+  },
+  {
     id: 'hud.peripheral.text',
     migrated: true,
     region: 'objective',

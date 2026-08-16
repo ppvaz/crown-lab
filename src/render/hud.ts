@@ -30,6 +30,7 @@ export interface HudOpts {
   showPowerCooldown?: boolean;
   tutorialPrompt?: string | null;
   routePrompted?: boolean;
+  waveAnnouncement?: string | null;
   outcomeLabels?: { cleared: string; timeout: string; dead: string };
   copy: Copy;
   retryHint: string;
@@ -134,6 +135,27 @@ export const drawHud = (ctx: CanvasRenderingContext2D, world: World, opts: HudOp
     const ry = regionRow(frame, affordance, 0, type.base);
     ctx.fillText(opts.copy.hud.riposte, rx, ry);
     reportUiText(ctx, 'hud.riposte.text', opts.copy.hud.riposte, rx, ry);
+    ctx.font = `${type.small}px ui-monospace, Menlo, monospace`;
+  }
+
+
+
+  const announce = opts.waveAnnouncement;
+  const announcing =
+    announce !== null &&
+    announce !== undefined &&
+    hud.prompts &&
+    !ripostePrompted &&
+    frame.regions.affordance !== undefined;
+  if (announcing) {
+    const affordance = frame.regions.affordance as Rect;
+    ctx.font = `${type.base}px ui-monospace, Menlo, monospace`;
+    ctx.fillStyle = pal.hudText;
+    const width = ctx.measureText(announce).width;
+    const ax = affordance.x + (affordance.w - width) / 2;
+    const ay = regionRow(frame, affordance, 0, type.base);
+    ctx.fillText(announce, ax, ay);
+    reportUiText(ctx, 'hud.wave.announce', announce, ax, ay);
     ctx.font = `${type.small}px ui-monospace, Menlo, monospace`;
   }
 

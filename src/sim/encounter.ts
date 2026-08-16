@@ -246,6 +246,7 @@ export const createWorld = (def: EncounterDef, cfg: CombatConfig, seed: number):
       defId: def.id,
       nextWave: 0,
       elapsedMs: 0,
+      waveClockMs: 0,
       spawnedWaves: [],
       clearedWaves: [],
       hazardsSpawned: 0,
@@ -335,6 +336,12 @@ export const stepEncounter = (
   if (world.outcome !== 'running') return;
   world.encounter.elapsedMs += dtMs;
 
+
+  const bossStanding = world.enemies.some(
+    (enemy) => enemy.state.kind !== 'dead' && cfg.enemies[enemy.archetype].boss !== undefined,
+  );
+  if (!bossStanding) world.encounter.waveClockMs += dtMs;
+
   const latestWave = world.encounter.spawnedWaves.at(-1);
   if (
     latestWave !== undefined &&
@@ -355,7 +362,7 @@ export const stepEncounter = (
     if (wave === undefined) break;
     const due =
       wave.atMs !== null
-        ? world.encounter.elapsedMs >= wave.atMs
+        ? world.encounter.waveClockMs >= wave.atMs
         : world.encounter.nextWave === 0 || aliveCount(world) === 0;
     if (!due) break;
     spawnWave(world, cfg, wave);

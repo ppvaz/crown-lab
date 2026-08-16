@@ -66,7 +66,6 @@ export const createLabCommands = (
     'KeyH', 'KeyT', 'KeyY', 'KeyB', 'Digit6',
     'KeyE',
     'Slash', 'Digit0', 'Digit1', 'Digit2', 'Digit4',
-    'Backslash',
     'Backquote',
     'KeyM', 'Digit3', 'Digit5',
     'LabCape',
@@ -200,9 +199,13 @@ export const createLabCommands = (
         break;
       case 'Backslash': {
         const at = WEATHER_IDS.indexOf(currentWeatherId());
-        lab.notice = `weather: ${setWeather(
+        const chosen = setWeather(
           WEATHER_IDS[cycle(at < 0 ? 0 : at, WEATHER_IDS.length, shiftKey ? -1 : 1)],
-        )}`;
+        );
+
+
+        lab.combat.weather = chosen === 'auto' ? 'auto' : 'fixed';
+        lab.notice = `weather: ${chosen}`;
         break;
       }
       case 'Digit0':

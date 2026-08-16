@@ -2,6 +2,7 @@
 import type { Enemy, Intent, World } from '../src/sim/types';
 import { PLAYER_ID } from '../src/sim/types';
 import { blinkTarget, pullTarget, stepPowers } from '../src/sim/powers';
+import * as simWeather from '../src/sim/weather';
 import { resolveEnemyAttack } from '../src/sim/combat';
 import { spawnProjectile, stepProjectiles } from '../src/sim/projectile';
 import { stepEnemyStatuses } from '../src/sim/status';
@@ -455,6 +456,48 @@ describe('push', () => {
     expect(b.vel.x).toBeGreaterThan(0);
     expect(behind.vel).toEqual({ x: 0, y: 0 });
     expect(countOf(w.events, 'power_hit')).toBe(2);
+  });
+
+  const book = (w: ReturnType<typeof bareWorld>, at: { x: number; y: number }, id: number) => {
+    const shot = {
+      id,
+      kind: 'linear' as const,
+      ownerId: -1,
+      pos: { ...at },
+      vel: { x: -4, y: 0 },
+      radius: 0.18,
+      damage: 8,
+      lifeMs: 3000,
+      maxLifeMs: 3000,
+      hostileTo: 'player' as const,
+      reflected: false,
+      hazard: true,
+    };
+    w.projectiles.push(shot as never);
+    return shot;
+  };
+
+  it('sweeps the room traffic out of the cone', () => {
+    const w = bareWorld();
+    w.players[0].facing = 0;
+    const incoming = book(w, { x: 2, y: 0 }, 90);
+    const behind = book(w, { x: -2, y: 0 }, 91);
+
+    stepPowers(w, w.players[0], intent({ powerPressed: true }), c(), TICK);
+
+    expect(incoming.vel.x).toBeGreaterThan(0);
+    expect(behind.vel).toEqual({ x: -4, y: 0 });
+  });
+
+  it('leaves an arrow alone, because the parry is its answer', () => {
+    const w = bareWorld();
+    w.players[0].facing = 0;
+    const arrow = book(w, { x: 2, y: 0 }, 92);
+    (arrow as { hazard?: boolean }).hazard = false;
+
+    stepPowers(w, w.players[0], intent({ powerPressed: true }), c(), TICK);
+
+    expect(arrow.vel).toEqual({ x: -4, y: 0 });
   });
 
   it('costs posture but no health, leaving the sword to collect the opening', () => {
@@ -1188,5 +1231,58 @@ describe('run feats', () => {
     observeFeats(state, [ev('parry_success')]);
     const earned = ids(state);
     expect(earned.indexOf('first_try')).toBeLessThan(earned.indexOf('untouched'));
+  });
+});
+
+describe('the sky on the powers', () => {
+
+  const { autoSkyAt, AUTO_CYCLE_MS } = simWeather;
+
+  const wetTick = (): number => {
+    for (let t = 0; t < AUTO_CYCLE_MS; t += 1000) if (autoSkyAt(t).rain > 0.5) return t;
+    throw new Error('no rain in the first cycle — the cycle shape changed');
+  };
+
+  it('leaves a held sky doing nothing at all', () => {
+    const clear = structuredClone(COMBAT_PRESETS.Power_Lightning);
+    expect(clear.weather ?? 'fixed').toBe('fixed');
+    expect(simWeather.weatherPowerScale(simWeather.CLEAR_SKY, 'lightning')).toBe(1);
+    expect(simWeather.weatherPowerScale(simWeather.CLEAR_SKY, 'incinerate')).toBe(1);
+  });
+
+  it('buffs lightning and nerfs incinerate by the same magnitude', () => {
+    const sky = autoSkyAt(wetTick());
+    const up = simWeather.weatherPowerScale(sky, 'lightning');
+    const down = simWeather.weatherPowerScale(sky, 'incinerate');
+    expect(up).toBeGreaterThan(1);
+    expect(down).toBeLessThan(1);
+    expect(up - 1).toBeCloseTo(1 - down, 10);
+  });
+
+  it('touches no other power', () => {
+    const sky = autoSkyAt(wetTick());
+    for (const power of ['blink', 'pull', 'push', 'freeze', 'turncoat'] as const) {
+      expect(simWeather.weatherPowerScale(sky, power), power).toBe(1);
+    }
+  });
+
+  it('changes what lightning actually deals, through the cast', () => {
+    const make = (weather: 'fixed' | 'auto') => {
+      const w = bareWorld();
+      const c = structuredClone(COMBAT_PRESETS.Power_Lightning);
+      c.weather = weather;
+      w.tick = Math.round(wetTick() / TICK);
+      w.players[0].facing = 0;
+      w.players[0].stamina = w.players[0].maxStamina;
+      const target = enemyAt(w, { x: 2, y: 0 }, 1, 9000);
+      for (let i = 0; i < 240; i++) {
+        stepPowers(w, w.players[0], intent({ powerHeld: true }), c, TICK);
+      }
+      return { hp: target.hp, max: target.maxHp };
+    };
+
+    const dry = make('fixed');
+    const wet = make('auto');
+    expect(wet.max - wet.hp).toBeGreaterThan(dry.max - dry.hp);
   });
 });

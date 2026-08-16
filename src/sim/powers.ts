@@ -9,7 +9,7 @@ import type {
   PowerKind,
   World,
 } from './types';
-import { enemyIsInvulnerable } from './types';
+import { TICK_MS, enemyIsInvulnerable } from './types';
 import { add, angleDelta, angleOf, dist, fromAngle, len, norm, scale, sub } from './vec';
 import { clampToArena } from './arena';
 import { applyHitstop, inArc } from './combat';
@@ -17,6 +17,7 @@ import { requestSlowMo } from './slowmo';
 import { applyFreeze, applyIncinerate, applyTurncoat } from './status';
 import { asin } from './trig';
 import { emit, killEnemy } from './events';
+import { skyFor, weatherPowerScale } from './weather';
 
 const CASTABLE = new Set(['idle', 'move', 'guard', 'parry']);
 
@@ -235,6 +236,20 @@ const castPush = (
       hurt(world, player, target, 'push', def.damage, def.poiseDamage, i);
     }
   }
+
+
+
+
+  for (const shot of world.projectiles) {
+    if (shot.hazard !== true) continue;
+    if (!inArc(origin, player.facing, shot.pos, def.range + cfg.projectileRadius, def.arcDeg)) {
+      continue;
+    }
+    const away = sub(shot.pos, origin);
+    const direction = len(away) > 0 ? norm(away) : fromAngle(player.facing);
+    shot.vel = scale(direction, def.forceSpeed);
+  }
+
   if (targets.length > 0) applyHitstop(world, def.hitstopMs, player, targets);
   return targets.length;
 };
@@ -371,7 +386,22 @@ export const stepPowers = (
 
   if (cfg.power === 'none') return;
 
-  const channelDef = cfg.powers[cfg.power];
+
+
+
+  const sky = skyFor(cfg, world.tick * TICK_MS);
+  const scale = weatherPowerScale(sky, cfg.power);
+  const scaled = (base: PowerDef): PowerDef =>
+    scale === 1
+      ? base
+      : {
+          ...base,
+          damage: base.damage * scale,
+          poiseDamage: base.poiseDamage * scale,
+          damagePerTick: base.damagePerTick === undefined ? undefined : base.damagePerTick * scale,
+        };
+
+  const channelDef = scaled(cfg.powers[cfg.power]);
   if (channelDef.channeled) {
     stepChannel(world, player, intent, cfg, channelDef, dtMs);
     return;
@@ -381,7 +411,7 @@ export const stepPowers = (
   if (!CASTABLE.has(player.state.kind)) return;
   if (player.powerCooldownMs > 0) return;
 
-  const def = cfg.powers[cfg.power];
+  const def = scaled(cfg.powers[cfg.power]);
   const affordable = player.stamina >= def.staminaCost;
   if (!affordable && def.overcastHpCost <= 0) return;
 

@@ -1,11 +1,11 @@
 
 import type { Arena, World } from '../sim/types';
 import type { Camera } from './iso';
-import { worldToScreenAtElevation } from './iso';
+import { screenToWorld, worldToScreenAtElevation } from './iso';
 import { RESPONSE, flickerDepth, lampFlicker, lean, roomResponse } from './room-light-lab';
 import type { Ripple } from './room-liquid-lab';
 import { LIQUID, RIPPLE_SLOTS, createLiquidSurface, dripsAt } from './room-liquid-lab';
-import { WEATHER, currentWeather, filmStrength, rainAt } from './room-weather-lab';
+import { WEATHER, filmStrength, rainAt, skyAt } from './room-weather-lab';
 import type { RoomLayerPainter, SortedOccluder } from './room-package-lab';
 import type {
   LoadedRoomMesh,
@@ -125,6 +125,7 @@ uniform vec3 uLightCol[${lightCount}];
 uniform vec3 uLampTint[${lightCount}];
 /** (blend toward the tint, gain). See \`lean\`. */
 uniform vec2 uLampMix[${lightCount}];
+uniform float uLampOut[${lightCount}];
 
 /** Rings on the water: (world x, world y, age in seconds, strength). Strength 0 is an empty slot. */
 uniform vec4 uRipples[${RIPPLE_SLOTS}];
@@ -235,6 +236,7 @@ void main() {
 
   if (s >= LAMP_BASE) {
     int lamp = s - LAMP_BASE;
+    if (uLampOut[lamp] > 0.5) discard;
     vec3 body = mix(vCol, uLampTint[lamp], uLampMix[lamp].x) * uLampMix[lamp].y;
     outColor = vec4(pow(body, vec3(1.0 / 2.2)), 1.0);
     return;
@@ -476,6 +478,7 @@ const buildRenderer = (
   const uLightCol = gl.getUniformLocation(program, 'uLightCol');
   const uLampTint = gl.getUniformLocation(program, 'uLampTint');
   const uLampMix = gl.getUniformLocation(program, 'uLampMix');
+  const uLampOut = gl.getUniformLocation(program, 'uLampOut');
 
   const lightPos = new Float32Array(lights.length * 3);
   const lightCol = new Float32Array(lights.length * 3);
@@ -487,9 +490,12 @@ const buildRenderer = (
     lightPos[i * 3 + 2] = light.elevation;
   });
   const reference = referenceEnergy(lights);
+
+  const openFlame = lights.map((light) => light.energy > reference);
   lights.forEach((light, i) => {
-    flameSway[i] = light.energy > reference ? 0.115 : 0.032;
+    flameSway[i] = openFlame[i] ? 0.115 : 0.032;
   });
+  const lampOut = new Float32Array(lights.length);
 
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);
@@ -508,7 +514,8 @@ const buildRenderer = (
     const backing = scale * currentRoomScale();
     resizeTo(Math.round(cam.width * backing), Math.round(cam.height * backing));
     const world = options.world();
-    const weather = currentWeather();
+    const sky = skyAt(roomResponse(world).timeMs);
+    const weather = sky.weather;
     const response = roomResponse(world, weather);
 
     const rings = hasLiquid ? liquid.update(world) : [];
@@ -548,12 +555,18 @@ const buildRenderer = (
     gl.uniform1f(uTime, response.timeMs / 1000);
     gl.uniform1fv(uFlameSway, flameSway);
     gl.uniform4fv(uRipples, rippleData);
-    gl.uniform1f(uLiquid, hasLiquid ? filmStrength(LIQUID.strength, weather) : 0);
+
+    gl.uniform1f(uLiquid, hasLiquid ? filmStrength(LIQUID.strength * sky.wetness, weather) : 0);
     gl.uniform1f(uRain, weather.rain);
     gl.uniform3fv(uLightPos, lightPos);
     gl.uniform3fv(uLightCol, lightCol);
     gl.uniform3fv(uLampTint, lampTint);
     gl.uniform2fv(uLampMix, lampMix);
+
+
+    const doused = ablate.has('lights') || weather.rain >= WEATHER.douseRain;
+    for (let i = 0; i < lampOut.length; i++) lampOut[i] = doused && openFlame[i] ? 1 : 0;
+    gl.uniform1fv(uLampOut, lampOut);
     gl.drawArrays(gl.TRIANGLES, range.first, range.count);
   };
 
@@ -581,7 +594,7 @@ const buildRenderer = (
 
   const paintDrips = (ctx: CanvasRenderingContext2D, cam: Camera, timeMs: number): void => {
     if (!hasLiquid || LIQUID.strength <= 0) return;
-    const drips = dripsAt(timeMs);
+    const drips = dripsAt(timeMs, skyAt(timeMs).dripping);
     if (drips.length === 0) return;
     const alpha = ctx.globalAlpha;
     ctx.fillStyle = 'rgb(206 224 236)';
@@ -596,9 +609,22 @@ const buildRenderer = (
   };
 
   const paintRain = (ctx: CanvasRenderingContext2D, cam: Camera, timeMs: number): void => {
-    const weather = currentWeather();
+    const weather = skyAt(timeMs).weather;
     if (weather.rain <= 0) return;
-    const streaks = rainAt(timeMs, weather);
+
+
+    const corners: readonly [number, number][] = [
+      [0, 0],
+      [cam.width, 0],
+      [0, cam.height],
+      [cam.width, cam.height],
+    ];
+    let reach: number = WEATHER.spread;
+    for (const [sx, sy] of corners) {
+      const at = screenToWorld(cam, sx, sy);
+      reach = Math.max(reach, Math.hypot(at.x - cam.center.x, at.y - cam.center.y));
+    }
+    const streaks = rainAt(timeMs, weather, reach);
     if (streaks.length === 0) return;
     const path = new Path2D();
     for (const streak of streaks) {

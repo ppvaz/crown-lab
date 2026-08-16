@@ -11,6 +11,7 @@ import {
   rainAt,
   setWeather,
 } from '../src/render/room-weather-lab';
+import * as weather from '../src/render/room-weather-lab';
 import { createWorld } from '../src/sim/encounter';
 import { DEFAULT_COMBAT, SLOWMO_PRESETS } from '../src/lab/config';
 import { stepWorld } from '../src/sim/world';
@@ -147,6 +148,65 @@ describe('the dial', () => {
       expect(currentWeatherId()).toBe('clear');
     } finally {
       setWeather('clear');
+    }
+  });
+});
+
+describe('the sky that runs itself', () => {
+  const { autoSkyAt, AUTO_CYCLE_MS, AUTO_DRIP_RAIN } = weather;
+
+  const walk = (): ReturnType<typeof autoSkyAt>[] => {
+    const out = [];
+    for (let t = 0; t < AUTO_CYCLE_MS * 3; t += 2000) out.push(autoSkyAt(t));
+    return out;
+  };
+
+  it('opens clear, so a session does not start in a downpour', () => {
+    const start = autoSkyAt(0);
+    expect(start.rain).toBe(0);
+    expect(start.wetness).toBe(0);
+    expect(start.dripping).toBe(false);
+  });
+
+  it('rains, and spends most of its time not raining', () => {
+    const samples = walk();
+    const wet = samples.filter((s) => s.rain > 0);
+    expect(wet.length).toBeGreaterThan(0);
+    expect(wet.length).toBeLessThan(samples.length * 0.7);
+  });
+
+  it('gives a different cycle a different shape', () => {
+    const first = [];
+    const second = [];
+    for (let t = 0; t < AUTO_CYCLE_MS; t += 2000) {
+      first.push(autoSkyAt(t).rain);
+      second.push(autoSkyAt(AUTO_CYCLE_MS + t).rain);
+    }
+    expect(first).not.toEqual(second);
+  });
+
+  it('is a closed form — asking out of order gives the same answer', () => {
+    const forward = [0, 40_000, 90_000, 150_000, 200_000].map((t) => autoSkyAt(t).rain);
+    const backward = [200_000, 150_000, 90_000, 40_000, 0].map((t) => autoSkyAt(t).rain);
+    expect(backward.reverse()).toEqual(forward);
+  });
+
+  it('keeps the floor wet after the rain stops, and dries it eventually', () => {
+    const samples = walk();
+    expect(samples.some((s) => s.rain === 0 && s.wetness > 0.05)).toBe(true);
+    expect(samples.some((s) => s.wetness === 0)).toBe(true);
+  });
+
+  it('never drips without rain having been heavy', () => {
+    for (const s of walk()) {
+      if (!s.dripping) continue;
+      expect(s.rain > 0 || s.wetness > 0).toBe(true);
+    }
+  });
+
+  it('does not strike out of a dry sky', () => {
+    for (const s of walk()) {
+      if (s.lightning > 0) expect(s.rain).toBeGreaterThanOrEqual(AUTO_DRIP_RAIN);
     }
   });
 });

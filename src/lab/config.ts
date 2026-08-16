@@ -162,6 +162,8 @@ export const DEFAULT_COMBAT: CombatConfig = {
   projectileRadius: 0.18,
   projectileLifeMs: 3000,
   friendlyFire: { melee: false, projectiles: false, poise: false },
+
+  weather: 'fixed',
   power: 'none',
   powers: {
     lightning: {
@@ -700,7 +702,7 @@ const SLOWMO_SHIPPED: SlowMoConfig = {
   endOnDecisiveAction: true,
 };
 
-export const DEFAULT_SLOWMO: SlowMoConfig = SLOWMO_SHIPPED;
+export const DEFAULT_SLOWMO: SlowMoConfig = SLOWMO_NONE;
 
 export const SLOWMO_PRESETS: Record<string, SlowMoConfig> = {
   none: SLOWMO_NONE,
@@ -783,4 +785,4 @@ export const SLOWMO_PRESETS: Record<string, SlowMoConfig> = {
   },
 };
 
-export const DEFAULT_SLOWMO_ID = 'shipped';
+export const DEFAULT_SLOWMO_ID = 'none';

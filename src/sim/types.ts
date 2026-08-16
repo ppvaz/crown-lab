@@ -554,6 +554,7 @@ export interface CombatConfig {
   drops: DropConfig;
   enemies: Record<EnemyArchetype, EnemyConfig>;
   friendlyFire: FriendlyFire;
+  weather?: 'fixed' | 'auto';
   power: PowerKind;
   powers: Record<Exclude<PowerKind, 'none'>, PowerDef>;
   maxSimultaneousAttackers: number;
@@ -645,6 +646,7 @@ export interface EncounterState {
   spawnedWaves: string[];
   clearedWaves: string[];
   hazardsSpawned: number;
+  waveClockMs: Ms;
 }
 
 

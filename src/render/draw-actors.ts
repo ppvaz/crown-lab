@@ -236,7 +236,18 @@ export const drawPlayer = (
       );
     }
     if (live && contactedEnemy !== undefined) {
-      drawSlashArc(ctx, cam, p.pos, contactedEnemy.pos, pal.hudText, SLASH_ELEVATION, 0);
+
+      drawSlashArc(
+        ctx,
+        cam,
+        p.pos,
+        contactedEnemy.pos,
+        pal.hudText,
+        SLASH_ELEVATION,
+        0,
+        pc.radius,
+        opts.cfg.enemies[contactedEnemy.archetype].radius,
+      );
     }
   }
 

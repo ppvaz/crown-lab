@@ -355,6 +355,7 @@ const renderSynthetic = async (spec) => {
     touchControls: document.body.classList.contains('input-touch'),
     showPowerCooldown: spec.showPowerCooldown ?? false,
     tutorialPrompt: spec.tutorialPrompt ?? null,
+    waveAnnouncement: spec.waveAnnouncement ?? null,
     outcomeLabels: { cleared: 'CLEARED', timeout: 'TIMEOUT', dead: 'DEAD' },
     retryHint: spec.retryHint,
   });
@@ -889,6 +890,19 @@ const CASES = [
     spec: {
       encounter: 'siege_10',
       player: { parryStreak: 7, riposteWindowMs: 240, hpFraction: 0.45, staminaFraction: 0.3 },
+    },
+  },
+  {
+
+
+    id: 'game/wave-banner',
+    profiles: ['game', 'lab'],
+    kind: 'synth',
+    what: 'a wave landing, announced in the middle of the field of view',
+    expects: ['hud.wave.announce'],
+    spec: {
+      encounter: 'siege_10',
+      waveAnnouncement: 'BOSS WAVE',
     },
   },
   {

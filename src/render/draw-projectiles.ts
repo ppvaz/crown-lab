@@ -10,6 +10,31 @@ import { drawFloatingLabel } from './text';
 import type { DrawOpts } from './draw';
 import { TAU, mixHex, sceneTimeMs } from './draw-primitives';
 
+const contactShadow = (
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  at: { x: number; y: number },
+  radius: number,
+  colour: string,
+): void => {
+  const ring = groundEllipse(cam, radius);
+  const alpha = ctx.globalAlpha;
+  ctx.beginPath();
+  ctx.ellipse(at.x, at.y + 2, ring.rx, ring.ry, 0, 0, TAU);
+  ctx.globalAlpha = 0.34 * alpha;
+  ctx.fillStyle = '#000';
+  ctx.fill();
+
+
+  ctx.globalAlpha = 0.3 * alpha;
+  ctx.strokeStyle = colour;
+  ctx.lineWidth = Math.max(1, cam.zoom);
+  ctx.stroke();
+  ctx.globalAlpha = alpha;
+};
+
+const FLIGHT_LIFT_PX = 10;
+
 export const drawProjectiles = (
   ctx: CanvasRenderingContext2D,
   world: World,
@@ -231,6 +256,7 @@ export const drawProjectiles = (
 
 
     if (shot.hazard === true) {
+      contactShadow(ctx, cam, p, 0.3, color);
       const spin = sceneTimeMs(world) / 420 + shot.id * 1.7;
       const long = 0.62 * ISO_X * cam.zoom;
       const short = long * 0.6;
@@ -239,7 +265,7 @@ export const drawProjectiles = (
       const sn = Math.sin(spin);
       const at = (dx: number, dy: number, lift = 0) => ({
         x: p.x + dx * cs - dy * sn,
-        y: p.y + (dx * sn + dy * cs) * (ISO_Y / ISO_X) - lift,
+        y: p.y + (dx * sn + dy * cs) * (ISO_Y / ISO_X) - lift - FLIGHT_LIFT_PX * cam.zoom,
       });
       const quad = (points: { x: number; y: number }[]): void => {
         ctx.beginPath();
@@ -290,6 +316,9 @@ export const drawProjectiles = (
       continue;
     }
 
+    contactShadow(ctx, cam, p, 0.2, color);
+
+    const lift = FLIGHT_LIFT_PX * cam.zoom;
     const tail = worldToScreen(cam, {
       x: shot.pos.x - shot.vel.x * 0.04,
       y: shot.pos.y - shot.vel.y * 0.04,
@@ -297,12 +326,12 @@ export const drawProjectiles = (
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(tail.x, tail.y);
-    ctx.lineTo(p.x, p.y);
+    ctx.moveTo(tail.x, tail.y - lift);
+    ctx.lineTo(p.x, p.y - lift);
     ctx.stroke();
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 3, 0, TAU);
+    ctx.arc(p.x, p.y - lift, 3, 0, TAU);
     ctx.fill();
   }
 };

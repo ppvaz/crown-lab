@@ -1290,6 +1290,7 @@ export const PUBLIC_COMBAT = {
   projectileRadius: 0.18,
   projectileLifeMs: 3000,
   friendlyFire: { melee: false, projectiles: false, poise: false },
+  weather: 'fixed',
   power: 'lightning',
   powers: {
     lightning: {

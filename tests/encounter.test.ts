@@ -327,3 +327,42 @@ describe('a room hazard', () => {
     expect(w.encounter.hazardsSpawned).toBe(0);
   });
 });
+
+describe('a paced room with a boss in it', () => {
+  const pacedBoss = () =>
+    def({
+      waves: [
+        { id: 'boss', atMs: 0, spawns: [{ archetype: 'first_blade', at: { x: 4, y: 0 } }] },
+        { id: 'after', atMs: 400, spawns: [{ archetype: 'guard', at: { x: -4, y: 0 } }] },
+      ],
+      timeLimitMs: null,
+    });
+
+  it('holds the next wave while the boss is standing', () => {
+    const c = durable();
+    const d = pacedBoss();
+    const w = createWorld(d, c, 1);
+
+    run(w, ticksFor(3000), intent(), { combat: c, encounter: d });
+
+    expect(w.encounter.elapsedMs).toBeGreaterThan(400);
+    expect(w.encounter.spawnedWaves).toEqual(['boss']);
+    expect(w.encounter.waveClockMs).toBeLessThan(w.encounter.elapsedMs);
+  });
+
+  it('releases it once he is down, one wave rather than a backlog', () => {
+    const c = durable();
+    const d = pacedBoss();
+    const w = createWorld(d, c, 1);
+
+    run(w, ticksFor(3000), intent(), { combat: c, encounter: d });
+    for (const enemy of w.enemies) {
+      enemy.hp = 0;
+      enemy.state = { ...enemy.state, kind: 'dead' };
+    }
+    run(w, ticksFor(1200), intent(), { combat: c, encounter: d });
+
+
+    expect(w.encounter.spawnedWaves).toEqual(['boss', 'after']);
+  });
+});

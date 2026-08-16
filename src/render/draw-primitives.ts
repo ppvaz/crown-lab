@@ -225,6 +225,8 @@ export const strokeGroundAim = (
   ctx.restore();
 };
 
+const BOW_CAP_PX = 92;
+
 export const drawSlashArc = (
   ctx: CanvasRenderingContext2D,
   cam: Camera,
@@ -233,9 +235,20 @@ export const drawSlashArc = (
   color: string,
   fromElevation: number,
   toElevation: number,
+  fromInset = 0,
+  toInset = 0,
 ): void => {
-  const a = worldToScreenAtElevation(cam, from, fromElevation);
-  const b = worldToScreenAtElevation(cam, to, toElevation);
+  const gx = to.x - from.x;
+  const gy = to.y - from.y;
+  const gap = Math.hypot(gx, gy) || 1;
+  const room = Math.max(0.05, gap - fromInset - toInset);
+  const scale = room / gap;
+  const mid = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
+  const start = { x: mid.x - (gx / 2) * scale, y: mid.y - (gy / 2) * scale };
+  const end = { x: mid.x + (gx / 2) * scale, y: mid.y + (gy / 2) * scale };
+
+  const a = worldToScreenAtElevation(cam, start, fromElevation);
+  const b = worldToScreenAtElevation(cam, end, toElevation);
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const len = Math.hypot(dx, dy) || 1;
@@ -243,8 +256,10 @@ export const drawSlashArc = (
   const py = -dx / len;
   const midX = (a.x + b.x) / 2;
   const midY = (a.y + b.y) / 2;
-  const bowFar = 0.34 * len;
-  const bowNear = 0.2 * len;
+
+  const bowed = Math.min(len, BOW_CAP_PX * cam.zoom);
+  const bowFar = 0.34 * bowed;
+  const bowNear = 0.2 * bowed;
 
   ctx.save();
   ctx.lineJoin = 'round';

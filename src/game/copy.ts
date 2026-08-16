@@ -40,6 +40,7 @@ tutorial: {
     retry: (restart: string) => string;
     attempt: string;
     wave: string;
+    bossWave: string;
     enemies: string;
     parryStreak: string;
     riposte: string;
@@ -107,6 +108,7 @@ tutorial: {
     retry: (restart) => `${restart} to retry`,
     attempt: 'attempt',
     wave: 'wave',
+    bossWave: 'BOSS WAVE',
     enemies: 'enemies',
     parryStreak: 'parry streak',
     riposte: 'RIPOSTE',

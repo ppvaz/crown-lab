@@ -51,8 +51,10 @@ const dripReleasedAt = (i: number, k: number): number =>
 
 const dripFallMs = (): number => (LIQUID.dripHeight / LIQUID.dripSpeed) * 1000;
 
-export const dripsAt = (timeMs: number): Drip[] => {
+export const dripsAt = (timeMs: number, dripping = true): Drip[] => {
   const drips: Drip[] = [];
+
+  if (!dripping) return drips;
   if (LIQUID.strength <= 0) return drips;
   const fall = dripFallMs();
   for (let i = 0; i < LIQUID.dripSources; i++) {

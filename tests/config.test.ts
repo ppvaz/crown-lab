@@ -164,8 +164,9 @@ describe('public distribution allow-list', () => {
     expect(PUBLIC_SLOWMO).toEqual(SLOWMO_PRESETS.none);
 
     expect(PUBLIC_SLOWMO_STATIC).toEqual(SLOWMO_PRESETS.shipped);
-    expect(DEFAULT_SLOWMO).toEqual(SLOWMO_PRESETS.shipped);
-    expect(DEFAULT_SLOWMO_ID).toBe('shipped');
+
+    expect(DEFAULT_SLOWMO).toEqual(SLOWMO_PRESETS.none);
+    expect(DEFAULT_SLOWMO_ID).toBe('none');
 
     expect(PUBLIC_ENCOUNTER_IDS).toEqual(['siege_10', 'first_blade']);
     for (const id of PUBLIC_ENCOUNTER_IDS) {

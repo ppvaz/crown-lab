@@ -13,6 +13,8 @@ import { retryHintFor } from '../game/controls';
 import { labArchetypeColor } from '../render/palette-lab';
 import { LAB_ROOMS } from '../render/rooms/index-lab';
 import { drawScene } from '../render/draw';
+import { WaveBanner } from '../render/wave-banner';
+import { waveGatePads } from '../render/wave-gates-lab';
 import { bossMusicBedForArchetype, bossMusicBedForEncounter } from '../render/music-route';
 import type { MusicBed } from '../render/soundbank';
 import { ETERNAL_SIEGE_ID } from '../lab/eternal-siege';
@@ -212,6 +214,21 @@ export const createLabFrame = (
       }
 
       feed.absorb(lab.world.events);
+
+
+      for (const event of lab.world.events) {
+        if (event.type !== 'wave_spawned') continue;
+        const wave = String(event.data?.wave ?? '');
+        const boss = lab.world.enemies.find(
+          (enemy) =>
+            enemy.state.kind !== 'dead' && lab.combat.enemies[enemy.archetype].boss !== undefined,
+        );
+        waveBanner.announce(
+          boss === undefined
+            ? `${copy.hud.wave.toUpperCase()} ${wave.replace(/^w/, '')}`
+            : copy.hud.bossWave,
+        );
+      }
       fx.consume(lab.world.events, lab.world);
 
       spent += TICK_MS;
@@ -312,6 +329,10 @@ export const createLabFrame = (
           fx.drawGround(ctx, cam, lab.world);
         },
         ...conceptScene,
+
+
+
+        floorPads: waveGatePads(ctx, lab.world, cam, lab.pal, kit.encounterDef()),
         ...(lab.run === null && isGeneratedEncounter(dials.encounterId())
           ? {
               floorPads: chainFloorPads(
@@ -377,6 +398,7 @@ export const createLabFrame = (
       simTimeMs: lab.world.tick * TICK_MS,
     });
     drawHud(ctx, lab.world, {
+      waveAnnouncement: waveBanner.text(),
       archetypeColor: labArchetypeColor,
       localPlayer: lab.localPlayer,
       cfg: lab.combat,
@@ -604,6 +626,10 @@ export const createLabFrame = (
 
   let siegeBedInForce: MusicBed | null = null;
 
+  const waveBanner = new WaveBanner();
+
+  let bannerWorld = lab.world;
+
   const frame = (nowMs: number): void => {
     framesDrawn += 1;
     const bootPreload = startPreload();
@@ -623,8 +649,9 @@ export const createLabFrame = (
           enemy.state.kind !== 'dead' && lab.combat.enemies[enemy.archetype].boss !== undefined,
       );
       const wanted =
-        (boss === undefined ? null : bossMusicBedForArchetype(boss.archetype)) ??
-        bossMusicBedForEncounter(ETERNAL_SIEGE_ID);
+        boss === undefined
+          ? bossMusicBedForEncounter(ETERNAL_SIEGE_ID)
+          : bossMusicBedForArchetype(boss.archetype);
 
       const same =
         siegeBedInForce !== null &&
@@ -637,6 +664,11 @@ export const createLabFrame = (
       }
     }
 
+    if (lab.world !== bannerWorld) {
+      bannerWorld = lab.world;
+      waveBanner.reset();
+    }
+    waveBanner.update(dtRealMs);
     input.update(dtRealMs);
 
 

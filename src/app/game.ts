@@ -61,6 +61,7 @@ import {
 import { ActionCamera, actionShot } from '../render/action-camera';
 import type { CameraShot } from '../render/action-camera';
 import { drawScene } from '../render/draw';
+import { WaveBanner } from '../render/wave-banner';
 import { FxLayer } from '../render/fx';
 import { apotheosisFromSearch } from '../render/apotheosis/config';
 import { drawHud } from '../render/hud';
@@ -82,7 +83,7 @@ import { Audio } from '../render/audio';
 import {
   PUBLIC_MATERIAL,
   cueForEvent,
-  musicBedForEncounter,
+  bossMusicBedFor,
 } from '../render/soundbank';
 import { cloneBank } from '../render/models';
 import { PUBLIC_MODELS } from '../render/cast/index-public';
@@ -153,6 +154,7 @@ const documentRoot = (document as unknown as { documentElement?: HTMLElement }).
 if (documentRoot !== undefined) documentRoot.dataset.apotheosis = apotheosis.tier;
 
 if (documentRoot !== undefined) documentRoot.dataset.renderer = 'canvas2d';
+const waveBanner = new WaveBanner();
 const fx = new FxLayer();
 const audio = new Audio();
 const cam = makeCamera(canvas.clientWidth, canvas.clientHeight);
@@ -341,8 +343,8 @@ const setPaused = (next: boolean): void => {
 
 const viewMargin = (): number =>
   gameplayViewMargin(arenaViewMargin(PUBLIC_ROOMS, encounterId()), touchActive());
-const hasBoss = (): boolean =>
-  encounter.waves.some((wave) =>
+const hasBoss = (def: typeof encounter = encounter): boolean =>
+  def.waves.some((wave) =>
     wave.spawns.some((spawn) => combat.enemies[spawn.archetype].boss !== undefined),
   );
 
@@ -396,7 +398,8 @@ const restart = (seed: number = worldSeed): void => {
   models = cloneBank(PUBLIC_MODELS);
   cam.arena = world.arena;
   tutorialCoach.reset(encounter, combat.power, slowMo.mode);
-  audio.setMusicBed(musicBedForEncounter(encounter.id));
+  audio.setMusicBed(bossMusicBedFor(encounter.id, hasBoss()));
+  waveBanner.reset();
   audio.setMusicGate(!hasBoss());
   audio.resetMusicMuffle();
   fx.reset();
@@ -428,7 +431,9 @@ const enterNode = (change: NonNullable<RoomChange>): void => {
   restart(coop?.playing === true ? nextWorldSeed(world, change.node.id) : worldSeed);
   const ahead = nextNode(run);
   if (ahead !== null) {
-    audio.prefetchMusicBed(musicBedForEncounter(PUBLIC_ENCOUNTERS[ahead.encounterId].id));
+
+    const next = PUBLIC_ENCOUNTERS[ahead.encounterId];
+    audio.prefetchMusicBed(bossMusicBedFor(next.id, hasBoss(next)));
   }
 };
 
@@ -510,6 +515,18 @@ const simulate = (dtRealMs: number): void => {
     tutorialCoach.update(intents[localPlayer] ?? NEUTRAL_INTENT, world.events);
     eventFeed.absorb(world.events);
     fx.consume(world.events, world);
+    for (const event of world.events) {
+      if (event.type !== 'wave_spawned') continue;
+      const wave = String(event.data?.wave ?? '');
+      const boss = world.enemies.find(
+        (enemy) => enemy.state.kind !== 'dead' && combat.enemies[enemy.archetype].boss !== undefined,
+      );
+      waveBanner.announce(
+        boss === undefined
+          ? `${copy.hud.wave.toUpperCase()} ${wave.replace(/^w/, '')}`
+          : copy.hud.bossWave,
+      );
+    }
     stepped = true;
     spent += TICK_MS;
   }
@@ -520,6 +537,7 @@ const simulate = (dtRealMs: number): void => {
 
 const renderWorld = (dtRealMs: number): void => {
   fx.update(dtRealMs);
+  waveBanner.update(dtRealMs);
   cam.arena = world.arena;
   advanceCamera(dtRealMs);
   fx.applyShake(cam);
@@ -568,6 +586,7 @@ const render = (dtRealMs: number): void => {
   );
   fx.drawAir(ctx, cam);
   drawHud(ctx, world, {
+    waveAnnouncement: waveBanner.text(),
     archetypeColor: publicArchetypeColor,
     localPlayer,
     cfg: combat,

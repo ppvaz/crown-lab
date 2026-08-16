@@ -368,3 +368,8 @@ const BOSS_MUSIC_BEDS: Readonly<Record<string, MusicBed>> = {
 
 export const musicBedForEncounter = (encounterId: string): MusicBed =>
   BOSS_MUSIC_BEDS[encounterId] ?? MUSIC_BED;
+
+export const DEFAULT_BOSS_MUSIC_BED = BLADE_OF_HEIR_MUSIC_BED;
+
+export const bossMusicBedFor = (encounterId: string, isBoss: boolean): MusicBed =>
+  BOSS_MUSIC_BEDS[encounterId] ?? (isBoss ? DEFAULT_BOSS_MUSIC_BED : MUSIC_BED);

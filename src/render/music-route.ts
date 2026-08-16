@@ -57,6 +57,8 @@ export const LAB_ONLY_BOSS_SCORING: ReadonlySet<string> = new Set([
 
 ]);
 
+export const DEFAULT_BOSS_BED = BLADE_OF_HEIR_MUSIC_BED;
+
 const BOSS_MUSIC_BEDS: Readonly<Record<string, MusicBed>> = {
   captain: CAPTAIN_BLADE_OF_HEIR_MUSIC_BED,
   captain_read: CAPTAIN_BLADE_OF_HEIR_MUSIC_BED,
