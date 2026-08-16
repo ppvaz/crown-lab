@@ -6,6 +6,7 @@ import type {
   EnemyAttackDef,
   Intent,
   Ms,
+  Player,
   Projectile,
   RngState,
   Vec2,
@@ -78,6 +79,7 @@ interface Threat {
   fromPos: Vec2;
   parryable: boolean;
   jitterMs: Ms;
+  reach?: number;
   lane?: Vec2;
 }
 
@@ -273,6 +275,7 @@ const incomingThreats = (world: World, cfg: CombatConfig, skill: PilotSkill): Th
       fromPos: enemy.pos,
       parryable: def.parryable,
       jitterMs: def.telegraphJitterMs,
+      reach,
     });
   }
 
@@ -332,20 +335,41 @@ const crowdPressure = (world: World, cfg: CombatConfig, reach: number): Vec2 | n
   return norm(scale(sum, -1));
 };
 
+const stepEvades = (impactMs: Ms, cfg: CombatConfig): boolean =>
+  impactMs <= cfg.player.step.iframeMs * 0.5 + 40;
+
+const stepTravel = (ms: Ms, cfg: CombatConfig): number =>
+  Math.min(ms, cfg.player.step.durationMs) * (cfg.player.step.distance / cfg.player.step.durationMs);
+
+const stepOutrunsReach = (p: Player, cfg: CombatConfig, threat: Threat): boolean => {
+  if (threat.reach === undefined) return false;
+  const gap = dist(p.pos, threat.fromPos);
+  const walked = (cfg.player.moveSpeed * threat.impactMs) / 1000;
+  if (gap + walked >= threat.reach) return false;
+  return gap + stepTravel(threat.impactMs, cfg) >= threat.reach;
+};
+
+
 const unparryableStandoff = (
   cfg: CombatConfig,
   target: Enemy,
   margin: number | null,
 ): number => {
   if (margin === null) return 0;
-  if (target.state.kind === 'recovery' || target.state.kind === 'stagger') return 0;
 
   let worst = 0;
   for (const def of cfg.enemies[target.archetype].attacks) {
     if (def.parryable || def.kind === 'projectile') continue;
     worst = Math.max(worst, def.range + def.lungeDistance + cfg.player.radius);
   }
-  return worst === 0 ? 0 : worst + margin;
+  if (worst === 0) return 0;
+
+
+
+
+  const recovering = target.state.kind === 'recovery' || target.state.kind === 'stagger';
+  if (recovering) return Math.max(0, worst - cfg.player.step.distance);
+  return worst + margin;
 };
 
 const shieldCannotCoverBoth = (world: World, cfg: CombatConfig, threats: Threats): boolean => {
@@ -495,11 +519,7 @@ export class Pilot {
     if (shieldCannotCoverBoth(world, cfg, threats)) {
       const away = this.awayFromBoth(world, threats);
       out.move = away;
-      if (
-        threat.impactMs <= pc.step.iframeMs * 0.5 + 40 &&
-        affordable &&
-        p.state.kind !== 'parry'
-      ) {
+      if (stepEvades(threat.impactMs, cfg) && affordable && p.state.kind !== 'parry') {
         out.stepPressed = true;
         return 'answered';
       }
@@ -517,9 +537,9 @@ export class Pilot {
     }
 
     if (!threat.parryable) {
-      const stepLead = pc.step.iframeMs * 0.5;
       out.move = norm(scale(sub(threat.fromPos, p.pos), -1));
-      if (threat.impactMs > stepLead + 40 || !affordable) return 'retreat';
+      if (!affordable) return 'retreat';
+      if (!stepEvades(threat.impactMs, cfg) && !stepOutrunsReach(p, cfg, threat)) return 'retreat';
       out.stepPressed = true;
       return 'answered';
     }
