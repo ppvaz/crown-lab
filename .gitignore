@@ -54,3 +54,6 @@ tools/blender/__pycache__/
 # Both halves of the distribution rule are still live, and only the first one moved: the pack is
 # committed, and it is still emitted by no build, because `vite.config.ts`'s `castAssets` plugin
 # is `apply: 'serve'` and the registry names a route rather than a bundler import.
+
+# Hardened/obfuscated experimental artifact (scripts/harden-build.mjs) — generated, never shipped
+dist-opaque/
